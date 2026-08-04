@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "Ondina",
+  "project_id": "835de40c-b70d-4933-9536-6dcbf9a7ea3b"
+}
