@@ -15,6 +15,8 @@
 -- 2. Un despacho mueve productos desde stock_bodega a carga_vendedor.
 -- 3. Una venta descuenta carga_vendedor y puede registrar envases recibidos.
 -- 4. Devoluciones, mermas y ajustes corrigen las existencias sin borrar historia.
+-- Cada movimiento operativo queda asociado a una sucursal para separar stock,
+-- ventas, despachos y producción entre las distintas sedes de la empresa.
 -- Las operaciones anteriores deben ejecutarse en transacciones y con RLS; los
 -- comentarios de reglas al final documentan la lógica que implementarán triggers
 -- o funciones RPC en una migración posterior.
@@ -26,16 +28,32 @@ create extension if not exists pgcrypto;
 -- IDENTIDAD Y CATÁLOGOS
 -- `perfiles` complementa a auth.users. Supabase Auth conserva la contraseña;
 -- aquí solo se guarda la información necesaria para autorización y operación.
+-- Una sucursal representa una sede física de Ondina. Es la entidad que separa
+-- existencias y movimientos operativos; configuración y catálogo siguen siendo
+-- globales salvo que una futura regla de negocio indique lo contrario.
+create table sucursales (
+    id uuid primary key default gen_random_uuid(),
+    nombre text not null unique,
+    direccion text,
+    comuna text,
+    region text,
+    telefono text,
+    activa boolean not null default true,
+    creado_en timestamptz not null default now()
+);
+
 -- Supabase Auth administra las contraseñas. Esta tabla solo guarda el perfil operativo.
 create table perfiles (
     id uuid primary key references auth.users(id) on delete cascade,
+    sucursal_id uuid not null references sucursales(id),
     nombres text not null,
     apellidos text not null,
     rut text unique,
     telefono text,
     rol text not null check (rol in ('vendedor', 'bodega', 'produccion', 'administrador')),
     activo boolean not null default true,
-    creado_en timestamptz not null default now()
+    creado_en timestamptz not null default now(),
+    unique (id, sucursal_id)
 );
 
 -- Un producto puede utilizar un tipo de envase retornable o no retornable.
@@ -59,10 +77,12 @@ create table productos (
 );
 
 -- La cartera pertenece a un vendedor, pero la trazabilidad de creación y edición
--- conserva también qué perfil realizó cada operación.
+-- conserva también qué perfil realizó cada operación. La sucursal se guarda de
+-- forma explícita para consultar carteras y reportes por sede sin inferencias.
 create table clientes (
     id uuid primary key default gen_random_uuid(),
-    vendedor_id uuid not null references perfiles(id),
+    sucursal_id uuid not null references sucursales(id),
+    vendedor_id uuid not null,
     nombre text not null,
     telefono text,
     direccion text not null,
@@ -73,7 +93,9 @@ create table clientes (
     creado_por uuid not null references perfiles(id),
     creado_en timestamptz not null default now(),
     modificado_por uuid references perfiles(id),
-    modificado_en timestamptz
+    modificado_en timestamptz,
+    foreign key (vendedor_id, sucursal_id) references perfiles(id, sucursal_id),
+    unique (id, sucursal_id)
 );
 
 -- CONFIGURACIÓN Y COMISIONES
@@ -105,21 +127,29 @@ create table reglas_comision (
 -- EXISTENCIAS
 -- Estas tablas son saldos actuales, no un libro histórico. Los movimientos que
 -- producen esos saldos son ventas, despachos, devoluciones, mermas y producción.
+-- La sucursal forma parte de la clave porque el mismo producto puede tener saldos
+-- distintos en dos sedes.
 create table stock_bodega (
-    producto_id uuid primary key references productos(id),
+    sucursal_id uuid not null references sucursales(id),
+    producto_id uuid not null references productos(id),
     cantidad integer not null default 0 check (cantidad >= 0),
-    modificado_en timestamptz not null default now()
+    modificado_en timestamptz not null default now(),
+    primary key (sucursal_id, producto_id)
 );
 
 -- Los envases se controlan por separado porque pueden regresar aunque el producto
 -- vendido sea agua o hielo y porque un envase malo se transforma en merma.
 create table stock_envases (
-    tipo_empaque_id uuid primary key references tipos_empaque(id),
+    sucursal_id uuid not null references sucursales(id),
+    tipo_empaque_id uuid not null references tipos_empaque(id),
     cantidad integer not null default 0 check (cantidad >= 0),
-    modificado_en timestamptz not null default now()
+    modificado_en timestamptz not null default now(),
+    primary key (sucursal_id, tipo_empaque_id)
 );
 
 -- La clave compuesta impide tener dos saldos para el mismo producto y vendedor.
+-- No se repite sucursal_id: el vendedor ya pertenece a una sucursal mediante
+-- perfiles.sucursal_id, que es la única fuente de verdad para su carga.
 create table carga_vendedor (
     vendedor_id uuid not null references perfiles(id),
     producto_id uuid not null references productos(id),
@@ -131,11 +161,13 @@ create table carga_vendedor (
 -- VENTAS
 -- La cabecera identifica cliente, vendedor y medio de pago. Los detalles contienen
 -- cantidades y precios reales; así cambiar productos.precio_base no altera ventas
--- anteriores. La anulación conserva el registro para auditoría.
+-- anteriores. Las claves foráneas compuestas obligan a que vendedor, cliente y
+-- venta pertenezcan a la misma sucursal. La anulación conserva el registro.
 create table ventas (
     id uuid primary key default gen_random_uuid(),
-    vendedor_id uuid not null references perfiles(id),
-    cliente_id uuid not null references clientes(id),
+    sucursal_id uuid not null references sucursales(id),
+    vendedor_id uuid not null,
+    cliente_id uuid not null,
     metodo_pago text not null check (metodo_pago in ('efectivo', 'transferencia')),
     tipo_documento text check (tipo_documento in ('boleta', 'factura')),
     folio_documento text,
@@ -148,7 +180,9 @@ create table ventas (
     modificado_por uuid references perfiles(id),
     modificado_en timestamptz,
     check (tipo_documento is null or folio_documento is not null),
-    unique (tipo_documento, folio_documento)
+    unique (tipo_documento, folio_documento),
+    foreign key (vendedor_id, sucursal_id) references perfiles(id, sucursal_id),
+    foreign key (cliente_id, sucursal_id) references clientes(id, sucursal_id)
 );
 
 -- subtotal es calculado por PostgreSQL para evitar que frontend y base de datos
@@ -166,7 +200,8 @@ create table venta_detalles (
 -- Los comprobantes se suben a Supabase Storage; la tabla solo conserva su URL.
 create table gastos_extras (
     id uuid primary key default gen_random_uuid(),
-    vendedor_id uuid not null references perfiles(id),
+    sucursal_id uuid not null references sucursales(id),
+    vendedor_id uuid not null,
     tipo text not null default 'otra'
         check (tipo in ('combustible', 'averia', 'otra')),
     monto numeric(12, 2) not null check (monto > 0),
@@ -176,21 +211,27 @@ create table gastos_extras (
     creado_por uuid not null references perfiles(id),
     creado_en timestamptz not null default now(),
     modificado_por uuid references perfiles(id),
-    modificado_en timestamptz
+    modificado_en timestamptz,
+    foreign key (vendedor_id, sucursal_id) references perfiles(id, sucursal_id)
 );
 
 -- DESPACHO Y CIERRE DE RUTA
 -- Un despacho representa la salida de productos hacia un vendedor. No se editan
 -- cantidades históricas: un ajuste se registra como una nueva fila en detalles.
+-- Las claves compuestas impiden despachar entre sucursales distintas.
 create table despachos (
     id uuid primary key default gen_random_uuid(),
-    vendedor_id uuid not null references perfiles(id),
-    despachador_id uuid not null references perfiles(id),
+    sucursal_id uuid not null references sucursales(id),
+    vendedor_id uuid not null,
+    despachador_id uuid not null,
     anulado boolean not null default false,
     creado_por uuid not null references perfiles(id),
     creado_en timestamptz not null default now(),
     modificado_por uuid references perfiles(id),
-    modificado_en timestamptz
+    modificado_en timestamptz,
+    unique (id, sucursal_id),
+    foreign key (vendedor_id, sucursal_id) references perfiles(id, sucursal_id),
+    foreign key (despachador_id, sucursal_id) references perfiles(id, sucursal_id)
 );
 
 -- `es_ajuste` permite distinguir la carga inicial de una suma posterior dentro de
@@ -231,7 +272,8 @@ create table devoluciones_envases (
 -- en una ruta (`despacho_id`) o en planta cuando ese dato queda vacío.
 create table mermas (
     id uuid primary key default gen_random_uuid(),
-    despacho_id uuid references despachos(id),
+    sucursal_id uuid not null references sucursales(id),
+    despacho_id uuid,
     producto_id uuid references productos(id),
     tipo_empaque_id uuid references tipos_empaque(id),
     cantidad integer not null check (cantidad > 0),
@@ -239,13 +281,15 @@ create table mermas (
     anulado boolean not null default false,
     creado_por uuid not null references perfiles(id),
     creado_en timestamptz not null default now(),
-    check ((producto_id is not null) <> (tipo_empaque_id is not null))
+    check ((producto_id is not null) <> (tipo_empaque_id is not null)),
+    foreign key (despacho_id, sucursal_id) references despachos(id, sucursal_id)
 );
 
 -- PRODUCCIÓN Y OPERACIÓN EN TERRENO
 -- Cada producción representa una entrada de producto terminado a bodega.
 create table producciones (
     id uuid primary key default gen_random_uuid(),
+    sucursal_id uuid not null references sucursales(id),
     producto_id uuid not null references productos(id),
     cantidad integer not null check (cantidad > 0),
     observaciones text,
@@ -301,6 +345,7 @@ create table auditoria (
 -- 7. RLS debe habilitarse en todas las tablas expuestas; la UI no es una barrera de seguridad.
 
 alter table perfiles enable row level security;
+alter table sucursales enable row level security;
 alter table tipos_empaque enable row level security;
 alter table productos enable row level security;
 alter table clientes enable row level security;

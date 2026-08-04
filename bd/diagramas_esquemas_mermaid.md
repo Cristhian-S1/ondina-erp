@@ -392,14 +392,15 @@ erDiagram
     PRODUCCION ||--o{ INCIDENCIAS_PRODUCCION : documenta
 ```
 
-## 3. `ondina_schema_v2.sql`
+## 3. `ondina_schema_supabase_v2.sql`
 
-Es la propuesta simplificada. Mantiene el flujo de ventas, inventario, despacho y producción, pero elimina la sucursal porque actualmente se describe una sola planta y guarda los datos tributarios directamente en `ventas`.
+Es la propuesta simplificada. Mantiene el flujo de ventas, inventario, despacho y producción, incorpora sucursales para separar la operación por sede y guarda los datos tributarios directamente en `ventas`.
 
 ```mermaid
 erDiagram
     PERFILES {
         uuid id PK
+        uuid sucursal_id FK
         string nombres
         string apellidos
         string rol
@@ -410,6 +411,12 @@ erDiagram
         string nombre
         string categoria
     }
+    SUCURSALES {
+        uuid id PK
+        string nombre
+        string comuna
+        boolean activa
+    }
     PRODUCTOS {
         uuid id PK
         uuid tipo_empaque_id FK
@@ -419,6 +426,7 @@ erDiagram
     }
     CLIENTES {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         uuid creado_por FK
         string nombre
@@ -437,10 +445,12 @@ erDiagram
         numeric monto_fijo
     }
     STOCK_BODEGA {
+        uuid sucursal_id PK, FK
         uuid producto_id PK, FK
         integer cantidad
     }
     STOCK_ENVASES {
+        uuid sucursal_id PK, FK
         uuid tipo_empaque_id PK, FK
         integer cantidad
     }
@@ -451,6 +461,7 @@ erDiagram
     }
     VENTAS {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         uuid cliente_id FK
         string tipo_documento
@@ -466,6 +477,7 @@ erDiagram
     }
     GASTOS_EXTRAS {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         numeric monto
         string comprobante_url
@@ -473,6 +485,7 @@ erDiagram
     }
     DESPACHOS {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         uuid despachador_id FK
         boolean anulado
@@ -499,6 +512,7 @@ erDiagram
     }
     MERMAS {
         uuid id PK
+        uuid sucursal_id FK
         uuid despacho_id FK
         uuid producto_id FK
         uuid tipo_empaque_id FK
@@ -506,6 +520,7 @@ erDiagram
     }
     PRODUCCIONES {
         uuid id PK
+        uuid sucursal_id FK
         uuid producto_id FK
         integer cantidad
     }
@@ -528,6 +543,15 @@ erDiagram
         uuid usuario_id FK
     }
 
+    SUCURSALES ||--o{ PERFILES : contiene
+    SUCURSALES ||--o{ CLIENTES : atiende
+    SUCURSALES ||--o{ STOCK_BODEGA : almacena
+    SUCURSALES ||--o{ STOCK_ENVASES : almacena
+    SUCURSALES ||--o{ VENTAS : registra
+    SUCURSALES ||--o{ GASTOS_EXTRAS : registra
+    SUCURSALES ||--o{ DESPACHOS : organiza
+    SUCURSALES ||--o{ MERMAS : registra
+    SUCURSALES ||--o{ PRODUCCIONES : opera
     PERFILES ||--o{ CLIENTES : asigna
     PERFILES ||--o{ CONFIGURACION : modifica
     PERFILES ||--o{ REGLAS_COMISION : crea
@@ -564,12 +588,12 @@ erDiagram
 
 ## Diferencias principales
 
-| Área | `ondina_sql.txt` | `ondina_schema_supabase.sql` | `ondina_schema_v2.sql` |
+| Área | `ondina_sql.txt` | `ondina_schema_supabase.sql` | `ondina_schema_supabase_v2.sql` |
 | :--- | :--- | :--- | :--- |
 | Estado | Borrador legado con inconsistencias | Esquema completo y automatizado | Propuesta simplificada |
 | Identidad | IDs numéricos y tabla `usuarios` | UUID y `perfiles` ligado a `auth.users` | UUID y `perfiles` ligado a `auth.users` |
 | Contraseñas | Columna `password` en usuarios | No almacena contraseñas | No almacena contraseñas |
-| Sucursales | Presente | Presente | Eliminada por existir una sola planta actualmente |
+| Sucursales | Presente | Presente | Presente y usada para separar operación, existencias y reportes por sede |
 | Inventario | `stock_sucursal`, envases y bandejas | Stock, carga, envases y bandejas separados | Stock de bodega, envases y carga; elimina bandejas |
 | Documentos | No tiene tabla clara de boleta/factura | `documentos_tributarios` separado | Campos `tipo_documento` y `folio_documento` en `ventas` |
 | Auditoría | No existe | `audit_log` con triggers | `auditoria` como tabla base; triggers quedan para la migración siguiente |

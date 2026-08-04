@@ -117,11 +117,11 @@ La PWA y el soporte offline no se consideran resueltos por defecto. Se evaluará
 
 - `bd/ondina_sql.txt` es un borrador de pgAdmin y no debe desplegarse: contiene `DROP TABLE`, nombres inconsistentes, columnas vacías, tipos incorrectos, valores por defecto sin comillas, IDs numéricos y una tabla de usuarios con contraseñas.
 - `bd/ondina_schema_supabase.sql` corrige gran parte de lo anterior y agrega RLS, auditoría y triggers útiles, pero concentra en un solo archivo el modelo, automatizaciones, vistas, Storage, semillas y políticas detalladas.
-- `bd/ondina_schema_v2.sql` es la propuesta simplificada para validar con el equipo. Contiene tablas, relaciones, restricciones, RLS habilitado y reglas operativas esenciales, pero deja reportes, semillas y automatizaciones secundarias fuera del esquema base.
+- `bd/ondina_schema_supabase_v2.sql` es la propuesta simplificada para validar con el equipo. Contiene tablas, relaciones, restricciones, RLS habilitado y reglas operativas esenciales, pero deja reportes, semillas y automatizaciones secundarias fuera del esquema base.
 
 ### 6.2 Decisiones de simplificación
 
-- Se elimina `sucursales`: los requisitos actuales describen una planta; se puede agregar como migración si aparece una segunda sede real.
+- Se incorpora `sucursales` como entidad operativa raíz porque la empresa trabaja con varias sedes; separa existencias y movimientos por ubicación.
 - Se elimina una tabla separada de documentos tributarios: boleta/factura se representa con `tipo_documento` y `folio_documento` en `ventas`.
 - Se conservan `stock_bodega`, `stock_envases` y `carga_vendedor` porque representan existencias distintas y permiten controlar el flujo planta -> ruta -> venta.
 - Se conservan `configuracion`, `reglas_comision` y `auditoria` porque son necesarios para cambiar reglas sin código, corregir con trazabilidad y cumplir los requisitos de integridad.
@@ -144,6 +144,7 @@ La PWA y el soporte offline no se consideran resueltos por defecto. Se evaluará
 erDiagram
     PERFILES {
         uuid id PK
+        uuid sucursal_id FK
         text nombres
         text apellidos
         text rol
@@ -151,6 +152,7 @@ erDiagram
     }
     CLIENTES {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         text nombre
         text direccion
@@ -161,6 +163,12 @@ erDiagram
         uuid id PK
         text nombre
         text categoria
+    }
+    SUCURSALES {
+        uuid id PK
+        text nombre
+        text comuna
+        boolean activa
     }
     PRODUCTOS {
         uuid id PK
@@ -181,10 +189,12 @@ erDiagram
         numeric monto_fijo
     }
     STOCK_BODEGA {
+        uuid sucursal_id PK, FK
         uuid producto_id PK, FK
         int cantidad
     }
     STOCK_ENVASES {
+        uuid sucursal_id PK, FK
         uuid tipo_empaque_id PK, FK
         int cantidad
     }
@@ -195,6 +205,7 @@ erDiagram
     }
     VENTAS {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         uuid cliente_id FK
         text metodo_pago
@@ -210,12 +221,14 @@ erDiagram
     }
     GASTOS_EXTRAS {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         numeric monto
         text comprobante_url
     }
     DESPACHOS {
         uuid id PK
+        uuid sucursal_id FK
         uuid vendedor_id FK
         uuid despachador_id FK
     }
@@ -241,6 +254,7 @@ erDiagram
     }
     MERMAS {
         uuid id PK
+        uuid sucursal_id FK
         uuid despacho_id FK
         uuid producto_id FK
         uuid tipo_empaque_id FK
@@ -248,6 +262,7 @@ erDiagram
     }
     PRODUCCIONES {
         uuid id PK
+        uuid sucursal_id FK
         uuid producto_id FK
         int cantidad
     }
@@ -270,6 +285,15 @@ erDiagram
         uuid usuario_id FK
     }
 
+    SUCURSALES ||--o{ PERFILES : contiene
+    SUCURSALES ||--o{ CLIENTES : atiende
+    SUCURSALES ||--o{ STOCK_BODEGA : almacena
+    SUCURSALES ||--o{ STOCK_ENVASES : almacena
+    SUCURSALES ||--o{ VENTAS : registra
+    SUCURSALES ||--o{ GASTOS_EXTRAS : registra
+    SUCURSALES ||--o{ DESPACHOS : organiza
+    SUCURSALES ||--o{ MERMAS : registra
+    SUCURSALES ||--o{ PRODUCCIONES : opera
     PERFILES ||--o{ CLIENTES : administra
     PERFILES ||--o{ CONFIGURACION : configura
     PERFILES ||--o{ REGLAS_COMISION : define
@@ -313,6 +337,20 @@ main (producción)        ← merge con aprobación
   └── develop (desarrollo) ← deploy automático a DEV
         └── feature/HU-01-registrar-venta ← PR con preview automático
 ```
+
+El dominio se identifica en el nombre de la rama, no mediante carpetas permanentes:
+
+```text
+feature/ventas
+feature/bodega
+feature/produccion
+feature/administracion
+```
+
+El frontend integrado en `develop` concentra la navegación, sesión, roles, layout,
+estilo principal, cliente Supabase y composición de las funcionalidades. Cada PR
+puede modificar esa aplicación común, pero debe mantener aislado el alcance de su
+HU o dominio.
 
 ### Pipeline
 
@@ -380,13 +418,13 @@ Basado en **OWASP Top 10:2025** (A01 Broken Access Control es el riesgo #1 — d
 
 ## 10. Reparto del trabajo (4 personas)
 
-**Modelo: propiedad por módulos end-to-end** (cada uno hace front + lógica + pruebas de su módulo), con DevOps rotativo por sprint.
+**Modelo: propiedad por ramas de dominio end-to-end** (cada rama contiene frontend, lógica y pruebas de una HU o dominio), con integración en `develop` y DevOps rotativo por sprint. No se crearán carpetas permanentes por módulo.
 
 | Persona | Responsabilidad | Historias |
 | :------ | :-------------- | :-------- |
-| Dev 1 | Módulo Ventas y Clientes | HU-01 a HU-09 (9 HU — el módulo más grande) |
-| Dev 2 | Módulos Bodega/Despacho + Producción | HU-19 a HU-29 (11 HU, más simples) |
-| Dev 3 | Módulo Administración | HU-10 a HU-17 (8 HU) |
+| Dev 1 | Ramas de Ventas y Clientes | HU-01 a HU-09 (9 HU — el módulo más grande) |
+| Dev 2 | Ramas de Bodega/Despacho + Producción | HU-19 a HU-29 (11 HU, más simples) |
+| Dev 3 | Ramas de Administración | HU-10 a HU-17 (8 HU) |
 | Dev 4 (**Tech Lead**) | Transversal + DevOps/QA | HU-31 (auth), setup CI/CD, esquema de BD, RLS, pruebas E2E, apoyo a Dev 1 |
 
 **Reglas transversales:**

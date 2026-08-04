@@ -5,7 +5,7 @@
 - This repository currently contains project documentation and a Supabase/PostgreSQL schema; there is no application source tree, package manifest, lockfile, CI workflow, or test configuration to run.
 - Do not invent build, lint, typecheck, or test commands. Re-check the root files when implementation code is introduced.
 - The project targets a web system for sales, production, warehouse/dispatch, and administration, used mainly from tablets.
-- The frontend is organized into exactly five initial directories: `frontend/` as the main React application and `frontend/ventas/`, `frontend/bodega/`, `frontend/produccion/`, and `frontend/administracion/` as domain modules.
+- The repository uses one future frontend application; domain work is separated by Git branches, not permanent module directories.
 
 ## Source Of Truth
 
@@ -16,6 +16,7 @@
 ## Database
 
 - `bd/ondina_schema_supabase.sql` is the current canonical schema and includes Supabase Auth, RLS policies, triggers, audit logging, views, storage policy, and seed data.
+- `bd/ondina_schema_supabase_v2.sql` is the simplified schema proposal, including multi-branch `sucursales`; validate it before converting it into migrations.
 - `bd/ondina_sql.txt` is a legacy pgAdmin/ERD draft explicitly superseded by the canonical schema; do not extend or deploy it.
 - The canonical schema is a complete transaction wrapped in `BEGIN`/`COMMIT`; apply it only to an isolated Supabase/PostgreSQL environment after checking compatibility with the target database.
 - Preserve the database invariants already encoded in the canonical schema: RLS on exposed tables, role-based authorization in the database, audit triggers, configurable business parameters, and soft-delete/anulation for operational records.
@@ -29,11 +30,14 @@
 - When implementation begins, add versioned migrations under a dedicated migration directory instead of editing an already-applied schema blindly; keep RLS and audit behavior with every exposed table.
 - If documentation conflicts with executable SQL, prefer the canonical schema for the current data model and flag the discrepancy instead of guessing.
 
-## Frontend Organization
+## Branch Organization
 
-- `frontend/` owns the React/Vite entrypoint, routing, session/role guards, shared layout, visual language, shared Supabase client, global error handling, and cross-module composition.
-- `frontend/ventas/`, `frontend/bodega/`, `frontend/produccion/`, and `frontend/administracion/` are domain boundaries, not independent applications.
-- Keep each module's components, hooks, schemas, services, types, and tests inside its own directory unless the code is genuinely shared by more than one module.
-- Do not access Supabase directly from presentation components; use module or shared services and validate external data with Zod.
-- All modules must use the shared visual system: layout, navigation, typography, spacing, colors, touch targets, loading states, empty states, and error states.
-- A module may vary its workflow for its role, but must not introduce an unrelated visual language or duplicate shared UI components.
+- Use `feature/ventas` for sales and customer work.
+- Use `feature/bodega` for warehouse and dispatch work.
+- Use `feature/produccion` for production work.
+- Use `feature/administracion` for administration work.
+- Keep domain work isolated by branch; do not create permanent module application directories.
+- The integrated frontend on `develop` owns the React/Vite entrypoint, routing, session/role guards, shared layout, visual language, shared Supabase client, global error handling, and composition across domains.
+- Do not access Supabase directly from presentation components; use shared services and validate external data with Zod.
+- All domain changes must follow the same visual system: layout, navigation, typography, spacing, colors, touch targets, loading states, empty states, and error states.
+- A domain branch may vary its workflow, but must not introduce an unrelated visual language or duplicate shared UI components.

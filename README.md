@@ -13,7 +13,7 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `docs/Requerimentos RF y RNF.md`: requisitos funcionales y no funcionales.
 - `docs/Historias de Usuario.md`: historias y criterios de aceptación.
 - `bd/diagramas_esquemas_mermaid.md`: comparación visual de los tres esquemas SQL.
-- `bd/ondina_schema_v2.sql`: propuesta simplificada del modelo relacional.
+- `bd/ondina_schema_supabase_v2.sql`: propuesta simplificada del modelo relacional.
 
 Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
 
@@ -65,10 +65,10 @@ La UI puede ocultar opciones, pero nunca reemplaza la autorización de RLS.
 
 Supabase Auth administra las credenciales. La tabla `perfiles` solo extiende a `auth.users` con nombres, rol y datos operativos; nunca se guardan contraseñas en tablas del proyecto.
 
-El modelo de dominio propuesto en `bd/ondina_schema_v2.sql` mantiene estas entidades principales:
+El modelo de dominio propuesto en `bd/ondina_schema_supabase_v2.sql` mantiene estas entidades principales:
 
-- Catálogos: `perfiles`, `tipos_empaque`, `productos`, `configuracion` y `reglas_comision`.
-- Existencias: `stock_bodega`, `stock_envases` y `carga_vendedor`.
+- Catálogos: `sucursales`, `perfiles`, `tipos_empaque`, `productos`, `configuracion` y `reglas_comision`.
+- Existencias: `stock_bodega`, `stock_envases` y `carga_vendedor`, separadas por sucursal cuando corresponde.
 - Ventas: `clientes`, `ventas`, `venta_detalles` y `gastos_extras`.
 - Operación: `despachos`, `despacho_detalles`, devoluciones y `mermas`.
 - Producción: `producciones` e `incidencias_produccion`.
@@ -86,50 +86,34 @@ Reglas que deben mantenerse:
 
 Los objetos `auth.users` y `storage.objects` pertenecen a Supabase y no se duplican como tablas del dominio.
 
-## Estructura Del Frontend
+## Organización Por Ramas
 
-El frontend principal coordina los cuatro módulos mediante una experiencia visual
-común. Cada módulo debe mantener su lógica de dominio aislada y comunicarse con
-Supabase a través de servicios compartidos, sin acceder directamente a la base de
-datos desde componentes visuales.
+Los módulos no se separan mediante carpetas permanentes. El repositorio tendrá una
+sola aplicación frontend y el trabajo de cada dominio se aislará mediante ramas.
+Esto evita duplicar layouts, clientes de Supabase y componentes compartidos.
 
-```text
-frontend/
-├── ventas/          # Ventas, clientes, carga, gastos y comisiones
-├── bodega/          # Stock, despachos, ajustes, devoluciones y mermas
-├── produccion/      # Producción e incidencias
-└── administracion/  # Usuarios, catálogo, reportes, GPS y configuración
-```
-
-`frontend/` es la aplicación principal y será responsable de:
-
-- Arranque de React/Vite y configuración global.
-- Enrutamiento y protección de rutas por sesión y rol.
-- Layout, navegación, identidad visual y componentes compartidos.
-- Cliente de Supabase, TanStack Query y manejo global de errores.
-- Integración de los cuatro módulos sin mezclar sus reglas de negocio.
-
-Las carpetas de módulos son límites de dominio, no aplicaciones independientes.
-Cuando se agregue código, los componentes, hooks, schemas, servicios y pruebas de
-cada módulo deben permanecer dentro de su carpeta salvo que sean realmente
-compartidos por más de un módulo.
-
-La estructura técnica complementaria se agregará dentro de `frontend/` cuando
-comience la implementación:
+Ramas de trabajo por dominio:
 
 ```text
-frontend/
-├── components/      # UI reutilizable y estilo principal
-├── hooks/           # Hooks transversales
-├── lib/             # Supabase, configuración y utilidades
-├── schemas/         # Validaciones compartidas con Zod
-├── services/        # Acceso compartido a servicios externos
-├── types/           # Tipos de dominio compartidos
-└── test/            # Factories y configuración de pruebas
-supabase/
-└── migrations/
-e2e/
+feature/ventas
+feature/bodega
+feature/produccion
+feature/administracion
 ```
+
+Reglas de integración:
+
+- Cada rama aborda una HU o cambio técnico de un único dominio.
+- La rama parte de `develop` y se integra nuevamente mediante Pull Request.
+- `develop` contiene la aplicación integrada y el estilo principal compartido.
+- `main` contiene únicamente versiones aprobadas para producción.
+- Si una HU afecta más de un dominio, el PR debe explicar las dependencias y el orden de integración.
+- El frontend central será responsable de navegación, sesión, roles, layout, estilo, cliente Supabase, errores globales y composición de las funcionalidades.
+
+Cuando se incorpore el código, se mantendrá una aplicación frontend única; no se
+crearán carpetas `ventas`, `bodega`, `produccion` o `administracion` como
+aplicaciones independientes. La lógica de negocio seguirá identificándose por
+HU y dominio en los cambios de cada rama.
 
 La lógica de negocio no debe vivir en componentes React. Utiliza funciones, hooks, servicios y esquemas testeables. Los componentes de UI y utilidades genéricas pueden nombrarse en inglés; los conceptos del dominio deben nombrarse en español.
 
@@ -169,7 +153,7 @@ mantener una experiencia consistente en tablets y computadores:
 - Los parámetros de negocio viven en configuración, no como números mágicos en el frontend.
 - No guardar secretos, contraseñas, datos reales de clientes ni archivos `.env` en Git.
 
-El archivo `bd/ondina_sql.txt` es un borrador legado y no debe desplegarse. `bd/ondina_schema_supabase.sql` es una referencia más completa, mientras que `bd/ondina_schema_v2.sql` es la propuesta simplificada para validar antes de convertirla en migraciones.
+El archivo histórico `bd/ondina_sql.txt` no debe desplegarse. `bd/ondina_schema_supabase.sql` es la referencia completa y `bd/ondina_schema_supabase_v2.sql` es la propuesta simplificada para validar antes de convertirla en migraciones.
 
 ## Git Y Pull Requests
 
