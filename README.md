@@ -307,3 +307,10 @@ revisión y sus bloqueadores están documentados en `docs/revision-esquema-v2.md
 Antes de desarrollar flujos que escriban stock, auditoría, ventas o despachos,
 deben acordarse y versionarse las políticas RLS, triggers/RPC, índices y reglas de
 integridad pendientes.
+
+### Contexto De Esta Rama
+
+`develop` es la rama de integración del equipo. Recibe Pull Requests revisados
+desde las ramas de dominio, concentra la aplicación compartida y sirve como base
+para validaciones contra el ambiente de desarrollo. No debe usarse para trabajo
+individual sin una rama de dominio asociada.
