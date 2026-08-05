@@ -1,91 +1,90 @@
-# Ondina Agent Guide
+# Guía Del Agente Ondina
 
-## Current Repository State
+## Estado Actual Del Repositorio
 
-- This repository currently contains project documentation and a Supabase/PostgreSQL schema; there is no application source tree, package manifest, lockfile, CI workflow, or test configuration to run.
-- Do not invent build, lint, typecheck, or test commands. Re-check the root files when implementation code is introduced.
-- The project targets a web system for sales, production, warehouse/dispatch, and administration, used mainly from tablets.
-- The repository uses one future frontend application; domain work is separated by Git branches, not permanent module directories.
+- El repo contiene documentación, esquemas SQL y una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript).
+- No hay aún: `supabase/migrations/`, configuración de CI, migraciones aplicadas ni pruebas ejecutables (solo `lint` y `build`).
+- El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; no existe `.env.example` aún.
+- Los datos de la base local de Beads viven en `.beads/`; se limpió el historial de un proyecto anterior: el tracker está vacío y `config.yaml` solo tiene `repos.primary = "."`.
 
-## Source Of Truth
+## Fuente De Verdad
 
-- Read `AGENTS_para_equipo_desarrollo.md` before changing project artifacts; it contains the team's language, naming, SQL/RLS, testing, Git, and security conventions.
-- Use `Plan De Desarrollo.md` for the delivery plan and chosen architecture: React + Vite + TypeScript, Supabase, Tailwind, TanStack Query, React Hook Form/Zod, Playwright, and Vercel are planned but not yet present in this repository.
-- Use `docs/Problematica.md`, `docs/Requerimentos RF y RNF.md`, and `docs/Historias de Usuario.md` for business requirements. Treat unresolved requirements in the meeting notes as unresolved rather than silently deciding them.
+- `README.md` y `docs/` son la fuente principal de alcance, ramas, convenciones, y modelos. Lee `README.md` antes de tocar código o SQL.
+- `docs/Plan De Desarrollo.md` documenta el alcance y el stack elegido.
+- `docs/Problematica.md`, `docs/Requerimentos RF y RNF.md` y `docs/Historias de Usuario.md` contienen requisitos del negocio. Trata lo pendiente en las notas como no resuelto.
+- No existe `AGENTS_para_equipo_desarrollo.md` (referenciado en `README.md`). No lo busques; la convención real de código/Git/seguridad está en `README.md` y `AGENTS.md`.
 
-## Database
+## Frontend
 
-- `bd/ondina_schema_supabase.sql` is the current canonical schema and includes Supabase Auth, RLS policies, triggers, audit logging, views, storage policy, and seed data.
-- `bd/ondina_schema_supabase_v2.sql` is the simplified schema proposal, including multi-branch `sucursales`; validate it before converting it into migrations.
-- `bd/ondina_sql.txt` is a legacy pgAdmin/ERD draft explicitly superseded by the canonical schema; do not extend or deploy it.
-- The canonical schema is a complete transaction wrapped in `BEGIN`/`COMMIT`; apply it only to an isolated Supabase/PostgreSQL environment after checking compatibility with the target database.
-- Preserve the database invariants already encoded in the canonical schema: RLS on exposed tables, role-based authorization in the database, audit triggers, configurable business parameters, and soft-delete/anulation for operational records.
-- Inventory quantities are maintained by database triggers, not direct application updates. Dispatch adjustments only add detail rows during the configured window; they do not edit or subtract existing rows.
-- Never store Supabase passwords in application tables; authentication belongs to Supabase Auth and `perfiles.id` references `auth.users.id`.
-
-## Workflow Constraints
-
-- Do not add dependencies, application scaffolding, migrations, CI/CD, or infrastructure configuration unless the user explicitly asks for implementation work.
-- Do not commit secrets, `.env` files, credentials, real customer data, or generated database dumps.
-- When implementation begins, add versioned migrations under a dedicated migration directory instead of editing an already-applied schema blindly; keep RLS and audit behavior with every exposed table.
-- If documentation conflicts with executable SQL, prefer the canonical schema for the current data model and flag the discrepancy instead of guessing.
-
-## Branch Organization
-
-- Use `feature/ventas` for sales and customer work.
-- Use `feature/bodega` for warehouse and dispatch work.
-- Use `feature/produccion` for production work.
-- Use `feature/administracion` for administration work.
-- Keep domain work isolated by branch; do not create permanent module application directories.
-- The integrated frontend on `develop` owns the React/Vite entrypoint, routing, session/role guards, shared layout, visual language, shared Supabase client, global error handling, and composition across domains.
-- Do not access Supabase directly from presentation components; use shared services and validate external data with Zod.
-- All domain changes must follow the same visual system: layout, navigation, typography, spacing, colors, touch targets, loading states, empty states, and error states.
-- A domain branch may vary its workflow, but must not introduce an unrelated visual language or duplicate shared UI components.
-
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:7510c1e2 -->
-## Beads Issue Tracker
-
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
-
-### Quick Reference
+Comandos reales (en `frontend/`, se necesita Node 22+):
 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
+npm install
+npm run dev        # servidor de desarrollo Vite
+npm run build      # tsc -b && vite build
+npm run lint       # eslint .
 ```
 
-### Rules
+- TypeScript estricto con `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`, y `verbatimModuleSyntax`. Usa `import type` para imports solo de tipos (obligatorio por `verbatimModuleSyntax`).
+- Los dominios se componen como módulos en `frontend/src/domains/index.ts` y cada uno expone un `DomainModule`. La lógica de tu dominio debe quedar en `frontend/src/domains/<dominio>/`, no fuera.
+- No accedas a Supabase desde componentes de presentación; usa el cliente compartido en `frontend/src/lib/supabase.ts` y los servicios de cada dominio.
+- Componentes en `PascalCase`, hooks `useCamelCase`, utilidades `camelCase`, carpetas `kebab-case`, mensajes al usuario en español.
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+## Base De Datos
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
+- `bd/` contiene esquemas SQL y seed. Archivos reales: `ondina_schema.sql`, `ondina_schema_supabase.sql`, `ondina_schema_supabase_v2.sql`, `rls_policies.sql`, `seed_datos_prueba.sql`, `drop_todo.sql` y `diagramas_esquemas_mermaid.md`.
+- `bd/ondina_schema_supabase.sql` es el esquema canónico completo (Auth, RLS, triggers, auditoría, vistas, storage, seed). `bd/ondina_schema_supabase_v2.sql` es la propuesta simplificada con `sucursales`, pendiente de validar antes de convertir en migraciones.
+- No existía `bd/ondina_sql.txt` — superado; no lo busques ni despliegues.
+- Aplica el esquema solo en un entorno Supabase/PostgreSQL aislado. Los cambios definitivos van en migraciones versionadas bajo `supabase/migrations/` (aún no creado).
+- Preserva los invariantes: RLS en tablas expuestas, autorización en la BD, triggers de auditoría, parámetros de negocio configurables y soft-delete/anulación.
+- El stock lo mantienen los triggers de BD, no el frontend. Los ajustes de despacho agregan filas dentro de la ventana configurada; no editan ni restan filas existentes.
+- Nunca guardes contraseñas en tablas de la aplicación; la autenticación pertenece a Supabase Auth y `perfiles.id` referencia `auth.users.id`.
 
-## Session Completion
+## Ramas Y Flujo De Trabajo
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+- Ramas de dominio: `feature/ventas`, `feature/bodega`, `feature/produccion`, `feature/administracion`.
+- `main` publicación/protección, `develop` integración. Las ramas de dominio nacen de `develop` y se integran por PR con squash.
+- Además existen ramas de trabajo locales transitorias: `work/*`, `context/*`, `contextura/*`, `integration/*` y `clean/*`. No las uses como base nueva; nace de `develop`.
+- Commits con Conventional Commits, en español, en imperativo, máximo 72 caracteres: `<tipo>(<alcance>): <descripción> [HU-XX]`.
 
-**MANDATORY WORKFLOW:**
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:7510c1e2 -->
+## Seguimiento De Issues Con Beads
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+Este proyecto usa **bd (beads)** para el seguimiento de issues. Ejecuta `bd prime` para ver el contexto completo del flujo y los comandos.
+
+```bash
+bd ready              # encontrar trabajo disponible
+bd show <id>          # ver detalles de un issue
+bd update <id> --claim  # reclamar un issue
+bd close <id>         # cerrar un issue
+bd statistics         # resumen del proyecto
+```
+
+### Reglas
+
+- Usa `bd` para el seguimiento de TODAS las tareas; no uses TodoWrite, markdown TODO ni tablas de seguimiento por fuera de `bd`.
+- Ejecuta `bd prime` para el flujo detallado de cierre de sesión y las referencias.
+- Usa `bd remember <texto>` para memoria persistente; no uses archivos `MEMORY.md`.
+- `config.yaml` de beads solo debe tener `repos.primary = "."`; no agregues la sección `additional`.
+- `.beads/embeddeddolt/` es la fuente de datos local y NO se versiona. `.beads/issues.jsonl` es un export pasivo que el hook de beads regenera con cada commit; se eliminó del tracking en git y no debe volver a añadirse. Borrar `issues.jsonl` no borra los datos reales (viven en `embeddeddolt/`), y beads puede reimportar desde ese export al cambiar de rama vía `import.auto`. Para limpiar del todo, borra del Dolt local con `bd delete` y luego quita el export en git.
+
+<!-- END BEATS INTEGRATION -->
+
+## Cierre De Sesión
+
+Al acabar abandonar una sesión, NO estás completo hasta que `git push` tenga éxito.
+
+1. Crea issues para el trabajo pendiente.
+2. Ejecuta las verificaciones de calidad si hubo código (`npm run lint` y `npm run build` en `frontend/`).
+3. Actualiza el estado de los issues (cierra lo hecho, marca en progreso lo que quede).
+4. Push obligatorio:
    ```bash
    git pull --rebase
    git push
-   git status  # MUST show "up to date with origin"
+   git status   # debe mostrar "up to date with origin"
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. Limpia: descarta `git stash` y poda ramas remotas.
+6. Verifica que todo esté commiteado y pusheado.
+7. Deja contexto del hand‑off para la siguiente sesión.
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-<!-- END BEADS INTEGRATION -->
+Nunca dejes que la rama local quede por push; resolver y reintentar hasta que push tenga éxito.
