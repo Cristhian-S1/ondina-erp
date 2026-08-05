@@ -314,3 +314,157 @@ integridad pendientes.
 desde las ramas de dominio, concentra la aplicación compartida y sirve como base
 para validaciones contra el ambiente de desarrollo. No debe usarse para trabajo
 individual sin una rama de dominio asociada.
+
+## Configuración Inicial Del Entorno
+
+Estas instrucciones preparan Ubuntu y OpenCode para trabajar en Ondina. Ejecuta
+los comandos desde la raíz del repositorio cuando se indique. No guardes claves
+reales, contraseñas ni archivos `.env` en Git.
+
+### Dependencias base de Ubuntu
+
+```bash
+sudo apt update
+sudo apt install -y curl git jq build-essential postgresql postgresql-contrib docker.io docker-compose-v2
+sudo systemctl enable --now docker
+sudo usermod -aG docker "$USER"
+```
+
+Cierra la sesión y vuelve a entrar después de agregar el usuario al grupo
+`docker`. Comprueba que `docker info` funciona sin `sudo`.
+
+### Node.js y herramientas frontend
+
+El frontend usa Node.js 22 o superior porque las versiones actuales de React,
+Vite y Supabase del proyecto lo requieren. Una instalación reproducible con
+`nvm` es:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+source ~/.bashrc
+nvm install 22
+nvm alias default 22
+node --version
+npm --version
+```
+
+Instala las dependencias versionadas del frontend y ejecuta sus comandos reales:
+
+```bash
+cd frontend
+npm install
+npm run dev
+npm run build
+npm run lint
+cd ..
+```
+
+El proyecto ya declara React, React DOM, React Router, TypeScript, Vite,
+Tailwind CSS y `@supabase/supabase-js` en `frontend/package.json`. Vercel puede
+desplegar el frontend mediante integración GitHub; la CLI opcional se instala
+con `npm install -g vercel` si se necesita publicar manualmente.
+
+### PostgreSQL y Supabase CLI
+
+Para disponer de `psql` y un servidor PostgreSQL local:
+
+```bash
+sudo apt install -y postgresql postgresql-contrib
+psql --version
+sudo -u postgres psql
+```
+
+Para instalar la CLI de Supabase globalmente:
+
+```bash
+npm install -g supabase
+supabase --version
+```
+
+La CLI usa Docker para `supabase start`. Inicializa el proyecto únicamente
+cuando se vaya a crear la estructura local de Supabase:
+
+```bash
+supabase init
+supabase start
+```
+
+No ejecutes el esquema contra producción. Los cambios definitivos deben quedar
+en migraciones versionadas y revisarse con RLS, triggers, Storage y pruebas.
+
+### CodeGraph
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh
+cd /ruta/al/proyecto/Ondina
+codegraph init
+```
+
+La base de datos de CodeGraph es local y no debe versionarse.
+
+### Beads
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/gastownhall/beads/main/scripts/install.sh | bash
+cd /ruta/al/proyecto/Ondina
+bd init
+bd ready
+```
+
+Beads conserva el seguimiento de tareas y decisiones del repositorio. Usa `bd`
+para crear, reclamar y cerrar trabajo antes de modificar el proyecto.
+
+### Mem0 y plugin de OpenCode
+
+1. Visita <https://app.mem0.ai> y crea una API key nueva.
+2. Agrega la clave solo a tu entorno local:
+
+```bash
+echo 'export MEM0_API_KEY="m0-tu-key-aquí"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Desde la raíz del proyecto, instala o habilita el plugin:
+
+```bash
+opencode plugin @mem0/opencode-plugin
+```
+
+El plugin también está declarado en `opencode.json`. La clave real nunca debe
+escribirse en ese archivo ni publicarse en commits.
+
+### OpenCode y MCPs
+
+La configuración raíz está en `opencode.json`. Incluye Superpowers, Beads,
+Context7, fetch, filesystem, Git, GitHub, Supabase, Mermaid, MarkItDown,
+Playwright, sequential thinking y Tavily. Algunos MCPs requieren dependencias o
+variables locales:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+echo 'export GITHUB_PERSONAL_ACCESS_TOKEN="github-token-local"' >> ~/.bashrc
+echo 'export TAVILY_API_KEY="tvly-token-local"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Reemplaza los valores de ejemplo solo en tu máquina. El MCP de GitHub requiere
+Docker y `GITHUB_PERSONAL_ACCESS_TOKEN`; el MCP remoto de Supabase requiere
+autenticación OAuth desde OpenCode y no debe recibir una `service_role` key en
+el frontend. Activa los MCPs que vayas a usar y reinicia OpenCode después de
+cambiar `opencode.json`.
+
+### Comprobación rápida
+
+```bash
+git status
+node --version
+psql --version
+supabase --version
+docker info
+codegraph --help
+bd ready
+```
+
+Si un comando no existe, instala primero la dependencia indicada en esta sección
+y abre una nueva sesión de terminal para recargar el `PATH`.
