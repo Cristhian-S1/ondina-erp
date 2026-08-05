@@ -1,4 +1,2 @@
 repos:
   primary: "."
-  additional:
-    - "/home/cristhian/.beads-planning"
