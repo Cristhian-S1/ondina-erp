@@ -12,8 +12,8 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `docs/Problematica.md`: situación actual y necesidades del negocio.
 - `docs/Requerimentos RF y RNF.md`: requisitos funcionales y no funcionales.
 - `docs/Historias de Usuario.md`: historias y criterios de aceptación.
-- `bd/diagramas_esquemas_mermaid.md`: comparación visual de los tres esquemas SQL.
-- `bd/ondina_schema_supabase_v2.sql`: propuesta simplificada del modelo relacional.
+- `bd/diagramas_esquemas_mermaid.md`: diagrama visual del esquema final de datos.
+- `bd/ondina_schema_supabase.sql`: esquema relacional final.
 
 Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
 
@@ -65,7 +65,7 @@ La UI puede ocultar opciones, pero nunca reemplaza la autorización de RLS.
 
 Supabase Auth administra las credenciales. La tabla `perfiles` solo extiende a `auth.users` con nombres, rol y datos operativos; nunca se guardan contraseñas en tablas del proyecto.
 
-El modelo de dominio propuesto en `bd/ondina_schema_supabase_v2.sql` mantiene estas entidades principales:
+El modelo de dominio propuesto en `bd/ondina_schema_supabase.sql` mantiene estas entidades principales:
 
 - Catálogos: `sucursales`, `perfiles`, `tipos_empaque`, `productos`, `configuracion` y `reglas_comision`.
 - Existencias: `stock_bodega`, `stock_envases` y `carga_vendedor`, separadas por sucursal cuando corresponde.
@@ -153,7 +153,7 @@ mantener una experiencia consistente en tablets y computadores:
 - Los parámetros de negocio viven en configuración, no como números mágicos en el frontend.
 - No guardar secretos, contraseñas, datos reales de clientes ni archivos `.env` en Git.
 
-El archivo histórico `bd/ondina_sql.txt` no debe desplegarse. `bd/ondina_schema_supabase.sql` es la referencia completa y `bd/ondina_schema_supabase_v2.sql` es la propuesta simplificada para validar antes de convertirla en migraciones.
+El archivo histórico `bd/ondina_sql.txt` no debe desplegarse. `bd/ondina_schema_supabase.sql` es el esquema relacional final; sus políticas RLS, triggers de negocio, auditoría, vistas y datos semilla viven en archivos separados de `bd/`.
 
 ## Git Y Pull Requests
 
@@ -299,21 +299,25 @@ MCP verificables; por eso no se afirma que una conexión Supabase o GitHub esté
 activa. Antes de ejecutar operaciones remotas, el agente debe comprobar que el
 MCP correspondiente aparece conectado y autenticado.
 
-## Estado De La Propuesta SQL v2
+## Estado De Los Objetos SQL
 
-`bd/ondina_schema_supabase_v2.sql` define tablas, relaciones, restricciones y
-habilita RLS, pero todavía no es una base lista para que la aplicación opere. La
-revisión y sus bloqueadores están documentados en `docs/revision-esquema-v2.md`.
-Antes de desarrollar flujos que escriban stock, auditoría, ventas o despachos,
-deben acordarse y versionarse las políticas RLS, triggers/RPC, índices y reglas de
-integridad pendientes.
+`bd/ondina_schema_supabase.sql` define las tablas, relaciones y restricciones del
+modelo y habilita RLS, e incluye índices sobre las columnas de filtro frecuente
+(`sucursal_id`, `vendedor_id`, `creado_en`, `venta_id`, `despacho_id`, `producto_id`,
+`(tabla, registro_id)` en auditoría). Las políticas (rls_policies.sql), triggers de
+negocio (triggers_negocio.sql — incluidos los de reversión por anulación),
+auditoría (auditoria.sql), vistas (vistas.sql — `v_stock_actual`,
+`v_cuadre_despacho`, `v_ventas_diarias`, `v_ranking_vendedores`, `v_comision_vendedor`,
+`v_clientes_inactivos`, `v_historial_cliente`, `v_ventas_producto`) y datos
+semilla (seed.sql) se aplican como objetos separados en el orden documentado en
+cada archivo, y deben convertirse a migraciones versionadas antes de producción.
 
 ### Contexto De Esta Rama
 
-`main` contiene únicamente versiones aprobadas para producción. Los cambios que
-lleguen aquí deben provenir de `develop` mediante Pull Request aprobado, incluir
-las pruebas y migraciones correspondientes, y conservar la trazabilidad de las
-decisiones de seguridad y datos.
+`develop` es la rama de integración del equipo. Recibe Pull Requests revisados
+desde las ramas de dominio, concentra la aplicación compartida y sirve como base
+para validaciones contra el ambiente de desarrollo. No debe usarse para trabajo
+individual sin una rama de dominio asociada.
 
 ## Configuración Inicial Del Entorno
 
