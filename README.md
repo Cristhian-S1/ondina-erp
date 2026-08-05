@@ -307,3 +307,10 @@ revisión y sus bloqueadores están documentados en `docs/revision-esquema-v2.md
 Antes de desarrollar flujos que escriban stock, auditoría, ventas o despachos,
 deben acordarse y versionarse las políticas RLS, triggers/RPC, índices y reglas de
 integridad pendientes.
+
+### Contexto De Esta Rama
+
+`feature/ventas` concentra las historias de ventas y clientes: cartera,
+registro de ventas, precios históricos, medios de pago, documentos, gastos y
+comisiones relacionadas. Los cambios de esta rama deben preservar la carga del
+vendedor y coordinar con `feature/bodega` cualquier movimiento de inventario.
