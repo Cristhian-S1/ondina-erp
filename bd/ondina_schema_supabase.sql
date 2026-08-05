@@ -1,6 +1,8 @@
--- Ondina - esquema relacional mínimo para Supabase
--- Propuesta v2: tablas, relaciones, restricciones y reglas esenciales.
--- No incluye vistas, datos semilla, configuración de Storage ni funciones de reportes.
+-- Ondina - esquema relacional final para Supabase
+-- Esquema definitivo: tablas, relaciones, restricciones y reglas esenciales.
+-- No incluye vistas, datos semilla, configuración de Storage ni funciones de reportes;
+-- esos objetos viven en archivos separados de bd/ (rls_policies.sql, triggers_negocio.sql,
+-- auditoria.sql, vistas.sql y seed.sql).
 -- Aplicar primero en un proyecto Supabase aislado y convertir a migraciones antes de producción.
 --
 -- IDEA GENERAL
@@ -43,10 +45,9 @@ create table sucursales (
 );
 
 -- Supabase Auth administra las contraseñas. Esta tabla solo guarda el perfil operativo.
--- sucursal_id puede ser nulo: los administradores ven y operan en todas las sucursales.
 create table perfiles (
     id uuid primary key references auth.users(id) on delete cascade,
-    sucursal_id uuid references sucursales(id),
+    sucursal_id uuid not null references sucursales(id),
     nombres text not null,
     apellidos text not null,
     rut text unique,
@@ -57,7 +58,8 @@ create table perfiles (
     unique (id, sucursal_id)
 );
 
--- Un producto puede utilizar un tipo de envase retornable o no retornable.
+-- Un producto puede utilizar un tipo de envase retornable, no retornable o de
+-- uso interno (bandejas/cajas para transporte operativo interno).
 create table tipos_empaque (
     id uuid primary key default gen_random_uuid(),
     nombre text not null unique,
@@ -232,8 +234,7 @@ create table despachos (
     modificado_en timestamptz,
     unique (id, sucursal_id),
     foreign key (vendedor_id, sucursal_id) references perfiles(id, sucursal_id),
-    -- despachador_id es FK simple: el administrador no tiene sucursal asignada.
-    foreign key (despachador_id) references perfiles(id)
+    foreign key (despachador_id, sucursal_id) references perfiles(id, sucursal_id)
 );
 
 -- `es_ajuste` permite distinguir la carga inicial de una suma posterior dentro de
@@ -345,6 +346,33 @@ create table auditoria (
 -- 5. Devoluciones y producción actualizan existencias; una merma descuenta existencias.
 -- 6. Las operaciones anuladas no se borran y todos sus cambios se registran en auditoria.
 -- 7. RLS debe habilitarse en todas las tablas expuestas; la UI no es una barrera de seguridad.
+
+-- ÍNDICES
+-- Cubren los filtros más frecuentes de los reportes y la navegación operativa.
+-- Las claves primarias compuestas ya indexan (sucursal_id, producto_id) en
+-- stock_bodega/stock_envases y (vendedor_id, producto_id) en carga_vendedor.
+create index if not exists idx_clientes_sucursal on public.clientes (sucursal_id);
+create index if not exists idx_clientes_vendedor on public.clientes (vendedor_id);
+create index if not exists idx_ventas_sucursal on public.ventas (sucursal_id);
+create index if not exists idx_ventas_vendedor on public.ventas (vendedor_id);
+create index if not exists idx_ventas_cliente on public.ventas (cliente_id);
+create index if not exists idx_ventas_creado_en on public.ventas (creado_en);
+create index if not exists idx_venta_detalles_venta on public.venta_detalles (venta_id);
+create index if not exists idx_venta_detalles_producto on public.venta_detalles (producto_id);
+create index if not exists idx_despachos_sucursal on public.despachos (sucursal_id);
+create index if not exists idx_despachos_vendedor on public.despachos (vendedor_id);
+create index if not exists idx_despachos_creado_en on public.despachos (creado_en);
+create index if not exists idx_despacho_detalles_despacho on public.despacho_detalles (despacho_id);
+create index if not exists idx_despacho_detalles_producto on public.despacho_detalles (producto_id);
+create index if not exists idx_devoluciones_productos_despacho on public.devoluciones_productos (despacho_id);
+create index if not exists idx_devoluciones_envases_despacho on public.devoluciones_envases (despacho_id);
+create index if not exists idx_mermas_sucursal on public.mermas (sucursal_id);
+create index if not exists idx_mermas_despacho on public.mermas (despacho_id);
+create index if not exists idx_producciones_sucursal on public.producciones (sucursal_id);
+create index if not exists idx_producciones_creado_en on public.producciones (creado_en);
+create index if not exists idx_ubicaciones_vendedor on public.ubicaciones_vendedores (vendedor_id, registrado_en desc);
+create index if not exists idx_auditoria_tabla_registro on public.auditoria (tabla, registro_id);
+create index if not exists idx_auditoria_creado_en on public.auditoria (creado_en);
 
 alter table perfiles enable row level security;
 alter table sucursales enable row level security;

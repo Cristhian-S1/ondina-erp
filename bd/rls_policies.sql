@@ -1,6 +1,6 @@
 -- Políticas RLS completas para Ondina
 -- Ejecutar en Supabase: SQL Editor → New query → Run
--- Requisito: aplicar primero ondina_schema_supabase_v2.sql
+-- Requisito: aplicar primero bd/ondina_schema_supabase.sql
 --
 -- Modelo de roles: vendedor, bodega, produccion, administrador.
 -- - vendedor: su cartera, sus ventas, sus despachos, su carga y su ubicación.
@@ -185,14 +185,15 @@ create policy "reglas_comision_delete_admin" on reglas_comision
   using (es_rol('administrador'));
 
 -- STOCK_BODEGA Y STOCK_ENVASES
--- Lectura para todos; escritura para bodega y administración.
+-- Lectura para bodega, produccion y administración (producción necesita conocer
+-- existencias para planear HU-20); escritura para bodega y administración.
 drop policy if exists "stock_bodega_select_operativo" on stock_bodega;
 create policy "stock_bodega_select_operativo" on stock_bodega
   for select to authenticated
   using (
     es_rol('administrador')
     or (
-      es_rol('bodega')
+      (es_rol('bodega') or es_rol('produccion'))
       and sucursal_id = mi_sucursal()
     )
   );
@@ -214,7 +215,7 @@ create policy "stock_envases_select_operativo" on stock_envases
   using (
     es_rol('administrador')
     or (
-      es_rol('bodega')
+      (es_rol('bodega') or es_rol('produccion'))
       and sucursal_id = mi_sucursal()
     )
   );
@@ -305,6 +306,17 @@ create policy "venta_detalles_update_admin" on venta_detalles
   using (es_rol('administrador'))
   with check (es_rol('administrador'));
 
+-- DELETE de venta_detalles (opcional).
+-- El trigger trg_venta_total_del recalcula el total de la venta al borrar un
+-- detalle. Habilitar esta política SOLO si el administrador debe poder
+-- eliminar detalles por corrección; mientras no se necesite, mantenerla
+-- desactivada evita que la API permita borrar líneas ya vendidas. Como política
+-- conservadora de referencia se define comentada; descomentar para habilitar.
+-- drop policy if exists "venta_detalles_delete_admin" on venta_detalles;
+-- create policy "venta_detalles_delete_admin" on venta_detalles
+--   for delete to authenticated
+--   using (es_rol('administrador'));
+
 -- GASTOS_EXTRAS
 -- El vendedor registra y ve sus gastos; administración los anula.
 drop policy if exists "gastos_extras_select_propio" on gastos_extras;
@@ -329,6 +341,9 @@ create policy "gastos_extras_update_admin" on gastos_extras
 
 -- DESPACHOS
 -- Bodega crea y ve despachos; el vendedor ve los suyos; administración anula.
+-- NOTA: producción también lee despachos aquí para planear existencias (HU-20).
+-- Si el equipo define que producción no necesita ver despachos, quitar la
+-- rama `es_rol('produccion') and sucursal_id = mi_sucursal()` de la política.
 drop policy if exists "despachos_select_operativo" on despachos;
 create policy "despachos_select_operativo" on despachos
   for select to authenticated
@@ -343,7 +358,11 @@ drop policy if exists "despachos_insert_bodega" on despachos;
 create policy "despachos_insert_bodega" on despachos
   for insert to authenticated
   with check (
-    (es_rol('bodega') and sucursal_id = mi_sucursal())
+    (
+      es_rol('bodega')
+      and despachador_id = auth.uid()
+      and sucursal_id = mi_sucursal()
+    )
     or es_rol('administrador')
   );
 
@@ -554,3 +573,28 @@ drop policy if exists "auditoria_select_admin" on auditoria;
 create policy "auditoria_select_admin" on auditoria
   for select to authenticated
   using (es_rol('administrador'));
+
+-- STORAGE — comprobantes de gastos (RF-21, HU-07)
+-- gastos_extras.comprobante_url guarda una URL de este bucket.
+drop policy if exists "comprobantes_insert_vendedor" on storage.objects;
+create policy "comprobantes_insert_vendedor" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'comprobantes'
+    and (es_rol('vendedor') or es_rol('administrador'))
+  );
+
+drop policy if exists "comprobantes_select_propio" on storage.objects;
+-- NOTA: esta política no filtra por propietario del objeto (storage.objects
+-- expone `owner`, columna de los metadatos de Supabase Storage). Como está,
+-- cualquier vendedor autenticado puede leer cualquier comprobante del bucket
+-- si conoce la ruta. Para restringir por usuario habría que añadir
+-- `and owner = auth.uid()` o usar la metadata del upload; queda pendiente de
+-- revisar cómo el frontend almacena el owner al subir y si el acceso cruzado
+-- (p.ej. bodega revisando comprobantes) es deseado.
+create policy "comprobantes_select_propio" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'comprobantes'
+    and (es_rol('vendedor') or es_rol('bodega') or es_rol('administrador'))
+  );
