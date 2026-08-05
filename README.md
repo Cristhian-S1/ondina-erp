@@ -307,3 +307,10 @@ revisión y sus bloqueadores están documentados en `docs/revision-esquema-v2.md
 Antes de desarrollar flujos que escriban stock, auditoría, ventas o despachos,
 deben acordarse y versionarse las políticas RLS, triggers/RPC, índices y reglas de
 integridad pendientes.
+
+### Contexto De Esta Rama
+
+`feature/administracion` concentra usuarios, sucursales, catálogo, configuración,
+comisiones, reportes, alertas y GPS. Sus cambios son transversales: deben respetar
+las políticas RLS de todos los dominios, mantener auditoría y coordinarse con el
+Tech Lead antes de alterar contratos compartidos.
