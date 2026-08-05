@@ -1,1 +1,2 @@
 {"id":"int-b097598a","kind":"field_change","created_at":"2026-08-05T00:00:04.276367996Z","actor":"Cristhian-S1","issue_id":"terrorist-gtd-729","extra":{"field":"status","new_value":"in_progress","old_value":"open"}}
+{"id":"int-9f7c816b","kind":"field_change","created_at":"2026-08-05T00:17:52.789140946Z","actor":"Cristhian-S1","issue_id":"terrorist-gtd-729","extra":{"field":"status","new_value":"closed","old_value":"in_progress","reason":"README, skills, revisión SQL y ramas fueron publicados."}}
