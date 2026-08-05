@@ -307,3 +307,10 @@ revisión y sus bloqueadores están documentados en `docs/revision-esquema-v2.md
 Antes de desarrollar flujos que escriban stock, auditoría, ventas o despachos,
 deben acordarse y versionarse las políticas RLS, triggers/RPC, índices y reglas de
 integridad pendientes.
+
+### Contexto De Esta Rama
+
+`main` contiene únicamente versiones aprobadas para producción. Los cambios que
+lleguen aquí deben provenir de `develop` mediante Pull Request aprobado, incluir
+las pruebas y migraciones correspondientes, y conservar la trazabilidad de las
+decisiones de seguridad y datos.
