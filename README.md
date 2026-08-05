@@ -247,3 +247,63 @@ No resolver silenciosamente asuntos que los documentos marcan como pendientes. C
 - Método de pago definitivo.
 - Catálogo único de productos.
 - Alcance real de operación sin conexión.
+
+## Contexto Operativo Del Repositorio
+
+Este repositorio mantiene una sola aplicación integrada. Las ramas separan el
+trabajo por dominio, pero comparten el modelo de datos, la navegación, la sesión,
+los roles, el estilo visual y las reglas de seguridad.
+
+| Rama | Contexto de trabajo |
+| :--- | :--- |
+| `main` | Versiones aprobadas para producción y documentación estable. |
+| `develop` | Integración del equipo, validación en ambiente de desarrollo y base para nuevas ramas. |
+| `feature/ventas` | Ventas, clientes, cartera, gastos, precios históricos y comisiones relacionadas. |
+| `feature/bodega` | Existencias, despachos, carga de vendedores, devoluciones y mermas. |
+| `feature/produccion` | Producción de agua/hielo e incidencias de planta. |
+| `feature/administracion` | Usuarios, catálogo, configuración, reportes, GPS y control transversal. |
+
+Cada rama de dominio debe limitarse a una HU o cambio técnico de su ámbito. Los
+cambios que atraviesen dominios deben explicar sus dependencias en el Pull Request
+y coordinarse mediante `develop`.
+
+## Skills Y Herramientas De Trabajo
+
+### Skills locales del proyecto
+
+Las skills instaladas en `.agents/skills/` son: `ask-matt`, `codebase-design`,
+`domain-modeling`, `find-skills`, `grill-with-docs`, `handoff`,
+`improve-codebase-architecture`, `prototype`, `setup-matt-pocock-skills`,
+`supabase`, `supabase-postgres-best-practices`, `to-spec`, `to-tickets` y
+`vercel-react-best-practices`.
+
+La auditoría realizada contra las skills disponibles de Superpowers no encontró
+duplicados exactos por nombre. Las skills locales complementan a Superpowers:
+las de Supabase y Vercel aportan conocimiento de proveedor, mientras que
+Superpowers aporta flujos de brainstorming, TDD, debugging, revisión, ejecución
+de planes y verificación.
+
+### Herramientas de soporte
+
+- **CodeGraph:** navegación y análisis local de relaciones del código. Su base de datos es local y no se versiona.
+- **Mem0:** memoria persistente de decisiones y aprendizajes del proyecto mediante el plugin configurado en `.opencode/`.
+- **Beads:** seguimiento de tareas, dependencias y estado de trabajo. Las issues viven en `.beads/` y se sincronizan con el repositorio.
+- **Superpowers:** flujos de diseño, implementación, pruebas, revisión y verificación usados por los agentes.
+- **GitHub:** repositorio remoto, Pull Requests, revisión cruzada y futura automatización CI/CD.
+
+### MCPs
+
+El proyecto contempla MCPs para Supabase, GitHub y herramientas auxiliares de
+desarrollo. En el entorno de esta revisión no se expusieron recursos ni plantillas
+MCP verificables; por eso no se afirma que una conexión Supabase o GitHub esté
+activa. Antes de ejecutar operaciones remotas, el agente debe comprobar que el
+MCP correspondiente aparece conectado y autenticado.
+
+## Estado De La Propuesta SQL v2
+
+`bd/ondina_schema_supabase_v2.sql` define tablas, relaciones, restricciones y
+habilita RLS, pero todavía no es una base lista para que la aplicación opere. La
+revisión y sus bloqueadores están documentados en `docs/revision-esquema-v2.md`.
+Antes de desarrollar flujos que escriban stock, auditoría, ventas o despachos,
+deben acordarse y versionarse las políticas RLS, triggers/RPC, índices y reglas de
+integridad pendientes.
