@@ -26,5 +26,32 @@ drop table if exists public.perfiles cascade;
 drop table if exists public.sucursales cascade;
 
 -- Funciones auxiliares usadas por las políticas RLS (se recrean con rls_policies.sql).
+-- Antes de dropear las funciones, eliminar las políticas de storage.objects que
+-- las referencian (storage no se dropea aquí porque es un esquema gestionado por
+-- Supabase). Si se agregaron más políticas sobre storage.objects, añadirlas abajo.
+drop policy if exists "comprobantes_insert_vendedor" on storage.objects;
+drop policy if exists "comprobantes_select_propio" on storage.objects;
 drop function if exists public.es_rol(text);
 drop function if exists public.mi_sucursal();
+
+-- ---------------------------------------------------------------------------
+-- Funciones de triggers de negocio y auditoría (se recrean con
+-- triggers_negocio.sql y auditoria.sql). Ordernar por dependencia no es
+-- necesario: DROP FUNCTION ignora los triggers que las invocan.
+-- ---------------------------------------------------------------------------
+drop function if exists public.trg_despacho_detalle_insert();
+drop function if exists public.trg_venta_detalle_insert();
+drop function if exists public.trg_venta_recalcular_total();
+drop function if exists public.trg_devolucion_producto_insert();
+drop function if exists public.trg_devolucion_envase_insert();
+drop function if exists public.trg_produccion_insert();
+drop function if exists public.trg_merma_insert();
+drop function if exists public.trg_venta_anular();
+drop function if exists public.trg_despacho_anular();
+drop function if exists public.trg_devolucion_producto_anular();
+drop function if exists public.trg_devolucion_envase_anular();
+drop function if exists public.trg_produccion_anular();
+drop function if exists public.trg_merma_anular();
+drop function if exists public.fn_sello_modificacion();
+drop function if exists public.fn_auditoria();
+drop function if exists public.fn_auditoria_simple();

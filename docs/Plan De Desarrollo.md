@@ -116,8 +116,7 @@ La PWA y el soporte offline no se consideran resueltos por defecto. Se evaluará
 ### 6.1 Comparación de los esquemas existentes
 
 - `bd/ondina_sql.txt` es un borrador de pgAdmin y no debe desplegarse: contiene `DROP TABLE`, nombres inconsistentes, columnas vacías, tipos incorrectos, valores por defecto sin comillas, IDs numéricos y una tabla de usuarios con contraseñas.
-- `bd/ondina_schema_supabase.sql` corrige gran parte de lo anterior y agrega RLS, auditoría y triggers útiles, pero concentra en un solo archivo el modelo, automatizaciones, vistas, Storage, semillas y políticas detalladas.
-- `bd/ondina_schema_supabase_v2.sql` es la propuesta simplificada para validar con el equipo. Contiene tablas, relaciones, restricciones, RLS habilitado y reglas operativas esenciales, pero deja reportes, semillas y automatizaciones secundarias fuera del esquema base.
+- `bd/ondina_schema_supabase.sql` es el esquema relacional final: incorpora `sucursales`, RLS habilitado y reglas operativas esenciales. Las políticas RLS, triggers de negocio, auditoría, vistas y datos semilla viven en archivos separados de `bd/` (`rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`), antes de convertirlos en migraciones.
 
 ### 6.2 Decisiones de simplificación
 

@@ -32,12 +32,16 @@ npm run lint       # eslint .
 
 ## Base De Datos
 
-- `bd/` contiene esquemas SQL y seed. Archivos reales: `ondina_schema.sql`, `ondina_schema_supabase.sql`, `ondina_schema_supabase_v2.sql`, `rls_policies.sql`, `seed_datos_prueba.sql`, `drop_todo.sql` y `diagramas_esquemas_mermaid.md`.
-- `bd/ondina_schema_supabase.sql` es el esquema canónico completo (Auth, RLS, triggers, auditoría, vistas, storage, seed). `bd/ondina_schema_supabase_v2.sql` es la propuesta simplificada con `sucursales`, pendiente de validar antes de convertir en migraciones.
+- `bd/` contiene esquemas SQL, objetos y seed. Archivos reales: `ondina_schema_supabase.sql`, `rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`, `drop_todo.sql` y `diagramas_esquemas_mermaid.md`.
+- `bd/ondina_schema_supabase.sql` es el esquema relacional final. Las políticas RLS, triggers de negocio, auditoría, vistas y datos semilla se aplican como archivos separados (`rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`) en el orden documentado en cada cabecera, antes de convertir en migraciones.
 - No existía `bd/ondina_sql.txt` — superado; no lo busques ni despliegues.
 - Aplica el esquema solo en un entorno Supabase/PostgreSQL aislado. Los cambios definitivos van en migraciones versionadas bajo `supabase/migrations/` (aún no creado).
 - Preserva los invariantes: RLS en tablas expuestas, autorización en la BD, triggers de auditoría, parámetros de negocio configurables y soft-delete/anulación.
 - El stock lo mantienen los triggers de BD, no el frontend. Los ajustes de despacho agregan filas dentro de la ventana configurada; no editan ni restan filas existentes.
+- Las anulaciones (`anulado: false → true`) reversan los movimientos de stock mediante triggers en `triggers_negocio.sql` (sección 8): venta devuelve carga y resta envases; despacho devuelve stock_bodega y quita carga; devoluciones, producciones y mermas revertían su efecto. Una posterior reactivación NO restaura movimientos.
+- Auditoría: `auditoria.sql` aplica `fn_auditoria` (con `anulado` → `ANULACION`) a ventas, despachos, producciones, gastos, mermas y devoluciones; y `fn_auditoria_simple` (INSERT/UPDATE sin ANULACION) a `venta_detalles` y `despacho_detalles`. El bloque de devoluciones/detalles está marcado "SUJETO A CAMBIOS" hasta confirmsar con el equipo si los detalles deben ser corregibles.
+- Vistas: `vistas.sql` expone `v_stock_actual`, `v_cuadre_despacho`, `v_ventas_diarias`, `v_ranking_vendedores`, `v_comision_vendedor`, `v_clientes_inactivos`, `v_historial_cliente` (RF-04/HU-11) y `v_ventas_producto` (HU-14). RF-20 (documentos boleta/factura) no se materializa como objeto aparte; se consulta desde `ventas`.
+- Índices: el esquema define índices sobre `sucursal_id`, `vendedor_id`, `creado_en`, `venta_id`, `despacho_id`, `producto_id` y `(tabla, registro_id)` en auditoria.
 - Nunca guardes contraseñas en tablas de la aplicación; la autenticación pertenece a Supabase Auth y `perfiles.id` referencia `auth.users.id`.
 
 ## Ramas Y Flujo De Trabajo
