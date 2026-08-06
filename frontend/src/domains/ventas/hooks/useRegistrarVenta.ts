@@ -18,7 +18,7 @@ function aArgs(form: RegistrarVentaForm): {
       producto_id: d.productoId,
       cantidad: d.cantidad,
       precio_unitario: d.precioUnitario,
-      envases_recibidos: d.envasesRecibidos,
+      envases_recibidos: 0,
     })),
     p_descuento: form.descuento,
     p_observaciones: form.observaciones ? form.observaciones : undefined,
@@ -37,7 +37,6 @@ export function useRegistrarVenta() {
     onSuccess: (res) => {
       if (res.error) return
       void queryClient.invalidateQueries({ queryKey: ['ventas', 'carga'] })
-      void queryClient.invalidateQueries({ queryKey: ['ventas', 'bidones'] })
       void queryClient.invalidateQueries({ queryKey: ['ventas', 'historico'] })
     },
   })

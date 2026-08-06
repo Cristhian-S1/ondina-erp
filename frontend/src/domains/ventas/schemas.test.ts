@@ -51,7 +51,7 @@ describe('HU-01 · registrarVentaSchema', () => {
       descuento: 500,
       observaciones: '',
       detalles: [
-        { productoId: 'p-1', cantidad: 2, precioUnitario: 1000, envasesRecibidos: 1 },
+        { productoId: 'p-1', cantidad: 2, precioUnitario: 1000 },
       ],
     })
     expect(res.success).toBe(true)

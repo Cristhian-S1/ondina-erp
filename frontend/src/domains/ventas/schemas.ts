@@ -40,7 +40,6 @@ export const detalleVentaSchema = z.object({
   productoId: z.string().min(1, 'Selecciona un producto'),
   cantidad: z.coerce.number().int('Debe ser un entero').positive('La cantidad debe ser mayor a 0'),
   precioUnitario: z.coerce.number().min(0, 'El precio no puede ser negativo'),
-  envasesRecibidos: z.coerce.number().int().min(0, 'No puede ser negativo').default(0),
 })
 
 export const registrarVentaSchema = z.object({

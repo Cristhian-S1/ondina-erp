@@ -5,7 +5,6 @@ import { supabase } from '../../lib/supabase'
 import type { Json } from '../../types/database-generated.types'
 import type { Perfil } from '../../types'
 import type {
-  BidonesVacios,
   CargaVendedor,
   ClienteCartera,
   GastoExtra,
@@ -94,26 +93,6 @@ export async function obtenerCargaVendedor(perfil: Perfil): Promise<CargaVendedo
     )
     .eq('vendedor_id', perfil.id)
     .returns<CargaVendedor[]>()
-  return data ?? []
-}
-
-// --- HU-05: bidones vacíos hoy ---
-export function hoyLocalISO(): string {
-  // YYYY-MM-DD en zona horaria local.
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const dia = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${dia}`
-}
-
-export async function obtenerBidonesVacios(perfil: Perfil): Promise<BidonesVacios[]> {
-  const { data } = await supabase
-    .from('v_bidones_vacios_vendedor')
-    .select('vendedor_id, fecha, tipo_empaque_id, empaque_nombre, cantidad')
-    .eq('vendedor_id', perfil.id)
-    .eq('fecha', hoyLocalISO())
-    .returns<BidonesVacios[]>()
   return data ?? []
 }
 

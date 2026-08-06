@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,7 +7,7 @@ import { useClientesRuta } from '../hooks/useClientesRuta'
 import { useProductosVenta } from '../hooks/useProductosVenta'
 import { useRegistrarVenta } from '../hooks/useRegistrarVenta'
 import { registrarVentaSchema, type RegistrarVentaForm } from '../schemas'
-import type { ProductoVenta } from '../types'
+import type { DetalleVentaDraft, ProductoVenta } from '../types'
 import {
   btnPrimary,
   btnSecondary,
@@ -24,8 +24,84 @@ const METODOS: { value: 'efectivo' | 'transferencia'; label: string }[] = [
   { value: 'transferencia', label: 'Transferencia' },
 ]
 
+const STORAGE_KEY = 'ondina:draft-registrar-venta'
+
+// Nombres de los 6 productos que se precargan por defecto en el formulario.
+const PRODUCTOS_DEFAULT = [
+  'Bidón POL',
+  'Bidón PET',
+  'Bidón 10L',
+  'Hielo CUBO',
+  'Hielo SACO',
+  'Hielo FRAPE',
+]
+
+const DETALLES_VACIOS: DetalleVentaDraft[] = PRODUCTOS_DEFAULT.map(() => ({
+  productoId: '',
+  cantidad: 0,
+  precioUnitario: 0,
+}))
+
 function fmtCLP(n: number) {
   return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })
+}
+
+function cargarDraft(): Partial<RegistrarVentaForm> | null {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw) as Partial<RegistrarVentaForm>
+  } catch {
+    return null
+  }
+}
+
+function guardarDraft(form: RegistrarVentaForm) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+  } catch {
+    // sessionStorage no disponible: no bloqueamos la UI.
+  }
+}
+
+function limpiarDraft() {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // noop
+  }
+}
+
+/**
+ * Construye los defaults del formulario:
+ * 1. Si hay draft en sessionStorage, lo usa (persistencia al navegar/refresh).
+ * 2. Si el catálogo ya está cargado, precarga los 6 productos con su precio.
+ * 3. Sino, 6 rows vacías (se rellenarán al resolver el catálogo).
+ */
+function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVentaForm {
+  const draft = cargarDraft()
+  if (draft?.detalles?.length) return draft as RegistrarVentaForm
+  if (productos && productos.length > 0) {
+    return {
+      clienteId: '',
+      metodoPago: 'efectivo',
+      descuento: 0,
+      observaciones: '',
+      detalles: PRODUCTOS_DEFAULT.map((nombre) => {
+        const p = productos.find((x) => x.nombre === nombre)
+        return p
+          ? { productoId: p.id, cantidad: 0, precioUnitario: p.precio_base }
+          : { productoId: '', cantidad: 0, precioUnitario: 0 }
+      }),
+    }
+  }
+  return {
+    clienteId: '',
+    metodoPago: 'efectivo',
+    descuento: 0,
+    observaciones: '',
+    detalles: DETALLES_VACIOS,
+  }
 }
 
 export default function RegistrarVenta() {
@@ -34,8 +110,12 @@ export default function RegistrarVenta() {
   const clientes = useClientesRuta()
   const productos = useProductosVenta()
   const registrar = useRegistrarVenta()
-
   const [ventaId, setVentaId] = useState<string | null>(null)
+
+  const defaults = useMemo(
+    () => construirDefaults(productos.data),
+    [productos.data],
+  )
 
   const {
     register,
@@ -46,16 +126,19 @@ export default function RegistrarVenta() {
     formState: { errors },
   } = useForm<RegistrarVentaForm>({
     resolver: zodResolver(registrarVentaSchema),
-    defaultValues: {
-      clienteId: '',
-      metodoPago: 'efectivo',
-      descuento: 0,
-      observaciones: '',
-      detalles: [{ productoId: '', cantidad: 1, precioUnitario: 0, envasesRecibidos: 0 }],
-    },
+    defaultValues: defaults,
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
+
+  // Persistencia del draft en sessionStorage.
+  const formValues = useWatch({ control })
+  const first = useWatch({ control, name: 'detalles' })
+  useEffect(() => {
+    if (formValues && (formValues as RegistrarVentaForm).detalles) {
+      guardarDraft(formValues as RegistrarVentaForm)
+    }
+  }, [formValues])
 
   const productoPorId = useMemo(() => {
     const m = new Map<string, ProductoVenta>()
@@ -68,7 +151,7 @@ export default function RegistrarVenta() {
     if (prod) setValue(`detalles.${index}.precioUnitario`, prod.precio_base)
   }
 
-  const detalles = useWatch({ control, name: 'detalles' })
+  const detalles = first
   const descuento = useWatch({ control, name: 'descuento' })
   const totalPreview = useMemo(() => {
     const sub = (detalles ?? []).reduce(
@@ -79,11 +162,17 @@ export default function RegistrarVenta() {
   }, [detalles, descuento])
 
   function onSubmit(values: RegistrarVentaForm) {
-    registrar.mutate(values, {
+    const limpio = {
+      ...values,
+      detalles: values.detalles.filter((d) => d.productoId && d.cantidad > 0),
+    }
+    if (limpio.detalles.length === 0) return
+    registrar.mutate(limpio, {
       onSuccess: (res) => {
         if (res.id) {
           setVentaId(res.id)
-          reset()
+          limpiarDraft()
+          reset(defaults)
         }
       },
     })
@@ -102,7 +191,11 @@ export default function RegistrarVenta() {
             <span className="font-mono text-slate-900">{ventaId}</span>.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link to="/ventas/registrar" className={btnPrimary} onClick={() => setVentaId(null)}>
+            <Link
+              to="/ventas/registrar"
+              className={btnPrimary}
+              onClick={() => setVentaId(null)}
+            >
               Registrar otra venta
             </Link>
             <Link to="/ventas" className={btnSecondary}>
@@ -123,11 +216,7 @@ export default function RegistrarVenta() {
             Cliente, productos y pago. La venta se confirma en una sola operación.
           </p>
         </div>
-        <button
-          type="button"
-          className={btnSecondary}
-          onClick={() => navigate('/ventas')}
-        >
+        <button type="button" className={btnSecondary} onClick={() => navigate('/ventas')}>
           Cancelar
         </button>
       </div>
@@ -174,7 +263,7 @@ export default function RegistrarVenta() {
             type="button"
             className={btnSecondary}
             onClick={() =>
-              append({ productoId: '', cantidad: 1, precioUnitario: 0, envasesRecibidos: 0 })
+              append({ productoId: '', cantidad: 0, precioUnitario: 0 })
             }
           >
             <PlusCircleIcon className="h-4 w-4" />
@@ -189,7 +278,6 @@ export default function RegistrarVenta() {
                 <th className={thCls}>Producto</th>
                 <th className={thCls}>Cantidad</th>
                 <th className={thCls}>Precio unit.</th>
-                <th className={thCls}>Envases recibidos</th>
                 <th className={thCls}>Subtotal</th>
                 <th className={thCls}></th>
               </tr>
@@ -223,7 +311,7 @@ export default function RegistrarVenta() {
                     <td className={tdCls}>
                       <input
                         type="number"
-                        min={1}
+                        min={0}
                         step={1}
                         className={`${inputCls} w-24`}
                         {...register(`detalles.${index}.cantidad` as const)}
@@ -238,18 +326,9 @@ export default function RegistrarVenta() {
                       <input
                         type="number"
                         min={0}
-                        step={1}
+                        step={100}
                         className={`${inputCls} w-28`}
                         {...register(`detalles.${index}.precioUnitario` as const)}
-                      />
-                    </td>
-                    <td className={tdCls}>
-                      <input
-                        type="number"
-                        min={0}
-                        step={1}
-                        className={`${inputCls} w-28`}
-                        {...register(`detalles.${index}.envasesRecibidos` as const)}
                       />
                     </td>
                     <td className={`${tdCls} font-semibold`}>{fmtCLP(subtotal)}</td>
@@ -269,11 +348,6 @@ export default function RegistrarVenta() {
             </tbody>
           </table>
         </div>
-        {errors.detalles && !Array.isArray(errors.detalles) && (
-          <p className="px-5 py-2 text-xs text-red-600">
-            {(errors.detalles as { message?: string }).message ?? 'Revisa los productos'}
-          </p>
-        )}
         {errors.detalles?.message && (
           <p className="px-5 py-2 text-xs text-red-600">{errors.detalles.message}</p>
         )}
@@ -300,7 +374,7 @@ export default function RegistrarVenta() {
             <input
               type="number"
               min={0}
-              step={1}
+              step={100}
               className={inputCls}
               {...register('descuento')}
             />
@@ -335,7 +409,8 @@ export default function RegistrarVenta() {
               <dd className="font-medium text-slate-900">
                 {fmtCLP(
                   (detalles ?? []).reduce(
-                    (s, d) => s + (Number(d.cantidad) || 0) * (Number(d.precioUnitario) || 0),
+                    (s, d) =>
+                      s + (Number(d?.cantidad) || 0) * (Number(d?.precioUnitario) || 0),
                     0,
                   ),
                 )}
@@ -343,7 +418,9 @@ export default function RegistrarVenta() {
             </div>
             <div className="flex justify-between gap-6">
               <dt className="text-slate-500">Descuento</dt>
-              <dd className="font-medium text-slate-900">−{fmtCLP(Number(descuento) || 0)}</dd>
+              <dd className="font-medium text-slate-900">
+                −{fmtCLP(Number(descuento) || 0)}
+              </dd>
             </div>
             <div className="flex justify-between gap-6 border-t border-slate-100 pt-1">
               <dt className="text-slate-700 font-semibold">Total a cobrar</dt>

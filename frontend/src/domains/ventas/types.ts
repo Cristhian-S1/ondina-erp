@@ -32,8 +32,6 @@ export interface CargaVendedor extends CargaVendedorRow {
 
 export type GastoExtra = Database['public']['Tables']['gastos_extras']['Row']
 
-export type BidonesVacios = Database['public']['Views']['v_bidones_vacios_vendedor']['Row']
-
 export interface ProductoVenta extends Producto {
   tipo_empaque: Pick<TipoEmpaque, 'id' | 'nombre' | 'categoria'> | null
 }
@@ -44,6 +42,14 @@ export interface DetalleVentaInput {
   cantidad: number
   precio_unitario: number
   envases_recibidos: number
+}
+
+// Draft de detalle del formulario. Envases_recibidos siempre va en 0 al backend
+// (HU-05 eliminada del frontend; los envases los registra bodega vía HU-28).
+export interface DetalleVentaDraft {
+  productoId: string
+  cantidad: number
+  precioUnitario: number
 }
 
 export interface RegistrarVentaArgs {
