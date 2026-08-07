@@ -248,6 +248,19 @@ create table despacho_detalles (
     creado_en timestamptz not null default now()
 );
 
+-- Envases que salen con el despacho (bandejas/cajas de transporte operativo).
+-- `es_ajuste` distingue la carga inicial de una suma posterior dentro de la
+-- ventana configurada, igual que en despacho_detalles. Al insertar, un trigger
+-- descuenta stock_envases de la sucursal; la devolución de envases lo reingresa.
+create table despacho_envases (
+    id uuid primary key default gen_random_uuid(),
+    despacho_id uuid not null references despachos(id),
+    tipo_empaque_id uuid not null references tipos_empaque(id),
+    cantidad integer not null check (cantidad > 0),
+    es_ajuste boolean not null default false,
+    creado_en timestamptz not null default now()
+);
+
 -- Las devoluciones son movimientos nuevos y nunca eliminan el despacho original.
 create table devoluciones_productos (
     id uuid primary key default gen_random_uuid(),
@@ -342,7 +355,7 @@ create table auditoria (
 -- 1. Solo administración puede modificar o anular operaciones cerradas.
 -- 2. Un despacho solo admite nuevas filas es_ajuste dentro de configuracion.
 -- 3. Despacho descuenta stock_bodega y suma carga_vendedor.
--- 4. Venta descuenta carga_vendedor y recibe envases en stock_envases.
+-- 4. Venta descuenta carga_vendedor y registra envases recibidos (no mueve stock).
 -- 5. Devoluciones y producción actualizan existencias; una merma descuenta existencias.
 -- 6. Las operaciones anuladas no se borran y todos sus cambios se registran en auditoria.
 -- 7. RLS debe habilitarse en todas las tablas expuestas; la UI no es una barrera de seguridad.
@@ -364,6 +377,7 @@ create index if not exists idx_despachos_vendedor on public.despachos (vendedor_
 create index if not exists idx_despachos_creado_en on public.despachos (creado_en);
 create index if not exists idx_despacho_detalles_despacho on public.despacho_detalles (despacho_id);
 create index if not exists idx_despacho_detalles_producto on public.despacho_detalles (producto_id);
+create index if not exists idx_despacho_envases_despacho on public.despacho_envases (despacho_id);
 create index if not exists idx_devoluciones_productos_despacho on public.devoluciones_productos (despacho_id);
 create index if not exists idx_devoluciones_envases_despacho on public.devoluciones_envases (despacho_id);
 create index if not exists idx_mermas_sucursal on public.mermas (sucursal_id);
@@ -389,6 +403,7 @@ alter table venta_detalles enable row level security;
 alter table gastos_extras enable row level security;
 alter table despachos enable row level security;
 alter table despacho_detalles enable row level security;
+alter table despacho_envases enable row level security;
 alter table devoluciones_productos enable row level security;
 alter table devoluciones_envases enable row level security;
 alter table mermas enable row level security;

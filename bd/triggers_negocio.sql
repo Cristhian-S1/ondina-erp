@@ -15,9 +15,10 @@
 -- Orden sugerido: esquema → triggers_negocio.sql → auditoria.sql
 --                → vistas.sql → seed.sql → rls_policies.sql.
 --
--- Pendiente por decisión de alcance: bandejas/cajas (inventario_bandejas,
--- retorno_bandejas, despachos.cantidad_bandejas). Este esquema no las modela;
--- se crean acá solo si el equipo confirma que siguen siendo requisito.
+-- Envases por despacho: `despacho_envases` registra las bandejas/cajas de
+-- transporte (uso_interno) que salen con el despacho. El trigger descuenta de
+-- stock_envases; la devolución de envases lo reingresa; la anulación del
+-- despacho lo devuelve (sección 8b).
 -- ============================================================================
 
 -- ---------------------------------------------------------------------------
@@ -72,14 +73,57 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 2. Venta: descuenta de la carga del vendedor y recibe envases
+-- 1b. Despacho de envases (bandejas/cajas): descuenta stock_envases
+-- ---------------------------------------------------------------------------
+create or replace function public.trg_despacho_envase_insert()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+declare
+    v_despacho     public.despachos%rowtype;
+    v_minutos      integer;
+    v_stock_actual integer;
+begin
+    select * into v_despacho
+    from public.despachos where id = new.despacho_id for update;
+    if v_despacho.anulado then
+        raise exception 'El despacho está anulado';
+    end if;
+
+    -- HU-26 / RNF-15: los ajustes solo suman y solo dentro de la ventana configurable
+    if new.es_ajuste then
+        select valor::integer into v_minutos
+        from public.configuracion where clave = 'ventana_ajuste_minutos';
+        if now() > v_despacho.creado_en + make_interval(mins => coalesce(v_minutos, 0)) then
+            raise exception 'La ventana de ajuste expiró (% minutos). Solo el administrador puede corregir el despacho.', v_minutos;
+        end if;
+    end if;
+
+    -- Descuenta envases vacíos de la sucursal (clave compuesta)
+    select cantidad into v_stock_actual
+    from public.stock_envases
+    where sucursal_id = v_despacho.sucursal_id
+      and tipo_empaque_id = new.tipo_empaque_id
+    for update;
+    if v_stock_actual is null or v_stock_actual < new.cantidad then
+        raise exception 'Stock insuficiente de envases para el tipo %', new.tipo_empaque_id;
+    end if;
+    update public.stock_envases
+    set cantidad = cantidad - new.cantidad, modificado_en = now()
+    where sucursal_id = v_despacho.sucursal_id
+      and tipo_empaque_id = new.tipo_empaque_id;
+
+    return new;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 2. Venta: descuenta de la carga del vendedor (registra envases, no mueve stock)
 -- ---------------------------------------------------------------------------
 create or replace function public.trg_venta_detalle_insert()
 returns trigger language plpgsql security definer set search_path = public
 as $$
 declare
     v_venta  public.ventas%rowtype;
-    v_empaque uuid;
 begin
     select * into v_venta from public.ventas where id = new.venta_id;
     if v_venta.anulado then
@@ -98,18 +142,12 @@ begin
         raise exception 'Carga insuficiente del vendedor para el producto %', new.producto_id;
     end if;
 
-    -- Envases recibidos de la venta suman al inventario de vacíos de la sucursal
-    if new.envases_recibidos > 0 then
-        select tipo_empaque_id into v_empaque
-        from public.productos where id = new.producto_id;
-        if v_empaque is not null then
-            insert into public.stock_envases (sucursal_id, tipo_empaque_id, cantidad, modificado_en)
-            values (v_venta.sucursal_id, v_empaque, new.envases_recibidos, now())
-            on conflict (sucursal_id, tipo_empaque_id)
-            do update set cantidad = stock_envases.cantidad + excluded.cantidad,
-                          modificado_en = now();
-        end if;
-    end if;
+    -- NOTA DE MODELO: `envases_recibidos` se registra aquí con fines de reporte
+    -- (cuántos envases vacíos devolvió el cliente), pero NO mueve stock_envases.
+    -- Los envases aún viajan con el vendedor; solo la devolución de envases del
+    -- despachador (trg_devolucion_envase_insert) suma al inventario de vacíos de
+    -- la sucursal, cuando el envase llega físicamente a bodega. Así hay una sola
+    -- entrada y no existe doble conteo.
 
     return new;
 end;
@@ -136,16 +174,29 @@ $$;
 -- ---------------------------------------------------------------------------
 -- 4. Devolución de productos: carga -> bodega
 -- ---------------------------------------------------------------------------
+-- Validación: se devuelve hasta lo que el vendedor tiene en carga. Antes se
+-- recortaba con greatest(cantidad - X, 0), lo que podía crear "stock fantasma"
+-- en bodega si se devolvía más de lo despachado.
 create or replace function public.trg_devolucion_producto_insert()
 returns trigger language plpgsql security definer set search_path = public
 as $$
 declare
     v_despacho public.despachos%rowtype;
+    v_carga    integer;
 begin
     select * into v_despacho from public.despachos where id = new.despacho_id;
 
+    select cantidad into v_carga
+    from public.carga_vendedor
+    where vendedor_id = v_despacho.vendedor_id
+      and producto_id  = new.producto_id
+    for update;
+    if v_carga is null or v_carga < new.cantidad then
+        raise exception 'Carga insuficiente del vendedor para devolver el producto %', new.producto_id;
+    end if;
+
     update public.carga_vendedor
-    set cantidad = greatest(cantidad - new.cantidad, 0), modificado_en = now()
+    set cantidad = cantidad - new.cantidad, modificado_en = now()
     where vendedor_id = v_despacho.vendedor_id
       and producto_id  = new.producto_id;
 
@@ -241,41 +292,30 @@ $$;
 -- nuevo, no reactivarse acríticamente).
 -- ---------------------------------------------------------------------------
 
--- 8a. Anular venta: devolver carga al vendedor y restar envases recibidos
+-- 8a. Anular venta: devolver carga al vendedor
 create or replace function public.trg_venta_anular()
 returns trigger language plpgsql security definer set search_path = public
 as $$
 declare
     vd record;
-    v_empaque uuid;
 begin
     -- Por cada detalle de la venta: sumamos a la carga del vendedor
-    -- (en el INSERT se había restado) y restamos del stock_envases los
-    -- envases que se habían sumado.
-    for vd in select producto_id, cantidad, envases_recibidos
+    -- (en el INSERT se había restado). No se toca stock_envases porque la
+    -- venta no lo movió (ver trg_venta_detalle_insert: los envases se cuentan
+    -- cuando el despachador registra la devolución en bodega).
+    for vd in select producto_id, cantidad
               from public.venta_detalles where venta_id = new.id loop
         update public.carga_vendedor
         set cantidad = cantidad + vd.cantidad, modificado_en = now()
         where vendedor_id = new.vendedor_id
           and producto_id = vd.producto_id;
-
-        if vd.envases_recibidos > 0 then
-            select tipo_empaque_id into v_empaque
-            from public.productos where id = vd.producto_id;
-            if v_empaque is not null then
-                update public.stock_envases
-                set cantidad = greatest(cantidad - vd.envases_recibidos, 0),
-                    modificado_en = now()
-                where sucursal_id = new.sucursal_id
-                  and tipo_empaque_id = v_empaque;
-            end if;
-        end if;
     end loop;
     return new;
 end;
 $$;
 
--- 8b. Anular despacho: devolver a stock_bodega y quitar de carga_vendedor
+-- 8b. Anular despacho: devolver a stock_bodega, quitar de carga_vendedor y
+--     devolver a stock_envases los envases que salieron
 create or replace function public.trg_despacho_anular()
 returns trigger language plpgsql security definer set search_path = public
 as $$
@@ -296,6 +336,16 @@ begin
         set cantidad = greatest(cantidad - dd.total, 0), modificado_en = now()
         where vendedor_id = new.vendedor_id and producto_id = dd.producto_id;
     end loop;
+
+    -- Por cada envase despachado: stock_envases se había restado -> sumamos.
+    for dd in select tipo_empaque_id, sum(cantidad) as total
+              from public.despacho_envases where despacho_id = new.id
+              group by tipo_empaque_id loop
+        update public.stock_envases
+        set cantidad = cantidad + dd.total, modificado_en = now()
+        where sucursal_id = new.sucursal_id and tipo_empaque_id = dd.tipo_empaque_id;
+    end loop;
+
     return new;
 end;
 $$;
@@ -393,6 +443,8 @@ $$;
 -- ===========================================================================
 create trigger trg_despacho_detalle_insert after insert on public.despacho_detalles
     for each row execute function public.trg_despacho_detalle_insert();
+create trigger trg_despacho_envase_insert after insert on public.despacho_envases
+    for each row execute function public.trg_despacho_envase_insert();
 create trigger trg_venta_detalle_insert after insert on public.venta_detalles
     for each row execute function public.trg_venta_detalle_insert();
 create trigger trg_venta_total_ins after insert on public.venta_detalles
