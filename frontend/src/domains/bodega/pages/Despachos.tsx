@@ -77,6 +77,13 @@ function fmtHora(iso: string) {
   })
 }
 
+function aaaammdd(fecha: Date): string {
+  const anio = fecha.getFullYear()
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  const dia = String(fecha.getDate()).padStart(2, '0')
+  return `${anio}-${mes}-${dia}`
+}
+
 export default function Despachos() {
   const { perfil } = useAuth()
   const navigate = useNavigate()
@@ -105,6 +112,9 @@ export default function Despachos() {
   const [enviando, setEnviando] = useState(false)
 
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
+  const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
+  const [fechaSeleccionada, setFechaSeleccionada] = useState('')
+  const [vendedorFiltro, setVendedorFiltro] = useState('')
 
   const [error, setError] = useState<string | null>(null)
 
@@ -327,6 +337,31 @@ export default function Despachos() {
     return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
   }, [desvProducto, desvEnvase, despachos, productos, tiposEmpaque])
 
+  const diaObjetivo = useMemo(() => {
+    if (diaFiltro === 'fecha') return fechaSeleccionada
+    if (diaFiltro === 'todo') return ''
+    const hoy = new Date()
+    if (diaFiltro === 'hoy') return aaaammdd(hoy)
+    if (diaFiltro === 'ayer') {
+      const ayer = new Date(hoy)
+      ayer.setDate(hoy.getDate() - 1)
+      return aaaammdd(ayer)
+    }
+    const inicio = new Date(hoy)
+    inicio.setDate(hoy.getDate() - 6)
+    return aaaammdd(inicio)
+  }, [diaFiltro, fechaSeleccionada])
+
+  const despachosFiltrados = useMemo(() => {
+    return despachos.filter((d) => {
+      if (vendedorFiltro && d.vendedor_id !== vendedorFiltro) return false
+      if (diaFiltro === 'todo') return true
+      const fechaDespacho = aaaammdd(new Date(d.creado_en))
+      if (diaFiltro === '7d') return fechaDespacho >= diaObjetivo
+      return fechaDespacho === diaObjetivo
+    })
+  }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
+
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 
   return (
@@ -381,16 +416,75 @@ export default function Despachos() {
         <section className={cardCls}>
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Últimos despachos</h2>
-            <span className="text-xs text-slate-400">{despachos.length} registros</span>
+            <span className="text-xs text-slate-400">{despachosFiltrados.length} registros</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  ['hoy', 'Hoy'],
+                  ['ayer', 'Ayer'],
+                  ['7d', '7 días'],
+                  ['todo', 'Todo'],
+                ] as const
+              ).map(([valor, etiqueta]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  className={
+                    diaFiltro === valor
+                      ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                      : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                  }
+                  onClick={() => {
+                    setDiaFiltro(valor)
+                    setDespachoExpandido(null)
+                  }}
+                >
+                  {etiqueta}
+                </button>
+              ))}
+              <input
+                type="date"
+                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                value={fechaSeleccionada}
+                onChange={(e) => {
+                  setFechaSeleccionada(e.target.value)
+                  setDiaFiltro('fecha')
+                  setDespachoExpandido(null)
+                }}
+              />
+            </div>
+
+            <select
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+              value={vendedorFiltro}
+              onChange={(e) => {
+                setVendedorFiltro(e.target.value)
+                setDespachoExpandido(null)
+              }}
+            >
+              <option value="">Todos los vendedores</option>
+              {vendedores.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.nombres} {v.apellidos}
+                </option>
+              ))}
+            </select>
           </div>
 
           {despachos.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-slate-500">
               Aún no hay despachos para esta sucursal.
             </p>
+          ) : despachosFiltrados.length === 0 ? (
+            <p className="px-5 py-8 text-center text-sm text-slate-500">
+              No hay despachos para el día y vendedor seleccionados.
+            </p>
           ) : (
             <ul className="space-y-2 p-3">
-              {despachos.map((d) => {
+              {despachosFiltrados.map((d) => {
                 const expandido = despachoExpandido === d.id
                 const detalles = detallesDeDespacho(d.id)
                 const devs = devolucionesDe(d.id)
