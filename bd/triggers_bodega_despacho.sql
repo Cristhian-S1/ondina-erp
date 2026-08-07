@@ -349,6 +349,41 @@ create policy "despacho_envases_update_admin" on public.despacho_envases
   with check (es_rol('administrador'));
 
 -- ---------------------------------------------------------------------------
+-- 7) Auditoría de despacho_envases: prerrequisitos (tabla y función genérica)
+-- ---------------------------------------------------------------------------
+-- En proyectos donde bd/auditoria.sql ya se aplicó, esto es un no-op. Se
+-- incluye aquí para que el script sea autocontenido.
+create table if not exists public.auditoria (
+    id bigint generated always as identity primary key,
+    tabla text not null,
+    registro_id uuid not null,
+    accion text not null check (accion in ('INSERT', 'UPDATE', 'ANULACION')),
+    usuario_id uuid references public.perfiles(id),
+    valores_anteriores jsonb,
+    valores_nuevos jsonb,
+    creado_en timestamptz not null default now()
+);
+
+create index if not exists idx_auditoria_tabla_registro on public.auditoria (tabla, registro_id);
+
+create or replace function public.fn_auditoria_simple()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+    insert into public.auditoria (tabla, registro_id, accion, usuario_id, valores_anteriores, valores_nuevos)
+    values (
+        tg_table_name,
+        coalesce(new.id, old.id),
+        case when tg_op = 'INSERT' then 'INSERT' else 'UPDATE' end,
+        auth.uid(),
+        case when tg_op = 'UPDATE' then to_jsonb(old) end,
+        to_jsonb(new)
+    );
+    return new;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Auditoría de despacho_envases (mismo patrón que despacho_detalles)
 -- ---------------------------------------------------------------------------
 drop trigger if exists trg_audit_despacho_envases on public.despacho_envases;
