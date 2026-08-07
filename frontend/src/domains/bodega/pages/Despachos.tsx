@@ -363,7 +363,7 @@ export default function Despachos() {
       })
     }
     return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
-  }, [desvProducto, desvEnvase, despachosFiltrados, productos, tiposEmpaque])
+  }, [desvProducto, desvEnvase, despachos, despachosFiltrados, productos, tiposEmpaque])
 
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 
