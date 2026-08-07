@@ -1,10 +1,13 @@
 import { supabase } from '../../lib/supabase'
+import { mensajeErrorSupabase } from '../../lib/errors'
 import type { Perfil } from '../../types'
 import type {
-  DevolucionEnvase,
-  DevolucionProducto,
+  CargaVendedor,
   Despacho,
   DespachoDetalle,
+  DespachoEnvase,
+  DevolucionEnvase,
+  DevolucionProducto,
   StockBodega,
   StockEnvases,
 } from './types'
@@ -15,6 +18,7 @@ export interface NuevoDespacho {
   despachador_id: string
   creado_por: string
   lineas: { producto_id: string; cantidad: number }[]
+  envases: { tipo_empaque_id: string; cantidad: number }[]
 }
 
 export interface DevolucionProductosPayload {
@@ -64,6 +68,16 @@ export async function obtenerDetallesDespacho(despachoIds: string[]): Promise<De
   return data ?? []
 }
 
+export async function obtenerEnvasesDespacho(despachoIds: string[]): Promise<DespachoEnvase[]> {
+  if (despachoIds.length === 0) return []
+  const { data } = await supabase
+    .from('despacho_envases')
+    .select('*')
+    .in('despacho_id', despachoIds)
+    .returns<DespachoEnvase[]>()
+  return data ?? []
+}
+
 export async function obtenerDevolucionesProducto(despachoIds: string[]): Promise<DevolucionProducto[]> {
   if (despachoIds.length === 0) return []
   const { data } = await supabase
@@ -102,6 +116,16 @@ export async function obtenerStockEnvases(sucursalId: string): Promise<StockEnva
   return data ?? []
 }
 
+export async function obtenerCargaVendedores(vendedorIds: string[]): Promise<CargaVendedor[]> {
+  if (vendedorIds.length === 0) return []
+  const { data } = await supabase
+    .from('carga_vendedor')
+    .select('*')
+    .in('vendedor_id', vendedorIds)
+    .returns<CargaVendedor[]>()
+  return data ?? []
+}
+
 export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: string | null }> {
   const { data: despacho, error } = await supabase
     .from('despachos')
@@ -117,7 +141,7 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
     .returns<{ id: string }[]>()
     .single()
 
-  if (error || !despacho) return { error: error?.message ?? 'Error al crear el despacho' }
+  if (error || !despacho) return { error: mensajeErrorSupabase(error) }
 
   const { error: errDetalles } = await supabase
     .from('despacho_detalles')
@@ -131,7 +155,24 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
 
   if (errDetalles) {
     await supabase.from('despachos').delete().eq('id', despacho.id)
-    return { error: errDetalles.message }
+    return { error: mensajeErrorSupabase(errDetalles) }
+  }
+
+  if (payload.envases.length > 0) {
+    const { error: errEnvases } = await supabase
+      .from('despacho_envases')
+      .insert(
+        payload.envases.map((e) => ({
+          despacho_id: despacho.id,
+          tipo_empaque_id: e.tipo_empaque_id,
+          cantidad: e.cantidad,
+        })) as never[],
+      )
+
+    if (errEnvases) {
+      await supabase.from('despachos').delete().eq('id', despacho.id)
+      return { error: mensajeErrorSupabase(errEnvases) }
+    }
   }
 
   return { error: null }
@@ -151,7 +192,7 @@ export async function registrarDevolucionProductos(
       })) as never[],
     )
 
-  return { error: error?.message ?? null }
+  return { error: error ? mensajeErrorSupabase(error) : null }
 }
 
 export async function registrarDevolucionEnvases(
@@ -169,5 +210,5 @@ export async function registrarDevolucionEnvases(
       })) as never[],
     )
 
-  return { error: error?.message ?? null }
+  return { error: error ? mensajeErrorSupabase(error) : null }
 }
