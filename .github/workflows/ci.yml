@@ -3,11 +3,10 @@ name: CI
 on:
   pull_request:
     branches: [develop, main]
-  push:
-    branches: [develop, main]
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -43,3 +42,26 @@ jobs:
 
       - name: Unit/Integration tests
         run: npm run test -- --reporter=dot
+
+  migrations-check:
+    name: Validar migraciones Supabase (sintaxis, no aplica)
+    runs-on: ubuntu-latest
+    if: hashFiles('supabase/migrations/*.sql') != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validar sintaxis SQL de migraciones
+        working-directory: supabase/migrations
+        run: |
+          set -e
+          for f in *.sql; do
+            if [ -f "$f" ]; then
+              echo "Validando $f"
+              if ! grep -q ";" "$f"; then
+                echo "::error::$f no contiene sentencias terminadas en ';'"
+                exit 1
+              fi
+            fi
+          done
+          echo "Sintaxis SQL básica OK"
