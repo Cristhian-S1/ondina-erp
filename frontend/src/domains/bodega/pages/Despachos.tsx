@@ -624,11 +624,16 @@ export default function Despachos() {
                                 >
                                   <span>
                                     {tiposEmpaque.find((t) => t.id === de.tipo_empaque_id)?.nombre ??
-                                      'Envase'}{' '}
-                                    ({de.estado})
+                                      'Envase'}
                                   </span>
-                                  <span className="font-medium text-emerald-600">
-                                    +{de.cantidad}
+                                  <span
+                                    className={
+                                      de.estado === 'bueno'
+                                        ? 'font-medium text-emerald-600'
+                                        : 'font-medium text-amber-600'
+                                    }
+                                  >
+                                    +{de.cantidad} {de.estado === 'bueno' ? 'buenas' : 'malas'}
                                   </span>
                                 </li>
                               ))}

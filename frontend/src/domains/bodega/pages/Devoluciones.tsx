@@ -14,7 +14,7 @@ import {
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
-import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
   Despacho,
@@ -32,11 +32,6 @@ interface DespachoConTotal extends Despacho {
 
 type EstadoDespacho = 'pendiente' | 'productos' | 'envases' | 'completo'
 
-interface LineaEnvaseInput {
-  cantidad: string
-  estado: 'bueno' | 'malo'
-}
-
 const estadoEtiqueta: Record<EstadoDespacho, string> = {
   pendiente: 'Pendiente',
   productos: 'Productos',
@@ -53,11 +48,19 @@ const estadoBadge: Record<EstadoDespacho, string> = {
 
 const inputCompact = `${inputCls} !mt-0 w-20 text-right`
 
+function aaaammdd(fecha: Date): string {
+  const anio = fecha.getFullYear()
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  const dia = String(fecha.getDate()).padStart(2, '0')
+  return `${anio}-${mes}-${dia}`
+}
+
 export default function Devoluciones() {
   const { perfil } = useAuth()
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
+  const [vendedores, setVendedores] = useState<Perfil[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
   const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
@@ -70,8 +73,13 @@ export default function Devoluciones() {
   const [cargando, setCargando] = useState(true)
 
   const [seleccionado, setSeleccionado] = useState('')
+  const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
+  const [fechaSeleccionada, setFechaSeleccionada] = useState('')
+  const [vendedorFiltro, setVendedorFiltro] = useState('')
   const [productoInputs, setProductoInputs] = useState<Record<string, string>>({})
-  const [envaseInputs, setEnvaseInputs] = useState<Record<string, LineaEnvaseInput>>({})
+  const [envaseInputs, setEnvaseInputs] = useState<
+    Record<string, { buenos: string; malos: string }>
+  >({})
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -115,6 +123,7 @@ export default function Devoluciones() {
 
     setProductos(productosData)
     setTiposEmpaque(empaquesData)
+    setVendedores(vendedoresData)
     setDespachos(
       despachosRaw.map((d) => ({
         ...d,
@@ -139,6 +148,31 @@ export default function Devoluciones() {
     }
     void cargar()
   }, [load])
+
+  const diaObjetivo = useMemo(() => {
+    if (diaFiltro === 'fecha') return fechaSeleccionada
+    if (diaFiltro === 'todo') return ''
+    const hoy = new Date()
+    if (diaFiltro === 'hoy') return aaaammdd(hoy)
+    if (diaFiltro === 'ayer') {
+      const ayer = new Date(hoy)
+      ayer.setDate(hoy.getDate() - 1)
+      return aaaammdd(ayer)
+    }
+    const inicio = new Date(hoy)
+    inicio.setDate(hoy.getDate() - 6)
+    return aaaammdd(inicio)
+  }, [diaFiltro, fechaSeleccionada])
+
+  const despachosFiltrados = useMemo(() => {
+    return despachos.filter((d) => {
+      if (vendedorFiltro && d.vendedor_id !== vendedorFiltro) return false
+      if (diaFiltro === 'todo') return true
+      const fechaDespacho = aaaammdd(new Date(d.creado_en))
+      if (diaFiltro === '7d') return fechaDespacho >= diaObjetivo
+      return fechaDespacho === diaObjetivo
+    })
+  }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
 
   const estadoDe = (despachoId: string): EstadoDespacho => {
     const hasProductos = desvProducto.some((x) => x.despacho_id === despachoId)
@@ -183,9 +217,24 @@ export default function Devoluciones() {
       .filter((x) => x.despacho_id === despachoId && x.producto_id === productoId)
       .reduce((sum, x) => sum + x.cantidad, 0)
 
-  const devueltoEnvaseDe = (despachoId: string, tipoEmpaqueId: string) =>
+  const devueltoEnvaseBuenoDe = (despachoId: string, tipoEmpaqueId: string) =>
     desvEnvase
-      .filter((x) => x.despacho_id === despachoId && x.tipo_empaque_id === tipoEmpaqueId)
+      .filter(
+        (x) =>
+          x.despacho_id === despachoId &&
+          x.tipo_empaque_id === tipoEmpaqueId &&
+          x.estado === 'bueno',
+      )
+      .reduce((sum, x) => sum + x.cantidad, 0)
+
+  const devueltoEnvaseMaloDe = (despachoId: string, tipoEmpaqueId: string) =>
+    desvEnvase
+      .filter(
+        (x) =>
+          x.despacho_id === despachoId &&
+          x.tipo_empaque_id === tipoEmpaqueId &&
+          x.estado === 'malo',
+      )
       .reduce((sum, x) => sum + x.cantidad, 0)
 
   function seleccionar(despachoId: string) {
@@ -212,12 +261,15 @@ export default function Devoluciones() {
 
     const lineasEnvase = envasesPendientes
       ? Object.entries(envaseInputs)
-          .filter(([, v]) => Number(v.cantidad) > 0)
-          .map(([tipo_empaque_id, v]) => ({
-            tipo_empaque_id,
-            cantidad: Number(v.cantidad),
-            estado: v.estado,
-          }))
+          .filter(([, v]) => Number(v.buenos) > 0 || Number(v.malos) > 0)
+          .flatMap(([tipo_empaque_id, v]) => [
+            ...(Number(v.buenos) > 0
+              ? [{ tipo_empaque_id, cantidad: Number(v.buenos), estado: 'bueno' as const }]
+              : []),
+            ...(Number(v.malos) > 0
+              ? [{ tipo_empaque_id, cantidad: Number(v.malos), estado: 'malo' as const }]
+              : []),
+          ])
       : []
 
     if (lineasProducto.length === 0 && lineasEnvase.length === 0) {
@@ -312,6 +364,64 @@ export default function Devoluciones() {
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
       )}
 
+      <div className={cardCls}>
+        <div className="flex flex-wrap items-center gap-3 px-5 py-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {(
+              [
+                ['hoy', 'Hoy'],
+                ['ayer', 'Ayer'],
+                ['7d', '7 días'],
+                ['todo', 'Todo'],
+              ] as const
+            ).map(([valor, etiqueta]) => (
+              <button
+                key={valor}
+                type="button"
+                className={
+                  diaFiltro === valor
+                    ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                    : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                }
+                onClick={() => {
+                  setDiaFiltro(valor)
+                  setFechaSeleccionada('')
+                  setSeleccionado('')
+                }}
+              >
+                {etiqueta}
+              </button>
+            ))}
+            <input
+              type="date"
+              className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+              value={fechaSeleccionada}
+              onChange={(e) => {
+                setFechaSeleccionada(e.target.value)
+                setDiaFiltro(e.target.value === '' ? 'hoy' : 'fecha')
+                setSeleccionado('')
+              }}
+            />
+          </div>
+
+          <select
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+            value={vendedorFiltro}
+            onChange={(e) => {
+              setVendedorFiltro(e.target.value)
+              setSeleccionado('')
+            }}
+          >
+            <option value="">Todos los vendedores</option>
+            {vendedores.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.nombres} {v.apellidos}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="grid items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <aside className={cardCls}>
           <div className="border-b border-slate-100 px-5 py-4">
@@ -323,9 +433,13 @@ export default function Devoluciones() {
             <p className="px-5 py-8 text-center text-sm text-slate-500">
               Aún no hay despachos para esta sucursal.
             </p>
+          ) : despachosFiltrados.length === 0 ? (
+            <p className="px-5 py-8 text-center text-sm text-slate-500">
+              No hay despachos para el día y vendedor seleccionados.
+            </p>
           ) : (
             <ul className="space-y-2 p-3">
-              {despachos.map((d) => {
+              {despachosFiltrados.map((d) => {
                 const dEstado = estadoDe(d.id)
                 const completo = dEstado === 'completo'
                 return (
@@ -395,7 +509,9 @@ export default function Devoluciones() {
                         <tr>
                           <th className={thCls}>Producto</th>
                           <th className={`${thCls} text-right`}>Despachado</th>
-                          <th className={`${thCls} text-right`}>Carga</th>
+                          {estado === 'pendiente' && (
+                            <th className={`${thCls} text-right`}>Carga</th>
+                          )}
                           <th className={`${thCls} text-right`}>Devuelve</th>
                         </tr>
                       </thead>
@@ -409,9 +525,11 @@ export default function Devoluciones() {
                                 <td className={`${tdCls} text-right font-semibold`}>
                                   {despachado}
                                 </td>
-                                <td className={`${tdCls} text-right text-slate-500`}>
-                                  {cargaDeDespacho(seleccionado, productoId)}
-                                </td>
+                                {estado === 'pendiente' && (
+                                  <td className={`${tdCls} text-right text-slate-500`}>
+                                    {cargaDeDespacho(seleccionado, productoId)}
+                                  </td>
+                                )}
                                 <td className={`${tdCls} text-right`}>
                                   {productosPendientes ? (
                                     <input
@@ -464,14 +582,14 @@ export default function Devoluciones() {
                           <th className={thCls}>Envase</th>
                           <th className={`${thCls} text-right`}>Despachadas</th>
                           <th className={`${thCls} text-right`}>En bodega</th>
-                          <th className={`${thCls} text-right`}>Devuelve</th>
-                          <th className={`${thCls} text-right`}>Estado</th>
+                          <th className={`${thCls} text-right`}>Buenos</th>
+                          <th className={`${thCls} text-right`}>Malos</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {tiposEmpaqueDevolvibles.map((t) => {
                           const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
-                          const input = envaseInputs[t.id] ?? { cantidad: '', estado: 'bueno' }
+                          const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
                           return (
                             <tr key={t.id}>
                               <td className={tdCls}>{t.nombre}</td>
@@ -488,39 +606,40 @@ export default function Devoluciones() {
                                     min={0}
                                     placeholder="0"
                                     className={inputCompact}
-                                    value={input.cantidad}
+                                    value={input.buenos}
                                     onChange={(e) =>
                                       setEnvaseInputs((prev) => ({
                                         ...prev,
-                                        [t.id]: { ...input, cantidad: e.target.value },
+                                        [t.id]: { ...input, buenos: e.target.value },
                                       }))
                                     }
                                   />
                                 ) : (
                                   <span className="font-medium text-emerald-600">
-                                    +{devueltoEnvaseDe(seleccionado, t.id)}
+                                    +{devueltoEnvaseBuenoDe(seleccionado, t.id)}
                                   </span>
                                 )}
                               </td>
                               <td className={`${tdCls} text-right`}>
                                 {envasesPendientes ? (
-                                  <select
-                                    className={`${inputCls} !mt-0 w-28`}
-                                    value={input.estado}
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    placeholder="0"
+                                    className={inputCompact}
+                                    value={input.malos}
                                     onChange={(e) =>
                                       setEnvaseInputs((prev) => ({
                                         ...prev,
-                                        [t.id]: {
-                                          ...input,
-                                          estado: e.target.value as 'bueno' | 'malo',
-                                        },
+                                        [t.id]: { ...input, malos: e.target.value },
                                       }))
                                     }
-                                  >
-                                    <option value="bueno">Bueno</option>
-                                    <option value="malo">Malo</option>
-                                  </select>
-                                ) : null}
+                                  />
+                                ) : (
+                                  <span className="font-medium text-amber-600">
+                                    +{devueltoEnvaseMaloDe(seleccionado, t.id)}
+                                  </span>
+                                )}
                               </td>
                             </tr>
                           )
