@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,15 +26,11 @@ const METODOS: { value: 'efectivo' | 'transferencia'; label: string }[] = [
 
 const STORAGE_KEY = 'ondina:draft-registrar-venta'
 
-// Nombres de los 6 productos que se precargan por defecto en el formulario.
-const PRODUCTOS_DEFAULT = [
-  'Bidón POL',
-  'Bidón PET',
-  'Bidón 10L',
-  'Hielo CUBO',
-  'Hielo SACO',
-  'Hielo FRAPE',
-]
+// Nombres de los 3 productos que se precargan y preseleccionan por defecto:
+// son los de venta más frecuente y ahorran tiempo al vendedor. El resto del
+// catálogo (Bidón 10L, Hielo SACO, Hielo FRAPE) queda accesible con el botón
+// "Agregar producto".
+const PRODUCTOS_DEFAULT = ['Bidón POL', 'Bidón PET', 'Hielo CUBO']
 
 const DETALLES_VACIOS: DetalleVentaDraft[] = PRODUCTOS_DEFAULT.map(() => ({
   productoId: '',
@@ -74,13 +70,17 @@ function limpiarDraft() {
 
 /**
  * Construye los defaults del formulario:
- * 1. Si hay draft en sessionStorage, lo usa (persistencia al navegar/refresh).
- * 2. Si el catálogo ya está cargado, precarga los 6 productos con su precio.
- * 3. Sino, 6 rows vacías (se rellenarán al resolver el catálogo).
+ * 1. Si hay draft en sessionStorage con al menos un producto ya elegido, lo
+ *    usa (persistencia al navegar/refresh).
+ * 2. Si el catálogo ya está cargado, precarga los 3 productos frecuentes con
+ *    su precio.
+ * 3. Sino, 3 rows vacías que se rellenarán al resolver el catálogo.
  */
 function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVentaForm {
   const draft = cargarDraft()
-  if (draft?.detalles?.length) return draft as RegistrarVentaForm
+  const draftTieneProducto =
+    !!draft?.detalles?.length && draft.detalles.some((d) => d?.productoId)
+  if (draftTieneProducto) return draft as RegistrarVentaForm
   if (productos && productos.length > 0) {
     return {
       clienteId: '',
@@ -130,6 +130,17 @@ export default function RegistrarVenta() {
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
+
+// useForm lee defaultValues solo al montar; cuando el catálogo llega tarde
+  // quedan vacías. Aplicamos reset(defaults) una vez para precargar los
+  // productos (o restaurar el draft si existe).
+  const didInitRef = useRef(false)
+  useEffect(() => {
+    if (!didInitRef.current && productos.data?.length) {
+      didInitRef.current = true
+      reset(defaults)
+    }
+  }, [productos.data, defaults, reset])
 
   // Persistencia del draft en sessionStorage.
   const formValues = useWatch({ control })
