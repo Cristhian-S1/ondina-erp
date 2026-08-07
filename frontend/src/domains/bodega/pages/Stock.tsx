@@ -63,7 +63,7 @@ export default function Stock() {
     async function init() {
       const [sucursalesData, productosData, empaquesData] = await Promise.all([
         obtenerSucursales(),
-        obtenerProductos(),
+        obtenerProductos(true),
         obtenerTiposEmpaque(),
       ])
       setSucursales(sucursalesData)

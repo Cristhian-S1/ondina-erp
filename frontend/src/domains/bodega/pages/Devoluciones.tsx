@@ -103,7 +103,7 @@ export default function Devoluciones() {
     const [vendedoresData, productosData, empaquesData, despachosRaw, envasesStockRaw] =
       await Promise.all([
         obtenerVendedores(sucursalId),
-        obtenerProductos(),
+        obtenerProductos(true),
         obtenerTiposEmpaque(),
         obtenerDespachos(sucursalId),
         obtenerStockEnvases(sucursalId),

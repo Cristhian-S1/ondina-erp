@@ -131,7 +131,7 @@ export default function Despachos() {
     const [vendedoresData, productosData, empaquesData, despachosRaw, stockRaw, envasesRaw] =
       await Promise.all([
         obtenerVendedores(sucursalId),
-        obtenerProductos(),
+        obtenerProductos(true),
         obtenerTiposEmpaque(),
         obtenerDespachos(sucursalId),
         obtenerStockBodega(sucursalId),
@@ -778,11 +778,13 @@ export default function Despachos() {
                       }}
                     >
                       <option value="">Selecciona producto...</option>
-                      {productos.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.nombre} (disp. {stockDisponible(p.id)})
-                        </option>
-                      ))}
+                      {productos
+                        .filter((p) => p.activo)
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.nombre} (disp. {stockDisponible(p.id)})
+                          </option>
+                        ))}
                     </select>
                     {linea.producto_id && (
                       <span className="mt-1 block text-xs text-slate-500">
