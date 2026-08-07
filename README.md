@@ -222,6 +222,39 @@ Todo PR debe indicar qué cambia, qué HU cubre, cómo probarlo y cómo se valid
 - Las migraciones se ejecutan de forma versionada y nunca mediante cambios manuales en producción.
 - Variables públicas `VITE_` pueden llegar al frontend; claves privadas deben permanecer en GitHub Secrets, Vercel o Supabase.
 
+### CI/CD
+
+El pipeline vive en `.github/workflows/`:
+
+| Workflow | Disparador | Qué hace |
+| :------- | :--------- | :------- |
+| `ci.yml` | `pull_request` a `develop`/`main` | Lint + typecheck + build + tests (Vitest) y validación de sintaxis SQL de migraciones (`migrations-check`). **No aplica** migraciones a la BD. |
+| `deploy-develop.yml` | `push` a `develop` | Deploy del frontend a Vercel (ambiente `development`). |
+| `deploy-prod.yml` | `push` a `main` | Verifica lint+build+tests; luego job `deploy` con `environment: production` que espera aprobación manual de un reviewer antes de publicar en Vercel Production (`ondina-erp.vercel.app`). |
+
+Las ramas `feature/*` no deployan: el CI solo corre en PRs a `develop`/`main`; Vercel genera previews automáticamente por su GitHub App en cada push a cualquier rama.
+
+### Configuración manual pendiente (una sola vez)
+
+Estos pasos no los puede hacer el agente; requieren acceso al dashboard:
+
+1. **Vercel env vars** (proyecto `ondina-erp`, Settings → Environment Variables):
+   - `VITE_SUPABASE_URL` = `https://rhivlzwtobhiguzmkiat.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = clave anon/publicable del proyecto Supabase
+   - Crear scopes para Preview, Development y Production si se usan proyectos Supabase separados por ambiente.
+2. **GitHub Secrets** (repo Settings → Secrets and variables → Actions):
+   - `VERCEL_TOKEN` = token de Vercel (crear en Vercel → Settings → Tokens)
+   - `VERCEL_PROJECT_ID` = `prj_uOyPIotyMKPyB4zVTP7AD7cSZpp1` (se ve en Vercel → Project Settings → General)
+   - `VERCEL_ORG_ID` = team id de Vercel (se ve en Vercel → Team Settings → General)
+3. **GitHub Environments** (repo Settings → Environments):
+   - `production` con **Required reviewers** (administradores que aprueban el deploy a Vercel Production).
+   - (Opcional) `development` para fricción intermedia en develop.
+4. **Branch protection** en `main`:
+   - Requiere PR + al menos 1 revisión aprobada + CI verde antes del merge.
+   - Nadie hace push directo a `main`.
+5. **Migraciones Supabase:**
+   - No automatizar en CI/CD (mejor control manual). Tras cada merge a develop/main, aplicar con `supabase db push --linked` localmente o vía el MCP de Supabase.
+
 ## Definition Of Done
 
 Una historia está terminada cuando:
