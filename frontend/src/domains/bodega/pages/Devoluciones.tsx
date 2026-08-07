@@ -47,6 +47,15 @@ const estadoBadge: Record<EstadoDespacho, string> = {
   completo: 'rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700',
 }
 
+type FiltroDia = 'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'
+
+const OPCIONES_DIA: Array<[FiltroDia, string]> = [
+  ['hoy', 'Hoy'],
+  ['ayer', 'Ayer'],
+  ['7d', '7 días'],
+  ['todo', 'Todo'],
+]
+
 const inputCompact = `${inputCls} !mt-0 w-20 text-right`
 
 function aaaammdd(fecha: Date): string {
@@ -261,7 +270,6 @@ export default function Devoluciones() {
   }
 
   function seleccionar(despachoId: string) {
-    if (!esAdmin && estadoDe(despachoId) === 'completo') return
     setSeleccionado(despachoId)
     prellenarInputs(despachoId)
     setError(null)
@@ -371,6 +379,7 @@ export default function Devoluciones() {
   const editarProductos = productosPendientes || (esAdmin && hayProductosRegistrados)
   const editarEnvases = envasesPendientes || (esAdmin && hayEnvasesRegistrados)
   const esCorreccion = esAdmin && (hayProductosRegistrados || hayEnvasesRegistrados)
+  const soloLectura = !esAdmin && estado === 'completo'
 
   return (
     <div className="space-y-6">
@@ -411,41 +420,38 @@ export default function Devoluciones() {
       <div className={cardCls}>
         <div className="flex flex-wrap items-center gap-3 px-5 py-3">
           <div className="flex flex-wrap items-center gap-1.5">
-            {(
-              [
-                ['hoy', 'Hoy'],
-                ['ayer', 'Ayer'],
-                ['7d', '7 días'],
-                ['todo', 'Todo'],
-              ] as const
-            ).map(([valor, etiqueta]) => (
-              <button
-                key={valor}
-                type="button"
-                className={
-                  diaFiltro === valor
-                    ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
-                    : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
-                }
-                onClick={() => {
-                  setDiaFiltro(valor)
-                  setFechaSeleccionada('')
+            {OPCIONES_DIA.filter(([valor]) => esAdmin || valor === 'hoy').map(
+              ([valor, etiqueta]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  className={
+                    diaFiltro === valor
+                      ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                      : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                  }
+                  onClick={() => {
+                    setDiaFiltro(valor)
+                    setFechaSeleccionada('')
+                    setSeleccionado('')
+                  }}
+                >
+                  {etiqueta}
+                </button>
+              ),
+            )}
+            {esAdmin && (
+              <input
+                type="date"
+                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                value={fechaSeleccionada}
+                onChange={(e) => {
+                  setFechaSeleccionada(e.target.value)
+                  setDiaFiltro(e.target.value === '' ? 'hoy' : 'fecha')
                   setSeleccionado('')
                 }}
-              >
-                {etiqueta}
-              </button>
-            ))}
-            <input
-              type="date"
-              className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
-              value={fechaSeleccionada}
-              onChange={(e) => {
-                setFechaSeleccionada(e.target.value)
-                setDiaFiltro(e.target.value === '' ? 'hoy' : 'fecha')
-                setSeleccionado('')
-              }}
-            />
+              />
+            )}
           </div>
 
           <select
@@ -485,20 +491,15 @@ export default function Devoluciones() {
             <ul className="space-y-2 p-3">
               {despachosFiltrados.map((d) => {
                 const dEstado = estadoDe(d.id)
-                const completo = dEstado === 'completo'
-                const bloqueado = completo && !esAdmin
                 return (
                   <li key={d.id}>
                     <button
                       type="button"
-                      disabled={bloqueado}
                       onClick={() => seleccionar(d.id)}
                       className={`w-full rounded-xl border p-3 text-left transition ${
                         seleccionado === d.id
                           ? 'border-brand-200 bg-brand-50'
-                          : bloqueado
-                            ? 'cursor-not-allowed border-slate-100 opacity-60'
-                            : 'border-slate-200 hover:border-slate-300'
+                          : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -697,20 +698,22 @@ export default function Devoluciones() {
                   </p>
                 </div>
 
-                <div className="border-t border-slate-100 pt-4">
-                  <button
-                    type="button"
-                    className={`${btnPrimary} w-full`}
-                    disabled={enviando}
-                    onClick={() => void registrar()}
-                  >
-                    {enviando
-                      ? 'Guardando...'
-                      : esCorreccion
-                        ? 'Guardar corrección'
-                        : 'Registrar devolución'}
-                  </button>
-                </div>
+                {!soloLectura && (
+                  <div className="border-t border-slate-100 pt-4">
+                    <button
+                      type="button"
+                      className={`${btnPrimary} w-full`}
+                      disabled={enviando}
+                      onClick={() => void registrar()}
+                    >
+                      {enviando
+                        ? 'Guardando...'
+                        : esCorreccion
+                          ? 'Guardar corrección'
+                          : 'Registrar devolución'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}

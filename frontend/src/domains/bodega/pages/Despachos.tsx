@@ -54,6 +54,15 @@ interface GrupoDevolucion {
   }[]
 }
 
+type FiltroDia = 'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'
+
+const OPCIONES_DIA: Array<[FiltroDia, string]> = [
+  ['hoy', 'Hoy'],
+  ['ayer', 'Ayer'],
+  ['7d', '7 días'],
+  ['todo', 'Todo'],
+]
+
 function AvatarNombre({ nombre }: { nombre: string }) {
   const iniciales = nombre
     .split(' ')
@@ -86,6 +95,7 @@ function aaaammdd(fecha: Date): string {
 
 export default function Despachos() {
   const { perfil } = useAuth()
+  const esAdmin = perfil?.rol === 'administrador'
   const navigate = useNavigate()
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
@@ -424,41 +434,38 @@ export default function Despachos() {
 
           <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
             <div className="flex flex-wrap items-center gap-1.5">
-              {(
-                [
-                  ['hoy', 'Hoy'],
-                  ['ayer', 'Ayer'],
-                  ['7d', '7 días'],
-                  ['todo', 'Todo'],
-                ] as const
-              ).map(([valor, etiqueta]) => (
-                <button
-                  key={valor}
-                  type="button"
-                  className={
-                    diaFiltro === valor
-                      ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
-                      : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
-                  }
-                  onClick={() => {
-                    setDiaFiltro(valor)
-                    setFechaSeleccionada('')
+              {OPCIONES_DIA.filter(([valor]) => esAdmin || valor === 'hoy').map(
+                ([valor, etiqueta]) => (
+                  <button
+                    key={valor}
+                    type="button"
+                    className={
+                      diaFiltro === valor
+                        ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                        : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                    }
+                    onClick={() => {
+                      setDiaFiltro(valor)
+                      setFechaSeleccionada('')
+                      setDespachoExpandido(null)
+                    }}
+                  >
+                    {etiqueta}
+                  </button>
+                ),
+              )}
+              {esAdmin && (
+                <input
+                  type="date"
+                  className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                  value={fechaSeleccionada}
+                  onChange={(e) => {
+                    setFechaSeleccionada(e.target.value)
+                    setDiaFiltro(e.target.value === '' ? 'hoy' : 'fecha')
                     setDespachoExpandido(null)
                   }}
-                >
-                  {etiqueta}
-                </button>
-              ))}
-              <input
-                type="date"
-                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
-                value={fechaSeleccionada}
-                onChange={(e) => {
-                  setFechaSeleccionada(e.target.value)
-                  setDiaFiltro(e.target.value === '' ? 'hoy' : 'fecha')
-                  setDespachoExpandido(null)
-                }}
-              />
+                />
+              )}
             </div>
 
             <select
