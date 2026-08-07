@@ -126,55 +126,16 @@ export async function obtenerCargaVendedores(vendedorIds: string[]): Promise<Car
 }
 
 export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: string | null }> {
-  const { data: despacho, error } = await supabase
-    .from('despachos')
-    .insert([
-      {
-        sucursal_id: payload.sucursal_id,
-        vendedor_id: payload.vendedor_id,
-        despachador_id: payload.despachador_id,
-        creado_por: payload.creado_por,
-      },
-    ] as never[])
-    .select('id')
-    .returns<{ id: string }[]>()
-    .single()
+  const { error } = await supabase.rpc('crear_despacho', {
+    p_sucursal_id: payload.sucursal_id,
+    p_vendedor_id: payload.vendedor_id,
+    p_despachador_id: payload.despachador_id,
+    p_creado_por: payload.creado_por,
+    p_lineas: payload.lineas,
+    p_envases: payload.envases,
+  } as never)
 
-  if (error || !despacho) return { error: mensajeErrorSupabase(error) }
-
-  const { error: errDetalles } = await supabase
-    .from('despacho_detalles')
-    .insert(
-      payload.lineas.map((l) => ({
-        despacho_id: despacho.id,
-        producto_id: l.producto_id,
-        cantidad: l.cantidad,
-      })) as never[],
-    )
-
-  if (errDetalles) {
-    await supabase.from('despachos').delete().eq('id', despacho.id)
-    return { error: mensajeErrorSupabase(errDetalles) }
-  }
-
-  if (payload.envases.length > 0) {
-    const { error: errEnvases } = await supabase
-      .from('despacho_envases')
-      .insert(
-        payload.envases.map((e) => ({
-          despacho_id: despacho.id,
-          tipo_empaque_id: e.tipo_empaque_id,
-          cantidad: e.cantidad,
-        })) as never[],
-      )
-
-    if (errEnvases) {
-      await supabase.from('despachos').delete().eq('id', despacho.id)
-      return { error: mensajeErrorSupabase(errEnvases) }
-    }
-  }
-
-  return { error: null }
+  return { error: error ? mensajeErrorSupabase(error) : null }
 }
 
 export async function registrarDevolucionProductos(

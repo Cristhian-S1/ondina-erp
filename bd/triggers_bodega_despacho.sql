@@ -5,7 +5,9 @@
 -- rhivlzwtobhiguzmkiat). Hace operativos los movimientos de stock que el
 -- esquema ya define pero que NO están cargados en la BD:
 --
---   - Crear despacho          -> descuenta stock_bodega y suma carga_vendedor
+--   - Crear despacho (RPC)    -> public.crear_despacho inserta despacho +
+--                                detalles + envases en una sola transacción
+--                                (descuenta stock_bodega y suma carga_vendedor)
 --   - Despacho de envases     -> descuenta stock_envases (bandejas/cajas)
 --   - Devolución de productos -> carga_vendedor -=, stock_bodega +=
 --   - Devolución de envases   -> stock_envases += (solo estado 'bueno')
@@ -390,5 +392,73 @@ drop trigger if exists trg_audit_despacho_envases on public.despacho_envases;
 create trigger trg_audit_despacho_envases
     after insert or update on public.despacho_envases
     for each row execute function public.fn_auditoria_simple();
+
+-- ---------------------------------------------------------------------------
+-- 8) RPC crear_despacho: inserta despacho + detalles + envases de forma atómica
+-- ---------------------------------------------------------------------------
+-- Reemplaza la secuencia de inserts del cliente (despachos -> detalles ->
+-- envases), que dejaba despachos huérfanos si fallaba un paso (el DELETE de
+-- compensación no funciona: no hay política de borrado ni ON DELETE CASCADE).
+-- Como el RPC corre en una sola transacción, cualquier error revierte todo.
+-- Los triggers de stock (secciones 1 y 1b) se ejecutan al insertar cada
+-- detalle/envase y validan el inventario.
+create or replace function public.crear_despacho(
+    p_sucursal_id uuid,
+    p_vendedor_id uuid,
+    p_despachador_id uuid,
+    p_creado_por uuid,
+    p_lineas jsonb,
+    p_envases jsonb default '[]'::jsonb
+) returns uuid
+language plpgsql
+set search_path = public
+as $$
+declare
+    v_despacho_id     uuid;
+    v_linea           jsonb;
+    v_envase          jsonb;
+    v_producto_id     uuid;
+    v_tipo_empaque_id uuid;
+    v_cantidad        integer;
+begin
+    if p_sucursal_id is null or p_vendedor_id is null
+       or p_despachador_id is null or p_creado_por is null then
+        raise exception 'Faltan datos del despacho: sucursal, vendedor, despachador o usuario.';
+    end if;
+
+    if p_lineas is null or jsonb_typeof(p_lineas) <> 'array'
+       or jsonb_array_length(p_lineas) = 0 then
+        raise exception 'Agrega al menos un producto al despacho.';
+    end if;
+
+    insert into public.despachos (sucursal_id, vendedor_id, despachador_id, creado_por)
+    values (p_sucursal_id, p_vendedor_id, p_despachador_id, p_creado_por)
+    returning id into v_despacho_id;
+
+    for v_linea in select * from jsonb_array_elements(p_lineas) loop
+        v_producto_id := (v_linea ->> 'producto_id')::uuid;
+        v_cantidad    := (v_linea ->> 'cantidad')::integer;
+        if v_producto_id is null or v_cantidad is null or v_cantidad <= 0 then
+            raise exception 'Línea de producto inválida en el despacho.';
+        end if;
+        insert into public.despacho_detalles (despacho_id, producto_id, cantidad)
+        values (v_despacho_id, v_producto_id, v_cantidad);
+    end loop;
+
+    if p_envases is not null and jsonb_typeof(p_envases) = 'array' then
+        for v_envase in select * from jsonb_array_elements(p_envases) loop
+            v_tipo_empaque_id := (v_envase ->> 'tipo_empaque_id')::uuid;
+            v_cantidad        := (v_envase ->> 'cantidad')::integer;
+            if v_tipo_empaque_id is null or v_cantidad is null or v_cantidad <= 0 then
+                raise exception 'Línea de envase inválida en el despacho.';
+            end if;
+            insert into public.despacho_envases (despacho_id, tipo_empaque_id, cantidad)
+            values (v_despacho_id, v_tipo_empaque_id, v_cantidad);
+        end loop;
+    end if;
+
+    return v_despacho_id;
+end;
+$$;
 
 commit;
