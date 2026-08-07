@@ -53,7 +53,6 @@ export async function obtenerDespachos(sucursalId?: string): Promise<Despacho[]>
     .select('*')
     .eq('sucursal_id', sucursalId)
     .order('creado_en', { ascending: false })
-    .limit(20)
     .returns<Despacho[]>()
   return data ?? []
 }

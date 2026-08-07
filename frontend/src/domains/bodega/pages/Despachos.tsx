@@ -442,6 +442,7 @@ export default function Despachos() {
                   }
                   onClick={() => {
                     setDiaFiltro(valor)
+                    setFechaSeleccionada('')
                     setDespachoExpandido(null)
                   }}
                 >
@@ -454,7 +455,7 @@ export default function Despachos() {
                 value={fechaSeleccionada}
                 onChange={(e) => {
                   setFechaSeleccionada(e.target.value)
-                  setDiaFiltro('fecha')
+                  setDiaFiltro(e.target.value === '' ? 'hoy' : 'fecha')
                   setDespachoExpandido(null)
                 }}
               />
