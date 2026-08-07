@@ -440,6 +440,99 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- 9. Corrección de devoluciones por administración: anula las vigentes y
+--    reinserta las cantidades corregidas (RF-23 / HU-13). No borra: las filas
+--    originales quedan anuladas y su stock se revierte (secciones 8c/8d); las
+--    nuevas líneas vuelven a mover stock (secciones 4/5). Todo en una
+--    transacción.
+-- ---------------------------------------------------------------------------
+create or replace function public.corregir_devolucion(
+    p_despacho_id uuid,
+    p_creado_por  uuid,
+    p_productos   jsonb,
+    p_envases     jsonb
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+    v_despacho public.despachos%rowtype;
+    v_total    integer;
+    v_linea    record;
+begin
+    if not es_rol('administrador') then
+        raise exception 'Solo administración puede corregir devoluciones';
+    end if;
+
+    select * into v_despacho from public.despachos where id = p_despacho_id;
+    if v_despacho.id is null then
+        raise exception 'El despacho no existe';
+    end if;
+
+    -- Validar productos: cantidad <= despachado (suma de despacho_detalles)
+    for v_linea in
+        select * from jsonb_to_recordset(coalesce(p_productos, '[]'::jsonb))
+        as x(producto_id uuid, cantidad int)
+    loop
+        if v_linea.cantidad <= 0 then
+            continue;
+        end if;
+        select coalesce(sum(cantidad), 0) into v_total
+        from public.despacho_detalles
+        where despacho_id = p_despacho_id
+          and producto_id = v_linea.producto_id;
+        if v_linea.cantidad > v_total then
+            raise exception 'No se puede devolver más de lo despachado del producto %', v_linea.producto_id;
+        end if;
+    end loop;
+
+    -- Validar envases: estado válido (sin tope de cantidad)
+    for v_linea in
+        select * from jsonb_to_recordset(coalesce(p_envases, '[]'::jsonb))
+        as x(tipo_empaque_id uuid, cantidad int, estado text)
+    loop
+        if v_linea.cantidad > 0 and v_linea.estado not in ('bueno', 'malo') then
+            raise exception 'Estado de envase inválido';
+        end if;
+    end loop;
+
+    -- Anular devoluciones vigentes del despacho (triggers 8c/8d revierten stock)
+    update public.devoluciones_productos set anulado = true
+    where despacho_id = p_despacho_id and anulado = false;
+    update public.devoluciones_envases set anulado = true
+    where despacho_id = p_despacho_id and anulado = false;
+
+    -- Reinsertar líneas corregidas (triggers 4/5 vuelven a mover stock)
+    for v_linea in
+        select * from jsonb_to_recordset(coalesce(p_productos, '[]'::jsonb))
+        as x(producto_id uuid, cantidad int)
+    loop
+        if v_linea.cantidad > 0 then
+            insert into public.devoluciones_productos
+                (despacho_id, producto_id, cantidad, creado_por)
+            values
+                (p_despacho_id, v_linea.producto_id, v_linea.cantidad, p_creado_por);
+        end if;
+    end loop;
+
+    for v_linea in
+        select * from jsonb_to_recordset(coalesce(p_envases, '[]'::jsonb))
+        as x(tipo_empaque_id uuid, cantidad int, estado text)
+    loop
+        if v_linea.cantidad > 0 then
+            insert into public.devoluciones_envases
+                (despacho_id, tipo_empaque_id, cantidad, estado, creado_por)
+            values
+                (p_despacho_id, v_linea.tipo_empaque_id, v_linea.cantidad,
+                 v_linea.estado, p_creado_por);
+        end if;
+    end loop;
+end;
+$$;
+
 -- ===========================================================================
 -- Activación de triggers de negocio
 -- ===========================================================================
