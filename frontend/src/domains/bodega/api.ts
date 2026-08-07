@@ -33,6 +33,13 @@ export interface DevolucionEnvasesPayload {
   lineas: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
 }
 
+export interface CorregirDevolucionPayload {
+  despacho_id: string
+  creado_por: string
+  lineas_producto: { producto_id: string; cantidad: number }[]
+  lineas_envase: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
+}
+
 export async function obtenerVendedores(sucursalId?: string): Promise<Perfil[]> {
   if (!sucursalId) return []
   const { data } = await supabase
@@ -83,6 +90,7 @@ export async function obtenerDevolucionesProducto(despachoIds: string[]): Promis
     .from('devoluciones_productos')
     .select('*')
     .in('despacho_id', despachoIds)
+    .eq('anulado', false)
     .returns<DevolucionProducto[]>()
   return data ?? []
 }
@@ -93,11 +101,13 @@ export async function obtenerDevolucionesEnvase(despachoIds: string[]): Promise<
     .from('devoluciones_envases')
     .select('*')
     .in('despacho_id', despachoIds)
+    .eq('anulado', false)
     .returns<DevolucionEnvase[]>()
   return data ?? []
 }
 
 export async function obtenerStockBodega(sucursalId: string): Promise<StockBodega[]> {
+  if (!sucursalId) return []
   const { data } = await supabase
     .from('stock_bodega')
     .select('*')
@@ -107,6 +117,7 @@ export async function obtenerStockBodega(sucursalId: string): Promise<StockBodeg
 }
 
 export async function obtenerStockEnvases(sucursalId: string): Promise<StockEnvases[]> {
+  if (!sucursalId) return []
   const { data } = await supabase
     .from('stock_envases')
     .select('*')
@@ -151,6 +162,19 @@ export async function registrarDevolucionProductos(
         creado_por: payload.creado_por,
       })) as never[],
     )
+
+  return { error: error ? mensajeErrorSupabase(error) : null }
+}
+
+export async function corregirDevolucion(
+  payload: CorregirDevolucionPayload,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.rpc('corregir_devolucion', {
+    p_despacho_id: payload.despacho_id,
+    p_creado_por: payload.creado_por,
+    p_productos: payload.lineas_producto,
+    p_envases: payload.lineas_envase,
+  } as never)
 
   return { error: error ? mensajeErrorSupabase(error) : null }
 }
