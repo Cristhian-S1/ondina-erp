@@ -300,43 +300,6 @@ export default function Despachos() {
     return fechas.length > 0 ? fechas.sort().reverse()[0] : null
   }
 
-  const gruposDevolucion = useMemo<GrupoDevolucion[]>(() => {
-    const grupos = new Map<string, GrupoDevolucion>()
-    const asegurar = (despachoId: string) => {
-      let grupo = grupos.get(despachoId)
-      if (!grupo) {
-        const d = despachos.find((x) => x.id === despachoId)
-        grupo = {
-          despachoId,
-          vendedor: d?.vendedorNombre ?? 'Desconocido',
-          fecha: d?.creado_en ?? '',
-          lineas: [],
-        }
-        grupos.set(despachoId, grupo)
-      }
-      return grupo
-    }
-    for (const dv of desvProducto) {
-      const p = productos.find((x) => x.id === dv.producto_id)
-      asegurar(dv.despacho_id).lineas.push({
-        id: `dp-${dv.id}`,
-        tipo: 'producto',
-        descripcion: p?.nombre ?? 'Producto',
-        cantidad: dv.cantidad,
-      })
-    }
-    for (const de of desvEnvase) {
-      const t = tiposEmpaque.find((x) => x.id === de.tipo_empaque_id)
-      asegurar(de.despacho_id).lineas.push({
-        id: `de-${de.id}`,
-        tipo: 'envase',
-        descripcion: `${t?.nombre ?? 'Envase'} (${de.estado})`,
-        cantidad: de.cantidad,
-      })
-    }
-    return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
-  }, [desvProducto, desvEnvase, despachos, productos, tiposEmpaque])
-
   const diaObjetivo = useMemo(() => {
     if (diaFiltro === 'fecha') return fechaSeleccionada
     if (diaFiltro === 'todo') return ''
@@ -361,6 +324,46 @@ export default function Despachos() {
       return fechaDespacho === diaObjetivo
     })
   }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
+
+  const gruposDevolucion = useMemo<GrupoDevolucion[]>(() => {
+    const idsVisibles = new Set(despachosFiltrados.map((d) => d.id))
+    const grupos = new Map<string, GrupoDevolucion>()
+    const asegurar = (despachoId: string) => {
+      let grupo = grupos.get(despachoId)
+      if (!grupo) {
+        const d = despachos.find((x) => x.id === despachoId)
+        grupo = {
+          despachoId,
+          vendedor: d?.vendedorNombre ?? 'Desconocido',
+          fecha: d?.creado_en ?? '',
+          lineas: [],
+        }
+        grupos.set(despachoId, grupo)
+      }
+      return grupo
+    }
+    for (const dv of desvProducto) {
+      if (!idsVisibles.has(dv.despacho_id)) continue
+      const p = productos.find((x) => x.id === dv.producto_id)
+      asegurar(dv.despacho_id).lineas.push({
+        id: `dp-${dv.id}`,
+        tipo: 'producto',
+        descripcion: p?.nombre ?? 'Producto',
+        cantidad: dv.cantidad,
+      })
+    }
+    for (const de of desvEnvase) {
+      if (!idsVisibles.has(de.despacho_id)) continue
+      const t = tiposEmpaque.find((x) => x.id === de.tipo_empaque_id)
+      asegurar(de.despacho_id).lineas.push({
+        id: `de-${de.id}`,
+        tipo: 'envase',
+        descripcion: `${t?.nombre ?? 'Envase'} (${de.estado})`,
+        cantidad: de.cantidad,
+      })
+    }
+    return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
+  }, [desvProducto, desvEnvase, despachosFiltrados, productos, tiposEmpaque])
 
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 
