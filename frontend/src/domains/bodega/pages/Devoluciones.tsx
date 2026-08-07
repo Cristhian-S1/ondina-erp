@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import {
+  corregirDevolucion,
   obtenerCargaVendedores,
   obtenerDespachos,
   obtenerDetallesDespacho,
@@ -57,6 +58,7 @@ function aaaammdd(fecha: Date): string {
 
 export default function Devoluciones() {
   const { perfil } = useAuth()
+  const esAdmin = perfil?.rol === 'administrador'
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
@@ -237,11 +239,31 @@ export default function Devoluciones() {
       )
       .reduce((sum, x) => sum + x.cantidad, 0)
 
+  function prellenarInputs(despachoId: string) {
+    const productos: Record<string, string> = {}
+    for (const [productoId] of productosDespachados(despachoId)) {
+      const devuelto = devueltoProductoDe(despachoId, productoId)
+      if (devuelto > 0) productos[productoId] = String(devuelto)
+    }
+    const envases: Record<string, { buenos: string; malos: string }> = {}
+    for (const t of tiposEmpaqueDevolvibles) {
+      const buenos = devueltoEnvaseBuenoDe(despachoId, t.id)
+      const malos = devueltoEnvaseMaloDe(despachoId, t.id)
+      if (buenos > 0 || malos > 0) {
+        envases[t.id] = {
+          buenos: buenos > 0 ? String(buenos) : '',
+          malos: malos > 0 ? String(malos) : '',
+        }
+      }
+    }
+    setProductoInputs(productos)
+    setEnvaseInputs(envases)
+  }
+
   function seleccionar(despachoId: string) {
-    if (estadoDe(despachoId) === 'completo') return
+    if (!esAdmin && estadoDe(despachoId) === 'completo') return
     setSeleccionado(despachoId)
-    setProductoInputs({})
-    setEnvaseInputs({})
+    prellenarInputs(despachoId)
     setError(null)
   }
 
@@ -252,14 +274,17 @@ export default function Devoluciones() {
 
     const productosPendientes = estado === 'pendiente' || estado === 'envases'
     const envasesPendientes = estado === 'pendiente' || estado === 'productos'
+    const hayProductos = desvProducto.some((x) => x.despacho_id === seleccionado)
+    const hayEnvases = desvEnvase.some((x) => x.despacho_id === seleccionado)
+    const esCorreccion = esAdmin && (hayProductos || hayEnvases)
 
-    const lineasProducto = productosPendientes
+    const lineasProducto = productosPendientes || esCorreccion
       ? Object.entries(productoInputs)
           .filter(([, cantidad]) => Number(cantidad) > 0)
           .map(([producto_id, cantidad]) => ({ producto_id, cantidad: Number(cantidad) }))
       : []
 
-    const lineasEnvase = envasesPendientes
+    const lineasEnvase = envasesPendientes || esCorreccion
       ? Object.entries(envaseInputs)
           .filter(([, v]) => Number(v.buenos) > 0 || Number(v.malos) > 0)
           .flatMap(([tipo_empaque_id, v]) => [
@@ -290,28 +315,42 @@ export default function Devoluciones() {
     }
 
     setEnviando(true)
-    if (lineasProducto.length > 0) {
-      const { error: err } = await registrarDevolucionProductos({
+    if (esCorreccion) {
+      const { error: err } = await corregirDevolucion({
         despacho_id: seleccionado,
         creado_por: perfil.id,
-        lineas: lineasProducto,
+        lineas_producto: lineasProducto,
+        lineas_envase: lineasEnvase,
       })
       if (err) {
         setError(err)
         setEnviando(false)
         return
       }
-    }
-    if (lineasEnvase.length > 0) {
-      const { error: err } = await registrarDevolucionEnvases({
-        despacho_id: seleccionado,
-        creado_por: perfil.id,
-        lineas: lineasEnvase,
-      })
-      if (err) {
-        setError(err)
-        setEnviando(false)
-        return
+    } else {
+      if (lineasProducto.length > 0) {
+        const { error: err } = await registrarDevolucionProductos({
+          despacho_id: seleccionado,
+          creado_por: perfil.id,
+          lineas: lineasProducto,
+        })
+        if (err) {
+          setError(err)
+          setEnviando(false)
+          return
+        }
+      }
+      if (lineasEnvase.length > 0) {
+        const { error: err } = await registrarDevolucionEnvases({
+          despacho_id: seleccionado,
+          creado_por: perfil.id,
+          lineas: lineasEnvase,
+        })
+        if (err) {
+          setError(err)
+          setEnviando(false)
+          return
+        }
       }
     }
 
@@ -327,6 +366,11 @@ export default function Devoluciones() {
   const estado = seleccionado ? estadoDe(seleccionado) : null
   const productosPendientes = estado === 'pendiente' || estado === 'envases'
   const envasesPendientes = estado === 'pendiente' || estado === 'productos'
+  const hayProductosRegistrados = desvProducto.some((x) => x.despacho_id === seleccionado)
+  const hayEnvasesRegistrados = desvEnvase.some((x) => x.despacho_id === seleccionado)
+  const editarProductos = productosPendientes || (esAdmin && hayProductosRegistrados)
+  const editarEnvases = envasesPendientes || (esAdmin && hayEnvasesRegistrados)
+  const esCorreccion = esAdmin && (hayProductosRegistrados || hayEnvasesRegistrados)
 
   return (
     <div className="space-y-6">
@@ -442,16 +486,17 @@ export default function Devoluciones() {
               {despachosFiltrados.map((d) => {
                 const dEstado = estadoDe(d.id)
                 const completo = dEstado === 'completo'
+                const bloqueado = completo && !esAdmin
                 return (
                   <li key={d.id}>
                     <button
                       type="button"
-                      disabled={completo}
+                      disabled={bloqueado}
                       onClick={() => seleccionar(d.id)}
                       className={`w-full rounded-xl border p-3 text-left transition ${
                         seleccionado === d.id
                           ? 'border-brand-200 bg-brand-50'
-                          : completo
+                          : bloqueado
                             ? 'cursor-not-allowed border-slate-100 opacity-60'
                             : 'border-slate-200 hover:border-slate-300'
                       }`}
@@ -499,7 +544,7 @@ export default function Devoluciones() {
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Productos del despacho
                     </h3>
-                    {!productosPendientes && (
+                    {!editarProductos && (
                       <span className="text-xs font-semibold text-emerald-700">Ya devueltos</span>
                     )}
                   </div>
@@ -531,7 +576,7 @@ export default function Devoluciones() {
                                   </td>
                                 )}
                                 <td className={`${tdCls} text-right`}>
-                                  {productosPendientes ? (
+                                  {editarProductos ? (
                                     <input
                                       type="number"
                                       min={0}
@@ -571,7 +616,7 @@ export default function Devoluciones() {
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Envases
                     </h3>
-                    {!envasesPendientes && (
+                    {!editarEnvases && (
                       <span className="text-xs font-semibold text-emerald-700">Ya devueltos</span>
                     )}
                   </div>
@@ -600,7 +645,7 @@ export default function Devoluciones() {
                                 {stockEnvaseDe(t.id)}
                               </td>
                               <td className={`${tdCls} text-right`}>
-                                {envasesPendientes ? (
+                                {editarEnvases ? (
                                   <input
                                     type="number"
                                     min={0}
@@ -621,7 +666,7 @@ export default function Devoluciones() {
                                 )}
                               </td>
                               <td className={`${tdCls} text-right`}>
-                                {envasesPendientes ? (
+                                {editarEnvases ? (
                                   <input
                                     type="number"
                                     min={0}
@@ -659,7 +704,11 @@ export default function Devoluciones() {
                     disabled={enviando}
                     onClick={() => void registrar()}
                   >
-                    {enviando ? 'Registrando...' : 'Registrar devolución'}
+                    {enviando
+                      ? 'Guardando...'
+                      : esCorreccion
+                        ? 'Guardar corrección'
+                        : 'Registrar devolución'}
                   </button>
                 </div>
               </div>
