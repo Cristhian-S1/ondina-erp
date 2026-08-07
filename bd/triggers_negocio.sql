@@ -191,8 +191,10 @@ begin
     where vendedor_id = v_despacho.vendedor_id
       and producto_id  = new.producto_id
     for update;
-    if v_carga is null or v_carga < new.cantidad then
-        raise exception 'Carga insuficiente del vendedor para devolver el producto %', new.producto_id;
+    if not es_rol('administrador') then
+        if v_carga is null or v_carga < new.cantidad then
+            raise exception 'Carga insuficiente del vendedor para devolver el producto %', new.producto_id;
+        end if;
     end if;
 
     update public.carga_vendedor
