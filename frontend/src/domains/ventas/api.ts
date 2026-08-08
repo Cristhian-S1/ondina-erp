@@ -170,3 +170,67 @@ export async function registrarVenta(
   }
   return { id: (data as string | null) ?? null, error: null }
 }
+
+// --- HU-09: visualizar mi comisión ---
+export interface ComisionVendedor {
+  vendedor_id: string
+  jornada: string
+  tipo: 'agua' | 'hielo'
+  base_comision: number
+  porcentaje: number | null
+  monto_fijo: number | null
+  ventas_del_tipo: number
+  comision: number
+}
+
+export async function obtenerMiComision(
+  vendedorId: string,
+): Promise<ComisionVendedor[]> {
+  const { data, error } = await supabase
+    .from('v_comision_vendedor')
+    .select('*')
+    .eq('vendedor_id', vendedorId)
+    .order('jornada', { ascending: false })
+    .returns<ComisionVendedor[]>()
+
+  if (error) {
+    throw new Error('No fue posible obtener la comisión del vendedor')
+  }
+
+  return data ?? []
+}
+
+// --- HU-08: ranking de vendedores ---
+export interface RankingVendedor {
+  vendedor_id: string
+  sucursal_id: string | null
+  vendedor: string
+  mes: string
+  cantidad_ventas: number
+  total_vendido: number
+}
+
+export async function obtenerRankingVendedores(
+  mes: string,
+): Promise<RankingVendedor[]> {
+  const inicioMes = `${mes}-01`
+  const [anio, numeroMes] = mes.split('-').map(Number)
+
+  const inicioMesSiguiente = new Date(
+    Date.UTC(anio, numeroMes, 1),
+  ).toISOString()
+
+  const { data, error } = await supabase
+    .from('v_ranking_vendedores')
+    .select('*')
+    .gte('mes', inicioMes)
+    .lt('mes', inicioMesSiguiente)
+    .order('total_vendido', { ascending: false })
+    .returns<RankingVendedor[]>()
+
+  if (error) {
+    throw new Error('No fue posible obtener el ranking de vendedores')
+  }
+
+  return data ?? []
+}
