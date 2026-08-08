@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerMiComision } from '../api'
 
+//h
 interface ComisionVendedor {
   vendedor_id: string
   jornada: string
