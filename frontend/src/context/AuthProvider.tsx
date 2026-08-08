@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPerfil(null)
         return
       }
-      setPerfil(data)
+      setPerfil(data as Perfil | null)
     }
 
     supabase.auth.getSession().then(({ data }) => {
