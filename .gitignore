@@ -1,0 +1,15 @@
+# Dependencias (Node)
+node_modules/
+
+# Variables de entorno (copia local, no versionar)
+.env
+!.env.example
+
+# CodeGraph: base de datos local de navegación de código (no se versiona)
+.codegraph/
+
+# Playwright MCP: screenshots y snapshots auto-generados (no se versionan)
+.playwright-mcp/
+
+# .opencode/node_modules: dependencias locales del plugin de opencode
+.opencode/node_modules/
