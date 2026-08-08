@@ -2,8 +2,8 @@
 
 ## Estado Actual Del Repositorio
 
-- El repo contiene documentación, esquemas SQL y una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript).
-- No hay aún: `supabase/migrations/`, configuración de CI, migraciones aplicadas ni pruebas ejecutables (solo `lint` y `build`).
+- El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0005), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
+- Las migraciones se aplican manualmente con `supabase db push --linked` (no automatizadas en CI). Ver `docs/setup-vercel-supabase-github.md` para el flujo completo de configuración de Vercel, Supabase y GitHub.
 - El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; no existe `.env.example` aún.
 - Los datos de la base local de Beads viven en `.beads/`; se limpió el historial de un proyecto anterior: el tracker está vacío y `config.yaml` solo tiene `repos.primary = "."`.
 
@@ -35,7 +35,7 @@ npm run lint       # eslint .
 - `bd/` contiene esquemas SQL, objetos y seed. Archivos reales: `ondina_schema_supabase.sql`, `rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`, `drop_todo.sql` y `diagramas_esquemas_mermaid.md`.
 - `bd/ondina_schema_supabase.sql` es el esquema relacional final. Las políticas RLS, triggers de negocio, auditoría, vistas y datos semilla se aplican como archivos separados (`rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`) en el orden documentado en cada cabecera, antes de convertir en migraciones.
 - No existía `bd/ondina_sql.txt` — superado; no lo busques ni despliegues.
-- Aplica el esquema solo en un entorno Supabase/PostgreSQL aislado. Los cambios definitivos van en migraciones versionadas bajo `supabase/migrations/` (aún no creado).
+- Aplica el esquema solo en un entorno Supabase/PostgreSQL aislado. Los cambios definitivos van en migraciones versionadas bajo `supabase/migrations/` (0001 a 0005 ya creadas).
 - Preserva los invariantes: RLS en tablas expuestas, autorización en la BD, triggers de auditoría, parámetros de negocio configurables y soft-delete/anulación.
 - El stock lo mantienen los triggers de BD, no el frontend. Los ajustes de despacho agregan filas dentro de la ventana configurada; no editan ni restan filas existentes.
 - Las anulaciones (`anulado: false → true`) reversan los movimientos de stock mediante triggers en `triggers_negocio.sql` (sección 8): venta devuelve carga y resta envases; despacho devuelve stock_bodega y quita carga; devoluciones, producciones y mermas revertían su efecto. Una posterior reactivación NO restaura movimientos.
