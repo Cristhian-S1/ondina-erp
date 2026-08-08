@@ -14,6 +14,7 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `docs/Historias de Usuario.md`: historias y criterios de aceptación.
 - `bd/diagramas_esquemas_mermaid.md`: diagrama visual del esquema final de datos.
 - `bd/ondina_schema_supabase.sql`: esquema relacional final.
+- `docs/setup-vercel-supabase-github.md`: pasos manuales de configuración de Vercel, Supabase y GitHub (environments, secrets, branch protection, migraciones).
 
 Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
 
