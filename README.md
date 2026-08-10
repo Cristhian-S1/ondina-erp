@@ -27,7 +27,7 @@ No inventes comandos de instalación, build, lint o test hasta que se incorpore 
 ## Stack Elegido
 
 - **Frontend:** React + Vite + TypeScript en modo estricto.
-- **Estilos:** Tailwind CSS.
+- **Estilos:** Tailwind CSS + Mantine UI (componentes complejos como DatePickers).
 - **Datos remotos:** TanStack Query.
 - **Formularios:** React Hook Form + Zod.
 - **Backend:** Supabase.
