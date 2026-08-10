@@ -7,6 +7,7 @@ import type {
   StockBodega,
   StockEnvases,
 } from '../domains/bodega/types'
+import type { IncidenciaProduccion, Produccion } from '../domains/produccion/types'
 
 export interface Database {
   public: {
@@ -69,6 +70,24 @@ export interface Database {
         Row: StockEnvases
         Insert: StockEnvases
         Update: Partial<StockEnvases>
+        Relationships: []
+      }
+      producciones: {
+        Row: Produccion
+        Insert: Omit<Produccion, 'id' | 'creado_en' | 'anulado'>
+        Update: Partial<Produccion>
+        Relationships: []
+      }
+      incidencias_produccion: {
+        Row: IncidenciaProduccion
+        Insert: Omit<IncidenciaProduccion, 'id' | 'creado_en'>
+        Update: Partial<IncidenciaProduccion>
+        Relationships: []
+      }
+    }
+    Views: {
+      v_indicadores_produccion_diarios: {
+        Row: import('../domains/produccion/types').IndicadorProduccionDiario
         Relationships: []
       }
     }
