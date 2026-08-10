@@ -1,3 +1,25 @@
+-- ============================================================
+-- Módulo Producción — HU-19 a HU-23
+-- ============================================================
+--
+-- HU-19: Consulta de envases vacíos disponibles.
+-- HU-20: Registro atómico de producción y actualización de stock.
+-- HU-21: Consulta histórica de producción.
+-- HU-22: Indicadores derivados de registros de producción.
+-- HU-23: Registro y auditoría de incidencias.
+--
+-- Incluye:
+-- - RLS por rol y sucursal.
+-- - Actualización de stock_bodega.
+-- - Consumo y reversión de stock_envases.
+-- - Vista de indicadores.
+-- - Auditoría.
+-- - Supabase Realtime.
+-- - Privilegios requeridos para authenticated.
+--
+-- No contiene datos sensibles ni configuración de entorno.
+-- ============================================================
+
 -- HU-19, HU-20, HU-21, HU-22 y HU-23 del módulo Producción.
 -- Requiere el esquema histórico documentado en bd/.
 
