@@ -1,7 +1,9 @@
 import type { Perfil, Producto, Sucursal, TipoEmpaque } from './index'
 import type {
+  CargaVendedor,
   Despacho,
   DespachoDetalle,
+  DespachoEnvase,
   DevolucionEnvase,
   DevolucionProducto,
   StockBodega,
@@ -47,6 +49,12 @@ export interface Database {
         Update: Partial<DespachoDetalle>
         Relationships: []
       }
+      despacho_envases: {
+        Row: DespachoEnvase
+        Insert: Omit<DespachoEnvase, 'id' | 'creado_en' | 'es_ajuste'>
+        Update: Partial<DespachoEnvase>
+        Relationships: []
+      }
       devoluciones_productos: {
         Row: DevolucionProducto
         Insert: Omit<DevolucionProducto, 'id' | 'creado_en' | 'anulado'>
@@ -69,6 +77,12 @@ export interface Database {
         Row: StockEnvases
         Insert: StockEnvases
         Update: Partial<StockEnvases>
+        Relationships: []
+      }
+      carga_vendedor: {
+        Row: CargaVendedor
+        Insert: Omit<CargaVendedor, 'cantidad' | 'modificado_en'>
+        Update: Partial<CargaVendedor>
         Relationships: []
       }
     }

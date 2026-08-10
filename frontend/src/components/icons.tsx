@@ -174,6 +174,18 @@ export function LogOutIcon(props: IconProps) {
   )
 }
 
+export function RecycleIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M7 19H4.82a3 3 0 0 1-2.71-4.36l.5-.83" />
+      <path d="M7.52 15.07 7 19l3.93-.52" />
+      <path d="M9 5 6.71 2.71a1 1 0 0 0-1.42 0L3 5" />
+      <path d="m14.14 8.5-2.14-6.35L5.65 4.5" />
+      <path d="M19.55 6.5h2.45l-1.22-2.13a2.18 2.18 0 0 0-3.77.15l-.27.48" />
+      <path d="M21 14.5h-2.45" />
+      <path d="m15.38 18.82-1.63 3.68 3.95-.52a2.9 2.9 0 0 0 2.21-1.6l.24-.45" />
+      <path d="m8.64 17.55-3.55 3.1" />
+      <path d="m17.43 5.9 2.4-.65-1.22-2.13" />
 export function ClipboardListIcon(props: IconProps) {
   return (
     <Svg {...props}>

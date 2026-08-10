@@ -11,5 +11,12 @@ node_modules/
 # Playwright MCP: screenshots y snapshots auto-generados (no se versionan)
 .playwright-mcp/
 
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+
+# Playwright MCP artifacts
+.playwright-mcp/
 # .opencode/node_modules: dependencias locales del plugin de opencode
 .opencode/node_modules/
