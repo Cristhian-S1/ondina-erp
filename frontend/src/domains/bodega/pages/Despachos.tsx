@@ -1,3 +1,8 @@
+// Nota de dominio: esta página es del dominio BODEGA (HU-26/27/28), no del
+// dominio Ventas. Vive en feature/bodega y aparece acá solo porque la rama
+// feature/ventas nació de develop y arrastró este componente compartido. En
+// un futuro queda en consideración aislar la navegación de despachos para
+// que no se mezcle con el menú del vendedor de ventas.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../context/auth-context'

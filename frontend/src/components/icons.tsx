@@ -186,6 +186,34 @@ export function RecycleIcon(props: IconProps) {
       <path d="m15.38 18.82-1.63 3.68 3.95-.52a2.9 2.9 0 0 0 2.21-1.6l.24-.45" />
       <path d="m8.64 17.55-3.55 3.1" />
       <path d="m17.43 5.9 2.4-.65-1.22-2.13" />
+export function ClipboardListIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <line x1="9" y1="12" x2="15" y2="12" />
+      <line x1="9" y1="16" x2="15" y2="16" />
+      <line x1="9" y1="8" x2="15" y2="8" />
+    </Svg>
+  )
+}
+
+export function PlusCircleIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="16" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+    </Svg>
+  )
+}
+
+export function RefreshIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
     </Svg>
   )
 }

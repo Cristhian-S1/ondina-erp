@@ -72,15 +72,34 @@ group by creado_en::date, sucursal_id, vendedor_id;
 
 -- Ranking de vendedores (RF-22, HU-08)
 create or replace view public.v_ranking_vendedores as
-select p.id as vendedor_id, p.sucursal_id,
-       p.nombres || ' ' || p.apellidos as vendedor,
-       date_trunc('month', v.creado_en) as mes,
-       count(v.id) as cantidad_ventas, coalesce(sum(v.total), 0) as total_vendido
+select
+    p.id as vendedor_id,
+    p.sucursal_id,
+    p.nombres || ' ' || p.apellidos as vendedor,
+    date_trunc('month', v.creado_en) as mes,
+    -- una misma ventas puede tener varios productos, sin distint, una venta con 3 productos podria contar como 3 ventas
+    count(distinct v.id) as cantidad_ventas, 
+    coalesce(
+        sum(vd.cantidad * vd.precio_unitario), --total vendido se calcula desde el detalle real de cada venta
+        0
+    ) as total_vendido
 from public.perfiles p
-left join public.ventas v on v.vendedor_id = p.id and not v.anulado
-where p.rol = 'vendedor' and p.activo
-group by p.id, p.sucursal_id, p.nombres, p.apellidos, date_trunc('month', v.creado_en)
-order by mes desc, total_vendido desc;
+left join public.ventas v
+    on v.vendedor_id = p.id
+    and not v.anulado
+left join public.venta_detalles vd
+    on vd.venta_id = v.id
+where p.rol = 'vendedor'
+  and p.activo
+group by
+    p.id,
+    p.sucursal_id,
+    p.nombres,
+    p.apellidos,
+    date_trunc('month', v.creado_en)
+order by
+    mes desc,
+    total_vendido desc;
 
 -- Comisión por vendedor según regla vigente por tipo de producto
 -- (RF-26, HU-09). Regla vigente = vigente_hasta nulo o la más reciente.
@@ -90,7 +109,7 @@ order by mes desc, total_vendido desc;
 create or replace view public.v_comision_vendedor as
 select
     v.vendedor_id,
-    date_trunc('month', v.creado_en) as mes,
+    (v.creado_en at time zone 'America/Santiago')::date as jornada,
     p.tipo,
     sum(vd.cantidad * vd.precio_unitario) as base_comision,
     r.porcentaje,
@@ -113,7 +132,7 @@ left join lateral (
     limit 1
 ) r on true
 where not v.anulado
-group by v.vendedor_id, date_trunc('month', v.creado_en), p.tipo, r.porcentaje, r.monto_fijo;
+group by v.vendedor_id, (v.creado_en at time zone 'America/Santiago')::date, p.tipo, r.porcentaje, r.monto_fijo;
 
 -- Clientes inactivos según parámetro configurable (RF-05, HU-12)
 create or replace view public.v_clientes_inactivos as
