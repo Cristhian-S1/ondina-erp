@@ -186,6 +186,9 @@ export function RecycleIcon(props: IconProps) {
       <path d="m15.38 18.82-1.63 3.68 3.95-.52a2.9 2.9 0 0 0 2.21-1.6l.24-.45" />
       <path d="m8.64 17.55-3.55 3.1" />
       <path d="m17.43 5.9 2.4-.65-1.22-2.13" />
+    </Svg>
+  )
+}
 export function ClipboardListIcon(props: IconProps) {
   return (
     <Svg {...props}>
