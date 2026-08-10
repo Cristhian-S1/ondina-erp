@@ -4,7 +4,9 @@
 
 - El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0005), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
 - Las migraciones se aplican manualmente con `supabase db push --linked` (no automatizadas en CI). Ver `docs/setup-vercel-supabase-github.md` para el flujo completo de configuración de Vercel, Supabase y GitHub.
-- El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; no existe `.env.example` aún.
+- El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; existe `frontend/.env.example` como plantilla.
+- El módulo de ventas cubre HU-01 a HU-04, HU-07, HU-08 (ranking de vendedores) y HU-09 (consulta de comisión). HU-05 (bidones vacíos) se eliminó del frontend; la vista `v_bidones_vacios_vendedor` queda en la BD para bodega/HU-28. HU-06 (boletas/factura) y Storage upload para receipts (HU-07) están fuera de scope este sprint.
+- Se agregó Mantine UI (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) + `dayjs` para componentes complejos como MonthPickerInput (selector de mes en ranking). El resto del frontend sigue con Tailwind CSS.
 - Los datos de la base local de Beads viven en `.beads/`; se limpió el historial de un proyecto anterior: el tracker está vacío y `config.yaml` solo tiene `repos.primary = "."`.
 
 ## Fuente De Verdad
