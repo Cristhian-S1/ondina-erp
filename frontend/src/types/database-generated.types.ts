@@ -1361,6 +1361,15 @@ export type Database = {
       }
     }
     Functions: {
+      corregir_devolucion: {
+        Args: {
+          p_creado_por: string
+          p_despacho_id: string
+          p_envases: Json
+          p_productos: Json
+        }
+        Returns: undefined
+      }
       crear_despacho: {
         Args: {
           p_creado_por: string
