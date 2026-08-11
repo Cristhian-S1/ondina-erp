@@ -21,6 +21,15 @@ export interface DespachoDetalle {
   creado_en: string
 }
 
+export interface DespachoEnvase {
+  id: string
+  despacho_id: string
+  tipo_empaque_id: string
+  cantidad: number
+  es_ajuste: boolean
+  creado_en: string
+}
+
 export interface DevolucionProducto {
   id: string
   despacho_id: string
@@ -52,6 +61,13 @@ export interface StockBodega {
 export interface StockEnvases {
   sucursal_id: string
   tipo_empaque_id: string
+  cantidad: number
+  modificado_en: string
+}
+
+export interface CargaVendedor {
+  vendedor_id: string
+  producto_id: string
   cantidad: number
   modificado_en: string
 }

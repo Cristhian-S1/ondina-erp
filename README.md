@@ -14,6 +14,7 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `docs/Historias de Usuario.md`: historias y criterios de aceptación.
 - `bd/diagramas_esquemas_mermaid.md`: diagrama visual del esquema final de datos.
 - `bd/ondina_schema_supabase.sql`: esquema relacional final.
+- `docs/setup-vercel-supabase-github.md`: pasos manuales de configuración de Vercel, Supabase y GitHub (environments, secrets, branch protection, migraciones).
 
 Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
 
@@ -26,7 +27,7 @@ No inventes comandos de instalación, build, lint o test hasta que se incorpore 
 ## Stack Elegido
 
 - **Frontend:** React + Vite + TypeScript en modo estricto.
-- **Estilos:** Tailwind CSS.
+- **Estilos:** Tailwind CSS + Mantine UI (componentes complejos como DatePickers).
 - **Datos remotos:** TanStack Query.
 - **Formularios:** React Hook Form + Zod.
 - **Backend:** Supabase.
@@ -49,6 +50,7 @@ No se incorporará un backend Node separado en la primera versión. No agregues 
 
 - **Ventas y clientes:** ventas, cartera, precios reales, medios de pago, documentos y gastos.
 - **Bodega y despacho:** stock, carga de vendedores, despachos, ajustes, devoluciones y mermas.
+  - **Nota sobre Despachos:** la página de despachos (`frontend/src/domains/bodega/pages/Despachos.tsx`) pertenece al dominio **Bodega/Despacho**, no al de Ventas. Su ruta vive en `feature/bodega`; si aparece en otras ramas de dominio es herencia de `develop`. En un futuro se evalúa aislarla del menú del vendedor de ventas.
 - **Producción:** producción de agua/hielo e incidencias.
 - **Administración:** usuarios, catálogo, reportes, comisiones, alertas y GPS.
 
@@ -203,6 +205,10 @@ Todo PR debe indicar qué cambia, qué HU cubre, cómo probarlo y cómo se valid
 - La lógica de comisiones, stock, mermas, devoluciones y ventana de ajuste requiere pruebas unitarias.
 - Login por rol, ventas, despacho, devoluciones, mermas, producción y reportes requieren E2E.
 
+### Verificación con Playwright MCP
+
+Para depurar y verificar correctamente el funcionamiento de la página desde el navegador se recomienda usar el **MCP de Playwright** que vive declarado en `opencode.json`. Permite abrir la URL del frontend (local o el preview de Vercel por PR), navegar como vendedor/admin, tomar screenshots, inspeccionar la consola y validar flujos de dominio sin instalar Playwright aparte. Es complementario a las pruebas Vitest+Testing Library y no reemplaza las E2E del repositorio.
+
 ## Flujo De Trabajo
 
 1. Leer `AGENTS_para_equipo_desarrollo.md`, la HU correspondiente y los requisitos relacionados.
@@ -221,6 +227,39 @@ Todo PR debe indicar qué cambia, qué HU cubre, cómo probarlo y cómo se valid
 - `main` publica producción con aprobación manual previa.
 - Las migraciones se ejecutan de forma versionada y nunca mediante cambios manuales en producción.
 - Variables públicas `VITE_` pueden llegar al frontend; claves privadas deben permanecer en GitHub Secrets, Vercel o Supabase.
+
+### CI/CD
+
+El pipeline vive en `.github/workflows/`:
+
+| Workflow | Disparador | Qué hace |
+| :------- | :--------- | :------- |
+| `ci.yml` | `pull_request` a `develop`/`main` | Lint + typecheck + build + tests (Vitest) y validación de sintaxis SQL de migraciones (`migrations-check`). **No aplica** migraciones a la BD. |
+| `deploy-develop.yml` | `push` a `develop` | Deploy del frontend a Vercel (ambiente `development`). |
+| `deploy-prod.yml` | `push` a `main` | Verifica lint+build+tests; luego job `deploy` con `environment: production` que espera aprobación manual de un reviewer antes de publicar en Vercel Production (`ondina-erp.vercel.app`). |
+
+Las ramas `feature/*` no deployan: el CI solo corre en PRs a `develop`/`main`; Vercel genera previews automáticamente por su GitHub App en cada push a cualquier rama.
+
+### Configuración manual pendiente (una sola vez)
+
+Estos pasos no los puede hacer el agente; requieren acceso al dashboard:
+
+1. **Vercel env vars** (proyecto `ondina-erp`, Settings → Environment Variables):
+   - `VITE_SUPABASE_URL` = `https://rhivlzwtobhiguzmkiat.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = clave anon/publicable del proyecto Supabase
+   - Crear scopes para Preview, Development y Production si se usan proyectos Supabase separados por ambiente.
+2. **GitHub Secrets** (repo Settings → Secrets and variables → Actions):
+   - `VERCEL_TOKEN` = token de Vercel (crear en Vercel → Settings → Tokens)
+   - `VERCEL_PROJECT_ID` = `prj_uOyPIotyMKPyB4zVTP7AD7cSZpp1` (se ve en Vercel → Project Settings → General)
+   - `VERCEL_ORG_ID` = team id de Vercel (se ve en Vercel → Team Settings → General)
+3. **GitHub Environments** (repo Settings → Environments):
+   - `production` con **Required reviewers** (administradores que aprueban el deploy a Vercel Production).
+   - (Opcional) `development` para fricción intermedia en develop.
+4. **Branch protection** en `main`:
+   - Requiere PR + al menos 1 revisión aprobada + CI verde antes del merge.
+   - Nadie hace push directo a `main`.
+5. **Migraciones Supabase:**
+   - No automatizar en CI/CD (mejor control manual). Tras cada merge a develop/main, aplicar con `supabase db push --linked` localmente o vía el MCP de Supabase.
 
 ## Definition Of Done
 
