@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -88,6 +108,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carga_vendedor_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
           },
           {
             foreignKeyName: "carga_vendedor_vendedor_id_fkey"
@@ -276,11 +303,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "despacho_detalles_despacho_id_fkey"
+            columns: ["despacho_id"]
+            isOneToOne: false
+            referencedRelation: "v_cuadre_despacho"
+            referencedColumns: ["despacho_id"]
+          },
+          {
             foreignKeyName: "despacho_detalles_producto_id_fkey"
             columns: ["producto_id"]
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despacho_detalles_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
           },
         ]
       }
@@ -316,6 +357,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "despachos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despacho_envases_despacho_id_fkey"
+            columns: ["despacho_id"]
+            isOneToOne: false
+            referencedRelation: "v_cuadre_despacho"
+            referencedColumns: ["despacho_id"]
           },
           {
             foreignKeyName: "despacho_envases_tipo_empaque_id_fkey"
@@ -383,18 +431,18 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
-            foreignKeyName: "despachos_despachador_id_fkey"
-            columns: ["despachador_id"]
+            foreignKeyName: "despachos_despachador_id_sucursal_id_fkey"
+            columns: ["despachador_id", "sucursal_id"]
             isOneToOne: false
             referencedRelation: "perfiles"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "sucursal_id"]
           },
           {
-            foreignKeyName: "despachos_despachador_id_fkey"
-            columns: ["despachador_id"]
+            foreignKeyName: "despachos_despachador_id_sucursal_id_fkey"
+            columns: ["despachador_id", "sucursal_id"]
             isOneToOne: false
             referencedRelation: "v_ranking_vendedores"
-            referencedColumns: ["vendedor_id"]
+            referencedColumns: ["vendedor_id", "sucursal_id"]
           },
           {
             foreignKeyName: "despachos_modificado_por_fkey"
@@ -487,6 +535,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "devoluciones_envases_despacho_id_fkey"
+            columns: ["despacho_id"]
+            isOneToOne: false
+            referencedRelation: "v_cuadre_despacho"
+            referencedColumns: ["despacho_id"]
+          },
+          {
             foreignKeyName: "devoluciones_envases_tipo_empaque_id_fkey"
             columns: ["tipo_empaque_id"]
             isOneToOne: false
@@ -553,11 +608,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "devoluciones_productos_despacho_id_fkey"
+            columns: ["despacho_id"]
+            isOneToOne: false
+            referencedRelation: "v_cuadre_despacho"
+            referencedColumns: ["despacho_id"]
+          },
+          {
             foreignKeyName: "devoluciones_productos_producto_id_fkey"
             columns: ["producto_id"]
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devoluciones_productos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
           },
         ]
       }
@@ -762,11 +831,25 @@ export type Database = {
             referencedColumns: ["id", "sucursal_id"]
           },
           {
+            foreignKeyName: "mermas_despacho_id_sucursal_id_fkey"
+            columns: ["despacho_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_cuadre_despacho"
+            referencedColumns: ["despacho_id", "sucursal_id"]
+          },
+          {
             foreignKeyName: "mermas_producto_id_fkey"
             columns: ["producto_id"]
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mermas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
           },
           {
             foreignKeyName: "mermas_sucursal_id_fkey"
@@ -800,7 +883,7 @@ export type Database = {
           nombres: string
           rol: string
           rut: string | null
-          sucursal_id: string | null
+          sucursal_id: string
           telefono: string | null
         }
         Insert: {
@@ -811,7 +894,7 @@ export type Database = {
           nombres: string
           rol: string
           rut?: string | null
-          sucursal_id?: string | null
+          sucursal_id: string
           telefono?: string | null
         }
         Update: {
@@ -822,7 +905,7 @@ export type Database = {
           nombres?: string
           rol?: string
           rut?: string | null
-          sucursal_id?: string | null
+          sucursal_id?: string
           telefono?: string | null
         }
         Relationships: [
@@ -887,6 +970,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producciones_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
           },
           {
             foreignKeyName: "producciones_sucursal_id_fkey"
@@ -1013,6 +1103,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_bodega_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
           },
           {
             foreignKeyName: "stock_bodega_sucursal_id_fkey"
@@ -1196,6 +1293,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "venta_detalles_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
+          },
+          {
             foreignKeyName: "venta_detalles_venta_id_fkey"
             columns: ["venta_id"]
             isOneToOne: false
@@ -1265,6 +1369,20 @@ export type Database = {
             referencedColumns: ["id", "sucursal_id"]
           },
           {
+            foreignKeyName: "ventas_cliente_id_sucursal_id_fkey"
+            columns: ["cliente_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_clientes_inactivos"
+            referencedColumns: ["cliente_id", "sucursal_id"]
+          },
+          {
+            foreignKeyName: "ventas_cliente_id_sucursal_id_fkey"
+            columns: ["cliente_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_historial_cliente"
+            referencedColumns: ["cliente_id", "sucursal_id"]
+          },
+          {
             foreignKeyName: "ventas_creado_por_fkey"
             columns: ["creado_por"]
             isOneToOne: false
@@ -1327,11 +1445,45 @@ export type Database = {
         }
         Relationships: []
       }
+      v_clientes_inactivos: {
+        Row: {
+          cliente_id: string | null
+          dias_configurados: number | null
+          dias_sin_comprar: number | null
+          nombre: string | null
+          sucursal_id: string | null
+          ultima_compra: string | null
+          vendedor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id", "sucursal_id"]
+          },
+          {
+            foreignKeyName: "clientes_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_vendedores"
+            referencedColumns: ["vendedor_id", "sucursal_id"]
+          },
+        ]
+      }
       v_comision_vendedor: {
         Row: {
           base_comision: number | null
           comision: number | null
-          jornada: string | null
+          mes: string | null
           monto_fijo: number | null
           porcentaje: number | null
           tipo: string | null
@@ -1339,6 +1491,124 @@ export type Database = {
           ventas_del_tipo: number | null
         }
         Relationships: []
+      }
+      v_cuadre_despacho: {
+        Row: {
+          cantidad_despachada: number | null
+          cantidad_devuelta: number | null
+          cantidad_merma: number | null
+          cantidad_vendida: number | null
+          despacho_id: string | null
+          diferencia: number | null
+          fecha: string | null
+          producto_id: string | null
+          sucursal_id: string | null
+          vendedor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "despacho_detalles_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despacho_detalles_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
+          },
+          {
+            foreignKeyName: "despachos_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "despachos_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id", "sucursal_id"]
+          },
+          {
+            foreignKeyName: "despachos_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_vendedores"
+            referencedColumns: ["vendedor_id", "sucursal_id"]
+          },
+        ]
+      }
+      v_historial_cliente: {
+        Row: {
+          cantidad_compras: number | null
+          cliente_id: string | null
+          dias_sin_comprar: number | null
+          nombre: string | null
+          sucursal_id: string | null
+          total_comprado: number | null
+          ultima_compra: string | null
+          vendedor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clientes_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id", "sucursal_id"]
+          },
+          {
+            foreignKeyName: "clientes_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_vendedores"
+            referencedColumns: ["vendedor_id", "sucursal_id"]
+          },
+        ]
+      }
+      v_indicadores_produccion_diarios: {
+        Row: {
+          cantidad: number | null
+          fecha: string | null
+          producto_id: string | null
+          registros: number | null
+          sucursal_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producciones_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producciones_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
+          },
+          {
+            foreignKeyName: "producciones_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_ranking_vendedores: {
         Row: {
@@ -1356,6 +1626,106 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "sucursales"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_stock_actual: {
+        Row: {
+          cantidad: number | null
+          modificado_en: string | null
+          nombre: string | null
+          producto_id: string | null
+          sucursal_id: string | null
+          tipo: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_bodega_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_ventas_diarias: {
+        Row: {
+          cantidad_ventas: number | null
+          fecha: string | null
+          sucursal_id: string | null
+          total_ingresos: number | null
+          vendedor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventas_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id", "sucursal_id"]
+          },
+          {
+            foreignKeyName: "ventas_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_vendedores"
+            referencedColumns: ["vendedor_id", "sucursal_id"]
+          },
+        ]
+      }
+      v_ventas_producto: {
+        Row: {
+          cantidad: number | null
+          fecha: string | null
+          producto: string | null
+          producto_id: string | null
+          sucursal_id: string | null
+          tipo: string | null
+          total: number | null
+          vendedor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venta_detalles_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venta_detalles_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_actual"
+            referencedColumns: ["producto_id"]
+          },
+          {
+            foreignKeyName: "ventas_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ventas_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id", "sucursal_id"]
+          },
+          {
+            foreignKeyName: "ventas_vendedor_id_sucursal_id_fkey"
+            columns: ["vendedor_id", "sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ranking_vendedores"
+            referencedColumns: ["vendedor_id", "sucursal_id"]
           },
         ]
       }
@@ -1521,7 +1891,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+
