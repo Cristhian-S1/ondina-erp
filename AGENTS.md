@@ -2,12 +2,14 @@
 
 ## Estado Actual Del Repositorio
 
-- El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0005), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
+- El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0006 + HU-19 a HU-23), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
 - Las migraciones se aplican manualmente con `supabase db push --linked` (no automatizadas en CI). Ver `docs/setup-vercel-supabase-github.md` para el flujo completo de configuración de Vercel, Supabase y GitHub.
 - El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; existe `frontend/.env.example` como plantilla.
 - El módulo de ventas cubre HU-01 a HU-04, HU-07, HU-08 (ranking de vendedores) y HU-09 (consulta de comisión). HU-05 (bidones vacíos) se eliminó del frontend; la vista `v_bidones_vacios_vendedor` queda en la BD para bodega/HU-28. HU-06 (boletas/factura) y Storage upload para receipts (HU-07) están fuera de scope este sprint.
+- El módulo de bodega cubre HU-13 (despachos, devoluciones de productos y envases, stock). El módulo de producción cubre HU-19 a HU-23.
 - Se agregó Mantine UI (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) + `dayjs` para componentes complejos como MonthPickerInput (selector de mes en ranking). El resto del frontend sigue con Tailwind CSS.
 - Los datos de la base local de Beads viven en `.beads/`; se limpió el historial de un proyecto anterior: el tracker está vacío y `config.yaml` solo tiene `repos.primary = "."`.
+- Los archivos `.agents/skills/` contienen las skills de trabajo (ask-matt, codebase-design, supabase, etc.) y deben versionarse; no se deben borrar en merges entre ramas.
 
 ## Fuente De Verdad
 
@@ -15,6 +17,7 @@
 - `docs/Plan De Desarrollo.md` documenta el alcance y el stack elegido.
 - `docs/Problematica.md`, `docs/Requerimentos RF y RNF.md` y `docs/Historias de Usuario.md` contienen requisitos del negocio. Trata lo pendiente en las notas como no resuelto.
 - No existe `AGENTS_para_equipo_desarrollo.md` (referenciado en `README.md`). No lo busques; la convención real de código/Git/seguridad está en `README.md` y `AGENTS.md`.
+- Para el estado detallado de cada HU (completas, parciales, placeholders, sin UI), ver `docs/estado-historias-usuario.md`. Resumen: 16 completas, 3 parciales, 4 placeholders (administración), 4 sin UI, 2 eliminadas.
 
 ## Frontend
 
