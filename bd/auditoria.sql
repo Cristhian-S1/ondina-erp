@@ -145,3 +145,8 @@ create trigger trg_audit_venta_detalles
 create trigger trg_audit_despacho_detalles
     after insert or update on public.despacho_detalles
     for each row execute function public.fn_auditoria_simple();
+
+-- despacho_envases: auditoría simple (sin columna `anulado`)
+create trigger trg_audit_despacho_envases
+    after insert or update on public.despacho_envases
+    for each row execute function public.fn_auditoria_simple();

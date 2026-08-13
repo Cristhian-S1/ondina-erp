@@ -15,6 +15,7 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `bd/diagramas_esquemas_mermaid.md`: diagrama visual del esquema final de datos.
 - `bd/ondina_schema_supabase.sql`: esquema relacional final.
 - `docs/setup-vercel-supabase-github.md`: pasos manuales de configuración de Vercel, Supabase y GitHub (environments, secrets, branch protection, migraciones).
+- `docs/estado-historias-usuario.md`: estado de implementación de cada HU (completas, parciales, placeholders, sin UI).
 
 Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
 
@@ -27,7 +28,7 @@ No inventes comandos de instalación, build, lint o test hasta que se incorpore 
 ## Stack Elegido
 
 - **Frontend:** React + Vite + TypeScript en modo estricto.
-- **Estilos:** Tailwind CSS.
+- **Estilos:** Tailwind CSS + Mantine UI (componentes complejos como DatePickers).
 - **Datos remotos:** TanStack Query.
 - **Formularios:** React Hook Form + Zod.
 - **Backend:** Supabase.
@@ -50,6 +51,7 @@ No se incorporará un backend Node separado en la primera versión. No agregues 
 
 - **Ventas y clientes:** ventas, cartera, precios reales, medios de pago, documentos y gastos.
 - **Bodega y despacho:** stock, carga de vendedores, despachos, ajustes, devoluciones y mermas.
+  - **Nota sobre Despachos:** la página de despachos (`frontend/src/domains/bodega/pages/Despachos.tsx`) pertenece al dominio **Bodega/Despacho**, no al de Ventas. Su ruta vive en `feature/bodega`; si aparece en otras ramas de dominio es herencia de `develop`. En un futuro se evalúa aislarla del menú del vendedor de ventas.
 - **Producción:** producción de agua/hielo e incidencias.
 - **Administración:** usuarios, catálogo, reportes, comisiones, alertas y GPS.
 
@@ -203,6 +205,10 @@ Todo PR debe indicar qué cambia, qué HU cubre, cómo probarlo y cómo se valid
 - Cada HU debe tener al menos una prueba de sus criterios de aceptación.
 - La lógica de comisiones, stock, mermas, devoluciones y ventana de ajuste requiere pruebas unitarias.
 - Login por rol, ventas, despacho, devoluciones, mermas, producción y reportes requieren E2E.
+
+### Verificación con Playwright MCP
+
+Para depurar y verificar correctamente el funcionamiento de la página desde el navegador se recomienda usar el **MCP de Playwright** que vive declarado en `opencode.json`. Permite abrir la URL del frontend (local o el preview de Vercel por PR), navegar como vendedor/admin, tomar screenshots, inspeccionar la consola y validar flujos de dominio sin instalar Playwright aparte. Es complementario a las pruebas Vitest+Testing Library y no reemplaza las E2E del repositorio.
 
 ## Flujo De Trabajo
 

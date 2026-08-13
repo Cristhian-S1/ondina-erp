@@ -401,6 +401,36 @@ create policy "despacho_detalles_update_admin" on despacho_detalles
   using (es_rol('administrador'))
   with check (es_rol('administrador'));
 
+-- DESPACHO_ENVASES
+-- Mismas reglas que despacho_detalles: acceso según el despacho padre; bodega
+-- inserta; administración corrige.
+drop policy if exists "despacho_envases_select_despacho" on despacho_envases;
+create policy "despacho_envases_select_despacho" on despacho_envases
+  for select to authenticated
+  using (
+    exists (
+      select 1 from despachos d
+      where d.id = despacho_id
+        and (
+          d.vendedor_id = auth.uid()
+          or es_rol('bodega')
+          or es_rol('produccion')
+          or es_rol('administrador')
+        )
+    )
+  );
+
+drop policy if exists "despacho_envases_insert_bodega" on despacho_envases;
+create policy "despacho_envases_insert_bodega" on despacho_envases
+  for insert to authenticated
+  with check (es_rol('bodega') or es_rol('administrador'));
+
+drop policy if exists "despacho_envases_update_admin" on despacho_envases;
+create policy "despacho_envases_update_admin" on despacho_envases
+  for update to authenticated
+  using (es_rol('administrador'))
+  with check (es_rol('administrador'));
+
 -- DEVOLUCIONES (productos y envases)
 -- El vendedor registra devoluciones de sus despachos; administración anula.
 drop policy if exists "devoluciones_productos_select_despacho" on devoluciones_productos;

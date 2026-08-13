@@ -1,2 +1,6 @@
 repos:
-  primary: "."
+    primary: "."
+sync:
+    remote: "git+https://github.com/Cristhian-S1/ondina-erp.git"
+export:
+    auto: true
