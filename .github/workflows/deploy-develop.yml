@@ -25,8 +25,7 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Deploy a Vercel (ambiente desarrollo / preview)
-        run: vercel --yes --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: frontend
+        run: vercel --cwd frontend --yes --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
