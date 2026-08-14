@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [develop, main]
   push:
-    branches: [develop]
+    branches: [develop, main]
 
 permissions:
   contents: read
@@ -48,7 +48,6 @@ jobs:
   migrations-check:
     name: Validar migraciones Supabase (sintaxis, no aplica)
     runs-on: ubuntu-latest
-    if: hashFiles('supabase/migrations/*.sql') != ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,6 +56,10 @@ jobs:
         working-directory: supabase/migrations
         run: |
           set -e
+          if ! ls *.sql 1>/dev/null 2>&1; then
+            echo "No hay archivos SQL en supabase/migrations/"
+            exit 0
+          fi
           for f in *.sql; do
             if [ -f "$f" ]; then
               echo "Validando $f"
@@ -66,4 +69,4 @@ jobs:
               fi
             fi
           done
-          echo "Sintaxis SQL básica OK"
+          echo "Sintaxis SQL basica OK"

@@ -53,8 +53,10 @@ npm run lint       # eslint .
 
 - Ramas de dominio: `feature/ventas`, `feature/bodega`, `feature/produccion`, `feature/administracion`.
 - `main` publicación/protección, `develop` integración. Las ramas de dominio nacen de `develop` y se integran por PR con squash.
+- **Protección de `main` (configurada 2026-08-14):** `enforce_admins: false` (admin puede push directo), `required_pull_request_reviews: 1` (el resto del equipo necesita PR + 1 aprobación), `allow_force_pushes: false`, `allow_deletions: false`. El admin puede hacer commit + push directo a `main`; el workflow `deploy-prod.yml` se dispara en push a `main` y el deploy a producción requiere aprobación manual vía el environment `production` de GitHub Actions.
 - Además existen ramas de trabajo locales transitorias: `work/*`, `context/*`, `contextura/*`, `integration/*` y `clean/*`. No las uses como base nueva; nace de `develop`.
 - Commits con Conventional Commits, en español, en imperativo, máximo 72 caracteres: `<tipo>(<alcance>): <descripción> [HU-XX]`.
+- La sección anterior sobre beads ha sido reemplazada por la integración de Beads más abajo.
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:7510c1e2 -->
 ## Seguimiento De Issues Con Beads
