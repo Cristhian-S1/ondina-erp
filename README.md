@@ -256,9 +256,11 @@ Estos pasos no los puede hacer el agente; requieren acceso al dashboard:
 3. **GitHub Environments** (repo Settings → Environments):
    - `production` con **Required reviewers** (administradores que aprueban el deploy a Vercel Production).
    - (Opcional) `development` para fricción intermedia en develop.
-4. **Branch protection** en `main`:
-   - Requiere PR + al menos 1 revisión aprobada + CI verde antes del merge.
-   - Nadie hace push directo a `main`.
+4. **Branch protection** en `main` (configurada 2026-08-14):
+    - `enforce_admins: false` — el admin puede hacer commit + push directo a `main`.
+    - `required_pull_request_reviews: 1` — el resto del equipo (write) necesita PR + 1 aprobación.
+    - `allow_force_pushes: false`, `allow_deletions: false`.
+    - El workflow `deploy-prod.yml` se dispara en push a `main`; el deploy a producción requiere aprobación manual vía el environment `production` de GitHub Actions.
 5. **Migraciones Supabase:**
    - No automatizar en CI/CD (mejor control manual). Tras cada merge a develop/main, aplicar con `supabase db push --linked` localmente o vía el MCP de Supabase.
 

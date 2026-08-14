@@ -153,10 +153,18 @@ Evita push directo y fuerza PR con review + CI verde.
 3. Selecciona ambos
 4. Activa **Require branches to be up to date before merging**
 
-### 5.4 Bloquear push directo
+### 5.4 Configuración de admin (actualizada 2026-08-14)
 
-1. Activa **Do not allow bypassing the above settings** (nadie, ni admins, salta las reglas)
-2. Click **Create** (o **Save changes**)
+**Configuración actual:**
+- `enforce_admins: false` — el admin **puede** hacer commit + push directo a `main` sin PR.
+- `required_pull_request_reviews: 1` — el resto del equipo (write) sigue necesitando PR + 1 aprobación.
+- `allow_force_pushes: false`, `allow_deletions: false`.
+
+> **Nota:** El workflow `deploy-prod.yml` se dispara en push a `main` (incluso push directo del admin). El deploy a producción requiere aprobación manual vía el environment `production` de GitHub Actions con Required reviewers.
+
+1. Para replicar: en <https://github.com/Cristhian-S1/ondina-erp/settings/branches>, edita la regla de `main`.
+2. Desactiva **Do not allow bypassing the above settings** (para que `enforce_admins: false`).
+3. Click **Save changes**.
 
 ### (Opcional) Branch protection en `develop`
 
