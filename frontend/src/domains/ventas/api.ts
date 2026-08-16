@@ -200,6 +200,30 @@ export async function obtenerMiComision(
   return data ?? []
 }
 
+export async function obtenerCantidadVentasJornada(
+  vendedorId: string,
+): Promise<number> {
+  const inicio = new Date()
+  inicio.setHours(0, 0, 0, 0)
+
+  const fin = new Date(inicio)
+  fin.setDate(fin.getDate() + 1)
+
+  const { count, error } = await supabase
+    .from('ventas')
+    .select('id', { count: 'exact', head: true })
+    .eq('vendedor_id', vendedorId)
+    .eq('anulado', false)
+    .gte('creado_en', inicio.toISOString())
+    .lt('creado_en', fin.toISOString())
+
+  if (error) {
+    throw new Error('No fue posible obtener la cantidad de ventas')
+  }
+
+  return count ?? 0
+}
+
 // --- HU-08: ranking de vendedores ---
 export interface RankingVendedor {
   vendedor_id: string

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
-import { obtenerMiComision } from '../api'
+import { obtenerCantidadVentasJornada, obtenerMiComision } from '../api'
 
 //h
 interface ComisionVendedor {
@@ -20,6 +20,7 @@ export default function MiComision() {
   const [comisiones, setComisiones] = useState<ComisionVendedor[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [totalVentas, setTotalVentas] = useState(0)
 
   useEffect(() => {
     async function cargarComision(): Promise<void> {
@@ -32,8 +33,13 @@ export default function MiComision() {
         setCargando(true)
         setError(null)
 
-        const data = await obtenerMiComision(perfil.id)
+        const [data, cantidadVentas] = await Promise.all([
+          obtenerMiComision(perfil.id),
+          obtenerCantidadVentasJornada(perfil.id),
+        ])
+
         setComisiones(data)
+        setTotalVentas(cantidadVentas)
       } catch {
         setError('No fue posible cargar tu comisión.')
       } finally {
@@ -79,11 +85,6 @@ export default function MiComision() {
 
   const totalVendido = comisionesJornada.reduce(
     (total, item) => total + item.base_comision,
-    0,
-  )
-
-  const totalVentas = comisionesJornada.reduce(
-    (total, item) => total + item.ventas_del_tipo,
     0,
   )
 
