@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCargaVendedor } from '../hooks/useCargaVendedor'
+import RegistrarVentaForm from '../components/RegistrarVentaForm'
 import { btnPrimary, btnSecondary, cardCls } from '../../../lib/ui'
 import {
+  ChevronDownIcon,
+  ChevronUpIcon,
   DollarIcon,
   DropletIcon,
   PlusCircleIcon,
@@ -11,6 +15,7 @@ import {
 
 export default function Ventas() {
   const carga = useCargaVendedor()
+  const [formAbierto, setFormAbierto] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -22,20 +27,28 @@ export default function Ventas() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link
-          to="/ventas/registrar"
-          className={`${cardCls} group flex items-center gap-4 p-5 transition hover:border-brand-300`}
+        <button
+          type="button"
+          className={`${cardCls} group flex items-center gap-4 p-5 text-left transition hover:border-brand-300`}
+          onClick={() => setFormAbierto((v) => !v)}
         >
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-white">
             <PlusCircleIcon className="h-6 w-6" />
           </span>
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-800">
               Registrar venta
             </p>
-            <p className="text-xs text-slate-500">Una sola confirmación atómica</p>
+            <p className="text-xs text-slate-500">
+              {formAbierto ? 'Cerrar formulario' : 'Abrir formulario inline'}
+            </p>
           </div>
-        </Link>
+          {formAbierto ? (
+            <ChevronUpIcon className="h-5 w-5 text-slate-400" />
+          ) : (
+            <ChevronDownIcon className="h-5 w-5 text-slate-400" />
+          )}
+        </button>
 
         <Link
           to="/clientes"
@@ -83,6 +96,13 @@ export default function Ventas() {
         </Link>
       </div>
 
+      {/* Formulario inline expandible */}
+      {formAbierto && (
+        <RegistrarVentaForm
+          onExito={() => void carga.refetch()}
+        />
+      )}
+
       {/* HU-03: resumen de carga */}
       <section className={cardCls}>
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -120,10 +140,14 @@ export default function Ventas() {
       </section>
 
       <div className="flex flex-wrap gap-3">
-        <Link to="/ventas/registrar" className={btnPrimary}>
+        <button
+          type="button"
+          className={btnPrimary}
+          onClick={() => setFormAbierto(true)}
+        >
           <ShoppingCartIcon className="h-4 w-4" />
           Registrar venta
-        </Link>
+        </button>
         <Link to="/clientes" className={btnSecondary}>
           <UsersIcon className="h-4 w-4" />
           Ver clientes
