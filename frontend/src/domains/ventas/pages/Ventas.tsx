@@ -98,7 +98,7 @@ export default function Ventas() {
           <p className="px-5 py-8 text-center text-sm text-slate-500">Cargando...</p>
         ) : carga.data && carga.data.length > 0 ? (
           <ul className="divide-y divide-slate-100">
-            {carga.data.slice(0, 5).map((c) => (
+            {carga.data.filter((c) => c.cantidad > 0).slice(0, 5).map((c) => (
               <li
                 key={c.producto_id}
                 className="flex items-center justify-between gap-3 px-5 py-3"

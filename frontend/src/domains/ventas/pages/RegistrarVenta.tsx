@@ -317,13 +317,17 @@ export default function RegistrarVenta() {
                       .map((det, i) => i !== index && det?.productoId ? det.productoId : null)
                       .filter(Boolean) as string[],
                   )
+                  const productoReg = register(`detalles.${index}.productoId` as const)
                   return (
                     <tr key={field.id}>
                       <td className={tdCls}>
                         <select
                           className={inputCls}
-                          {...register(`detalles.${index}.productoId` as const)}
-                          onChange={(e) => onChangeProducto(index, e.target.value)}
+                          {...productoReg}
+                          onChange={(e) => {
+                            productoReg.onChange(e)
+                            onChangeProducto(index, e.target.value)
+                          }}
                         >
                           <option value="">Selecciona...</option>
                           {productos.data?.map((p) => (

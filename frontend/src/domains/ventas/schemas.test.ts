@@ -56,4 +56,40 @@ describe('HU-01 · registrarVentaSchema', () => {
     })
     expect(res.success).toBe(true)
   })
+
+  it('acepta cantidad 0 (se filtra en onSubmit, no en validación)', () => {
+    const res = registrarVentaSchema.safeParse({
+      clienteId: 'cli-1',
+      metodoPago: 'efectivo',
+      descuento: 0,
+      detalles: [
+        { productoId: 'p-1', cantidad: 0, precioUnitario: 1000 },
+      ],
+    })
+    expect(res.success).toBe(true)
+  })
+
+  it('rechaza cantidad negativa', () => {
+    const res = registrarVentaSchema.safeParse({
+      clienteId: 'cli-1',
+      metodoPago: 'efectivo',
+      descuento: 0,
+      detalles: [
+        { productoId: 'p-1', cantidad: -1, precioUnitario: 1000 },
+      ],
+    })
+    expect(res.success).toBe(false)
+  })
+
+  it('rechaza precio negativo', () => {
+    const res = registrarVentaSchema.safeParse({
+      clienteId: 'cli-1',
+      metodoPago: 'efectivo',
+      descuento: 0,
+      detalles: [
+        { productoId: 'p-1', cantidad: 1, precioUnitario: -100 },
+      ],
+    })
+    expect(res.success).toBe(false)
+  })
 })

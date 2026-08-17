@@ -38,7 +38,7 @@ export const metodoPagoEnum = z.enum(['efectivo', 'transferencia'])
 
 export const detalleVentaSchema = z.object({
   productoId: z.string().min(1, 'Selecciona un producto'),
-  cantidad: z.coerce.number().int('Debe ser un entero').positive('La cantidad debe ser mayor a 0'),
+  cantidad: z.coerce.number().int('Debe ser un entero').min(0, 'La cantidad no puede ser negativa'),
   precioUnitario: z.coerce.number().min(0, 'El precio no puede ser negativo'),
 })
 
