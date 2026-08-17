@@ -1,6 +1,6 @@
 # Estado de Historias de Usuario
 
-Documento el estado de implementación de cada HU al 2026-08-12, tras la restauración de archivos perdidos en merges.
+Documento el estado de implementación de cada HU al 2026-08-17, tras la restauración de archivos perdidos en merges y corrección de bugs en el módulo de ventas.
 
 ---
 
@@ -8,17 +8,17 @@ Documento el estado de implementación de cada HU al 2026-08-12, tras la restaur
 
 | HU | Nombre | Estado | Frontend | BD | Tests | Notas |
 |:---|:-------|:------|:---------|:---|:------|:------|
-| HU-01 | Registrar venta | ✅ Completo | RegistrarVenta.tsx | RPC `registrar_venta` | api.test.ts | 3 filas preseleccionadas (POL/PET/CUBO), sessionStorage |
+| HU-01 | Registrar venta | ✅ Completo | RegistrarVenta.tsx | RPC `registrar_venta` | api.test.ts, RegistrarVenta.test.tsx | 3 filas preseleccionadas (POL/PET/CUBO), sessionStorage, productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 permitida en validación (filtrada en onSubmit), sidebar sin dual-highlight en /ventas/registrar |
 | HU-02 | Registrar cliente | ✅ Completo | RegistrarCliente.tsx | RLS + `clientes` | — | Admin selecciona vendedor asignado |
-| HU-03 | Consultar carga | ✅ Completo | Carga.tsx | `carga_vendedor` | Carga.test.tsx | Solo lectura; la asigna bodega |
+| HU-03 | Consultar carga | ✅ Completo | Carga.tsx | `carga_vendedor` | Carga.test.tsx | Solo lectura; la asigna bodega. Filtra cantidad=0. Nombres reales via alias `producto:productos()` |
 | HU-04 | Consultar clientes ruta | ✅ Completo | Clientes.tsx | RLS por `vendedor_id` | Clientes.test.tsx | Solo ve su cartera |
 | HU-05 | Bidones vacíos | ⛔ Eliminada del frontend | — | Vista `v_bidones_vacios_vendedor` | — | La vista queda en BD para bodega/HU-28 |
 | HU-06 | Boleta/factura | ⛔ Fuera de scope | — | `tipo_documento`, `folio_documento` en `ventas` | — | Pendiente para sprint futuro |
 | HU-07 | Registrar gasto extra | ✅ Parcial | Gastos.tsx | `gastos_extras` | — | Sin Storage upload (comprobante foto fuera de scope) |
 | HU-08 | Ranking vendedores | ✅ Completo | RankingVendedores.tsx | Vista `v_ranking_vendedores` | — | MonthPickerInput (Mantine), `count(distinct)` |
-| HU-09 | Mi comisión | ✅ Completo | MiComision.tsx | Vista `v_comision_vendedor` | — | Jornada en zona America/Santiago |
+| HU-09 | Mi comisión | ✅ Completo | MiComision.tsx | Vista `v_comision_vendedor` + `obtenerCantidadVentasJornada` | — | Jornada en zona America/Santiago. Total ventas real via count de ventas del día (fix Laoch-11 commit 027cc22) |
 
-**Tests del módulo:** 4 archivos, 14 tests (api, schemas, Carga, Clientes).
+**Tests del módulo:** 5 archivos, 20 tests (api, schemas, Carga, Clientes, RegistrarVenta).
 
 ---
 
@@ -27,14 +27,14 @@ Documento el estado de implementación de cada HU al 2026-08-12, tras la restaur
 | HU | Nombre | Estado | Frontend | BD | Tests | Notas |
 |:---|:-------|:------|:---------|:---|:------|:------|
 | HU-13 | Modificar registros con trazabilidad | ✅ Parcial | Devoluciones.tsx (admin corrige) | Triggers auditoría en `auditoria` | — | Anulación reversiona movimientos |
-| HU-24 | Consultar stock | ✅ Completo | Stock.tsx | `stock_bodega`, `stock_envases` | — | Tabs Productos/Envases |
-| HU-25 | Registrar despacho | ✅ Completo | Despachos.tsx | RPC `crear_despacho` | — | Descuenta stock automáticamente |
+| HU-24 | Consultar stock | ✅ Completo | Stock.tsx | `stock_bodega`, `stock_envases` | Stock.test.tsx | Tabs Productos/Envases |
+| HU-25 | Registrar despacho | ✅ Completo | Despachos.tsx | RPC `crear_despacho` | Despachos.test.tsx | Descuenta stock automáticamente |
 | HU-26 | Ventana de ajuste | ✅ BD completo | — | Trigger con `ventana_ajuste_minutos` | — | Frontend no expone UI específica; ajuste vía API |
-| HU-27 | Devolución productos | ✅ Completo | Devoluciones.tsx | RPC `registrar_devolucion_productos` | — | Reingresa al stock de bodega |
-| HU-28 | Devolución envases | ✅ Completo | Devoluciones.tsx | RPC `registrar_devolucion_envases` | — | Suma a stock_envases |
+| HU-27 | Devolución productos | ✅ Completo | Devoluciones.tsx | RPC `registrar_devolucion_productos` | Devoluciones.test.tsx | Reingresa al stock de bodega |
+| HU-28 | Devolución envases | ✅ Completo | Devoluciones.tsx | RPC `registrar_devolucion_envases` | Devoluciones.test.tsx | Suma a stock_envases |
 | HU-29 | Registrar mermas | ⚠️ Sin UI | — | Triggers en BD | — | BD soporta mermas; frontend no tiene página específica |
 
-**Tests del módulo:** 0 (deuda técnica).
+**Tests del módulo:** 5 archivos, 29 tests (Despachos, Devoluciones, Stock).
 
 ---
 
@@ -42,13 +42,13 @@ Documento el estado de implementación de cada HU al 2026-08-12, tras la restaur
 
 | HU | Nombre | Estado | Frontend | BD | Tests | Notas |
 |:---|:-------|:------|:---------|:---|:------|:------|
-| HU-19 | Envases vacíos disponibles | ✅ Completo | Produccion.tsx (sección envases) | `stock_envases` | — | Realtime via Supabase channels |
-| HU-20 | Registrar producción | ✅ Completo | Produccion.tsx (sección registrar) | RPC `registrar_produccion` | — | Valida con `validacion.ts`, suma stock |
-| HU-21 | Historial de producción | ✅ Completo | HistorialProduccion.tsx | `producciones` | — | Componente separado, filtros por fecha/producto |
-| HU-22 | Indicadores de producción | ✅ Completo | IndicadoresProduccion.tsx | `calculos.ts` | — | Métricas calculadas en frontend |
-| HU-23 | Registrar incidencias | ✅ Completo | Produccion.tsx (sección incidencias) | `incidencias_produccion` | — | Fecha, hora y responsable |
+| HU-19 | Envases vacíos disponibles | ✅ Completo | Produccion.tsx (sección envases) | `stock_envases` | Produccion.test.tsx | Realtime via Supabase channels |
+| HU-20 | Registrar producción | ✅ Completo | Produccion.tsx (sección registrar) | RPC `registrar_produccion` | Produccion.test.tsx, validacion.test.ts | Valida con `validacion.ts`, suma stock |
+| HU-21 | Historial de producción | ✅ Completo | HistorialProduccion.tsx | `producciones` | HistorialProduccion.test.tsx | Componente separado, filtros por fecha/producto |
+| HU-22 | Indicadores de producción | ✅ Completo | IndicadoresProduccion.tsx | `calculos.ts` | calculos.test.ts | Métricas calculadas en frontend |
+| HU-23 | Registrar incidencias | ✅ Completo | Produccion.tsx (sección incidencias) | `incidencias_produccion` | Produccion.test.tsx | Fecha, hora y responsable |
 
-**Tests del módulo:** 0 (deuda técnica).
+**Tests del módulo:** 4 archivos, 34 tests (Produccion, HistorialProduccion, calculos, validacion).
 
 ---
 
@@ -95,16 +95,19 @@ Documento el estado de implementación de cada HU al 2026-08-12, tras la restaur
 | Transversal | 1 | 1 | 0 | 0 | 0 | 0 |
 | **Total** | **29** | **16** | **3** | **4** | **4** | **2** |
 
-**Tests:** 14 (solo módulo de ventas). Deuda técnica: bodega, producción y administración sin tests.
+**Tests:** 83 (ventas 20, bodega 29, producción 34). Verificación: `npm run test` en `frontend/`.
 
-**Verificación Playwright (2026-08-12):**
+**Verificación Playwright (2026-08-17):**
 - Vendedor (vendedor@ondina.cl): 7 páginas verificadas, 0 errores de consola.
+- Sidebar sin dual-highlight en /ventas/registrar (fix NavLink `end` dinámico).
+- RegistrarVenta: productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 no bloquea el formulario.
+- Carga: nombres reales via alias `producto:productos()`, filtra cantidad=0.
 - Bodega (despacho@ondina.cl): 3 páginas verificadas (Despachos, Devoluciones, Stock), 0 errores.
 - Admin (admin@ondina.cl): 19 rutas visibles, administración y producción muestran "En construcción" o "Cargando...", 0 errores.
 - Producción: sin usuario de producción en BD; verificación por código (api.ts, validacion.ts, componentes).
 
 **Verificación técnica:**
 - `npm run lint` ✅ 0 errores
-- `npm run build` ✅ Build exitoso (901KB JS)
-- `npm run test` ✅ 14/14 tests pasan
-- Migraciones SQL: 7 archivos, sintaxis válida
+- `npm run build` ✅ Build exitoso
+- `npm run test` ✅ 83/83 tests pasan
+- Migraciones SQL: 8 archivos (0001-0008), sintaxis válida

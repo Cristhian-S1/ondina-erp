@@ -2,13 +2,17 @@
 
 ## Estado Actual Del Repositorio
 
-- El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0006 + HU-19 a HU-23), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
-- Las migraciones se aplican manualmente con `supabase db push --linked` (no automatizadas en CI). Ver `docs/setup-vercel-supabase-github.md` para el flujo completo de configuración de Vercel, Supabase y GitHub.
+- El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0008), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
+- Las migraciones se aplican manualmente con `supabase db push --linked` o vía Supabase MCP (no automatizadas en CI). Ver `docs/setup-vercel-supabase-github.md` para el flujo completo de configuración de Vercel, Supabase y GitHub.
 - El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; existe `frontend/.env.example` como plantilla.
 - El módulo de ventas cubre HU-01 a HU-04, HU-07, HU-08 (ranking de vendedores) y HU-09 (consulta de comisión). HU-05 (bidones vacíos) se eliminó del frontend; la vista `v_bidones_vacios_vendedor` queda en la BD para bodega/HU-28. HU-06 (boletas/factura) y Storage upload para receipts (HU-07) están fuera de scope este sprint.
+- **Fixes HU-01 (2026-08-17):** productos duplicados deshabilitados dinámicamente en RegistrarVenta (captura del return de `register()` para no pisar el `onChange` de RHF); columna Disponible se actualiza instantáneamente al seleccionar producto; cantidad 0 permitida en validación Zod (`.min(0)` en vez de `.positive()`) y filtrada en `onSubmit`; sidebar sin dual-highlight en `/ventas/registrar` (NavLink `end` dinámico para rutas padre con sub-rutas).
+- **Fixes HU-03 (2026-08-17):** `obtenerCargaVendedor` usa alias `producto:productos()` para que el nombre llegue correctamente; Carga.tsx y Ventas.tsx filtran items con `cantidad === 0`.
+- **Fix HU-09 (commit 027cc22 de Laoch-11):** `obtenerCantidadVentasJornada` cuenta ventas reales del día en vez de sumar `ventas_del_tipo` de la vista de comisión.
 - El módulo de bodega cubre HU-13 (despachos, devoluciones de productos y envases, stock). El módulo de producción cubre HU-19 a HU-23.
 - Se agregó Mantine UI (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) + `dayjs` para componentes complejos como MonthPickerInput (selector de mes en ranking). El resto del frontend sigue con Tailwind CSS.
-- Los datos de la base local de Beads viven en `.beads/`; se limpió el historial de un proyecto anterior: el tracker está vacío y `config.yaml` solo tiene `repos.primary = "."`.
+- Tests: 83 total (ventas 20, bodega 29, producción 34) en 13 archivos. Ver `docs/estado-historias-usuario.md` para el detalle por HU.
+- Los datos de la base local de Beads viven en `.beads/`; se reinicializó el tracker con prefix `OND` el 2026-08-17. `config.yaml` tiene `repos.primary = "."` y `sync.remote` configurado.
 - Los archivos `.agents/skills/` contienen las skills de trabajo (ask-matt, codebase-design, supabase, etc.) y deben versionarse; no se deben borrar en merges entre ramas.
 
 ## Fuente De Verdad
@@ -40,7 +44,7 @@ npm run lint       # eslint .
 - `bd/` contiene esquemas SQL, objetos y seed. Archivos reales: `ondina_schema_supabase.sql`, `rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`, `drop_todo.sql` y `diagramas_esquemas_mermaid.md`.
 - `bd/ondina_schema_supabase.sql` es el esquema relacional final. Las políticas RLS, triggers de negocio, auditoría, vistas y datos semilla se aplican como archivos separados (`rls_policies.sql`, `triggers_negocio.sql`, `auditoria.sql`, `vistas.sql`, `seed.sql`) en el orden documentado en cada cabecera, antes de convertir en migraciones.
 - No existía `bd/ondina_sql.txt` — superado; no lo busques ni despliegues.
-- Aplica el esquema solo en un entorno Supabase/PostgreSQL aislado. Los cambios definitivos van en migraciones versionadas bajo `supabase/migrations/` (0001 a 0005 ya creadas).
+- Aplica el esquema solo en un entorno Supabase/PostgreSQL aislado. Los cambios definitivos van en migraciones versionadas bajo `supabase/migrations/` (0001 a 0008 creadas).
 - Preserva los invariantes: RLS en tablas expuestas, autorización en la BD, triggers de auditoría, parámetros de negocio configurables y soft-delete/anulación.
 - El stock lo mantienen los triggers de BD, no el frontend. Los ajustes de despacho agregan filas dentro de la ventana configurada; no editan ni restan filas existentes.
 - Las anulaciones (`anulado: false → true`) reversan los movimientos de stock mediante triggers en `triggers_negocio.sql` (sección 8): venta devuelve carga y resta envases; despacho devuelve stock_bodega y quita carga; devoluciones, producciones y mermas revertían su efecto. Una posterior reactivación NO restaura movimientos.
