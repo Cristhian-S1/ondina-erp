@@ -20,3 +20,4 @@ node_modules/
 .playwright-mcp/
 # .opencode/node_modules: dependencias locales del plugin de opencode
 .opencode/node_modules/
+referencia_archivos/
