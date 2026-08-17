@@ -35,7 +35,9 @@ export default function Carga() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((c) => (
+          {data
+            .filter((c) => c.cantidad > 0)
+            .map((c) => (
             <article key={c.producto_id} className={cardCls}>
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                 <h2 className="text-base font-semibold text-slate-900">

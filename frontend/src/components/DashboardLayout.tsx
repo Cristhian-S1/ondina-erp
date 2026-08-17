@@ -76,7 +76,7 @@ export default function DashboardLayout() {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/'}
+              end={item.path === '/' || ALL_NAV.some((other) => other.path !== item.path && other.path.startsWith(item.path + '/'))}
               title={collapsed ? item.label : undefined}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>

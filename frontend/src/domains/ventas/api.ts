@@ -89,7 +89,7 @@ export async function obtenerCargaVendedor(perfil: Perfil): Promise<CargaVendedo
   const { data } = await supabase
     .from('carga_vendedor')
     .select(
-      'producto_id, vendedor_id, cantidad, modificado_en, productos(id, nombre, tipo, precio_base)',
+      'producto_id, vendedor_id, cantidad, modificado_en, producto:productos(id, nombre, tipo, precio_base)',
     )
     .eq('vendedor_id', perfil.id)
     .returns<CargaVendedor[]>()

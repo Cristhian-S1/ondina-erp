@@ -312,6 +312,11 @@ export default function RegistrarVenta() {
                   const disponible = prodId ? cargaPorProducto.get(prodId) : undefined
                   const cantIng = Number(d?.cantidad) || 0
                   const excede = disponible !== undefined && cantIng > disponible && cantIng > 0
+                  const idsSeleccionados = new Set(
+                    (detalles ?? [])
+                      .map((det, i) => i !== index && det?.productoId ? det.productoId : null)
+                      .filter(Boolean) as string[],
+                  )
                   return (
                     <tr key={field.id}>
                       <td className={tdCls}>
@@ -322,8 +327,13 @@ export default function RegistrarVenta() {
                         >
                           <option value="">Selecciona...</option>
                           {productos.data?.map((p) => (
-                            <option key={p.id} value={p.id}>
+                            <option
+                              key={p.id}
+                              value={p.id}
+                              disabled={idsSeleccionados.has(p.id)}
+                            >
                               {p.nombre} {p.tipo_empaque ? `(${p.tipo_empaque.nombre})` : ''}
+                              {idsSeleccionados.has(p.id) ? ' (ya seleccionado)' : ''}
                             </option>
                           ))}
                         </select>
