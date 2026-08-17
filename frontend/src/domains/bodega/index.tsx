@@ -11,7 +11,7 @@ const bodegaModule: DomainModule = {
       path: '/despachos',
       label: 'Despachos',
       icon: TruckIcon,
-      roles: ['vendedor', 'bodega', 'administrador'],
+      roles: ['bodega', 'administrador'],
     },
     {
       path: '/devoluciones',

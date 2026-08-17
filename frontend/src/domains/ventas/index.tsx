@@ -6,9 +6,9 @@ import {
   ShoppingCartIcon,
   UsersIcon,
 } from '../../components/icons'
-import { Navigate } from 'react-router-dom'
 import Clientes from './pages/Clientes'
 import Ventas from './pages/Ventas'
+import RegistrarVenta from './pages/RegistrarVenta'
 import Gastos from './pages/Gastos'
 import Carga from './pages/Carga'
 import RankingVendedores from './pages/RankingVendedores'
@@ -21,6 +21,12 @@ const ventasModule: DomainModule = {
       path: '/ventas',
       label: 'Resumen',
       icon: ClipboardListIcon,
+      roles: ['vendedor', 'administrador'],
+    },
+    {
+      path: '/ventas/registrar',
+      label: 'Registrar venta',
+      icon: ShoppingCartIcon,
       roles: ['vendedor', 'administrador'],
     },
     {
@@ -57,7 +63,7 @@ const ventasModule: DomainModule = {
 
   routes: [
     { path: '/ventas', element: <Ventas /> },
-    { path: '/ventas/registrar', element: <Navigate to="/ventas" replace /> },
+    { path: '/ventas/registrar', element: <RegistrarVenta /> },
     { path: '/clientes', element: <Clientes /> },
     { path: '/carga', element: <Carga /> },
     { path: '/gastos', element: <Gastos /> },
