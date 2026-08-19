@@ -3,8 +3,8 @@ import type { TipoEmpaque } from '../../types'
 import type { StockEnvases } from '../bodega/types'
 import type {
   EnvaseDisponible,
-  IncidenciaProduccion,
-  NuevaIncidencia,
+  MermaProduccion,
+  NuevaMermaProduccion,
   NuevaProduccion,
   Produccion,
   FiltrosProduccion,
@@ -63,13 +63,18 @@ export async function obtenerHistorialProduccion(filtros: FiltrosProduccion): Pr
   return data ?? []
 }
 
-export async function obtenerIncidencias(): Promise<IncidenciaProduccion[]> {
+export async function obtenerMermas(sucursalId: string): Promise<MermaProduccion[]> {
   const { data, error } = await supabase
-    .from('incidencias_produccion')
+    .from('mermas')
     .select('*')
+    .eq('sucursal_id', sucursalId)
+    .eq('anulado', false)
+    .is('despacho_id', null)
+    .not('producto_id', 'is', null)
     .order('creado_en', { ascending: false })
     .limit(30)
-    .returns<IncidenciaProduccion[]>()
+    .returns<MermaProduccion[]>()
+
   if (error) throw new Error(error.message)
   return data ?? []
 }
@@ -99,7 +104,14 @@ export async function registrarProduccion(datos: NuevaProduccion): Promise<strin
   return error ? mensajeError(error, 'No fue posible registrar la producción.') : null
 }
 
-export async function registrarIncidencia(datos: NuevaIncidencia): Promise<string | null> {
-  const { error } = await supabase.from('incidencias_produccion').insert([datos] as never[])
-  return error ? mensajeError(error, 'No fue posible registrar la incidencia.') : null
+export async function registrarMerma(
+  datos: NuevaMermaProduccion,
+): Promise<string | null> {
+  const { error } = await supabase
+    .from('mermas')
+    .insert([datos] as never[])
+
+  return error
+    ? mensajeError(error, 'No fue posible registrar la merma.')
+    : null
 }

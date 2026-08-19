@@ -9,12 +9,27 @@ export interface Produccion {
   creado_en: string
 }
 
-export interface IncidenciaProduccion {
+export interface MermaProduccion {
   id: string
-  produccion_id: string | null
-  descripcion: string
+  sucursal_id: string
+  producto_id: string | null
+  tipo_empaque_id: string | null
+  despacho_id: string | null
+  cantidad: number
+  motivo: string
+  anulado: boolean
   creado_por: string
   creado_en: string
+}
+
+export interface NuevaMermaProduccion {
+  sucursal_id: string
+  producto_id: string
+  tipo_empaque_id: null
+  despacho_id: null
+  cantidad: number
+  motivo: string
+  creado_por: string
 }
 
 export interface EnvaseDisponible {
@@ -29,12 +44,6 @@ export interface NuevaProduccion {
   producto_id: string
   cantidad: number
   observaciones: string | null
-  creado_por: string
-}
-
-export interface NuevaIncidencia {
-  produccion_id: string | null
-  descripcion: string
   creado_por: string
 }
 

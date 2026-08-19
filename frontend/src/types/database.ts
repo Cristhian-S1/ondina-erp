@@ -9,7 +9,7 @@ import type {
   StockBodega,
   StockEnvases,
 } from '../domains/bodega/types'
-import type { IncidenciaProduccion, Produccion } from '../domains/produccion/types'
+import type { MermaProduccion, Produccion } from '../domains/produccion/types'
 
 export interface Database {
   public: {
@@ -95,10 +95,10 @@ export interface Database {
         Relationships: []
       }
 
-      incidencias_produccion: {
-        Row: IncidenciaProduccion
-        Insert: Omit<IncidenciaProduccion, 'id' | 'creado_en'>
-        Update: Partial<IncidenciaProduccion>
+      mermas: {
+        Row: MermaProduccion
+        Insert: Omit<MermaProduccion, 'id' | 'creado_en'>
+        Update: Partial<MermaProduccion>
         Relationships: []
       }
     }

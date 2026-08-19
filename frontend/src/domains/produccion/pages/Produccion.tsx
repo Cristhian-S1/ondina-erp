@@ -7,13 +7,13 @@ import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } f
 import type { Producto, TipoEmpaque } from '../../../types'
 import {
   obtenerEnvasesDisponibles,
-  obtenerIncidencias,
+  obtenerMermas,
   obtenerProducciones,
-  registrarIncidencia,
+  registrarMerma,
   registrarProduccion,
 } from '../api'
-import type { EnvaseDisponible, IncidenciaProduccion, Produccion as RegistroProduccion } from '../types'
-import { validarIncidencia, validarProduccion } from '../validacion'
+import type { EnvaseDisponible, MermaProduccion, Produccion as RegistroProduccion } from '../types'
+import { validarMerma , validarProduccion } from '../validacion'
 import HistorialProduccion from '../components/HistorialProduccion'
 import IndicadoresProduccion from '../components/IndicadoresProduccion'
 
@@ -27,35 +27,37 @@ export default function Produccion() {
   const [productos, setProductos] = useState<Producto[]>([])
   const [empaques, setEmpaques] = useState<TipoEmpaque[]>([])
   const [producciones, setProducciones] = useState<RegistroProduccion[]>([])
-  const [incidencias, setIncidencias] = useState<IncidenciaProduccion[]>([])
   const [envases, setEnvases] = useState<EnvaseDisponible[]>([])
   const [productoId, setProductoId] = useState('')
   const [cantidad, setCantidad] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [produccionIncidencia, setProduccionIncidencia] = useState('')
-  const [descripcion, setDescripcion] = useState('')
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState<string | null>(null)
   const [versionDatos, setVersionDatos] = useState(0)
 
+  const [mermas, setMermas] = useState<MermaProduccion[]>([])
+  const [productoMermaId, setProductoMermaId] = useState('')
+  const [cantidadMerma, setCantidadMerma] = useState('')
+  const [motivoMerma, setMotivoMerma] = useState('')
+
   const cargarDatos = useCallback(async () => {
     if (!sucursalId) return
     setCargando(true)
     setError(null)
     try {
-      const [productosData, empaquesData, produccionesData, incidenciasData] = await Promise.all([
+      const [productosData, empaquesData, produccionesData, mermasData] = await Promise.all([
         obtenerProductos(),
         obtenerTiposEmpaque(),
         obtenerProducciones(sucursalId),
-        obtenerIncidencias(),
+        obtenerMermas(sucursalId),
       ])
       const envasesData = await obtenerEnvasesDisponibles(sucursalId, empaquesData)
       setProductos(productosData.filter((item) => item.activo))
       setEmpaques(empaquesData)
       setProducciones(produccionesData)
-      setIncidencias(incidenciasData)
+      setMermas(mermasData)
       setEnvases(envasesData)
       setVersionDatos((version) => version + 1)
     } catch (cause) {
@@ -76,7 +78,16 @@ export default function Produccion() {
     const canal = supabase
       .channel(`produccion-${sucursalId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, actualizar)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'incidencias_produccion' }, actualizar)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'mermas',
+          filter: `sucursal_id=eq.${sucursalId}`,
+        },
+        actualizar,
+      )      
       .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, actualizar)
       .subscribe()
     return () => { void supabase.removeChannel(canal) }
@@ -106,25 +117,49 @@ export default function Produccion() {
     await cargarDatos()
   }
 
-  async function guardarIncidencia(event: FormEvent) {
+  async function guardarMerma(event: FormEvent) {
     event.preventDefault()
-    if (!perfil) return
+
+    if (!perfil?.sucursal_id) return
+
     const datos = {
-      produccion_id: produccionIncidencia || null,
-      descripcion,
+      sucursal_id: perfil.sucursal_id,
+      producto_id: productoMermaId,
+      tipo_empaque_id: null,
+      despacho_id: null,
+      cantidad: Number(cantidadMerma),
+      motivo: motivoMerma.trim(),
       creado_por: perfil.id,
     }
-    const validacion = validarIncidencia(datos)
-    if (validacion) return setError(validacion)
+
+    const validacion = validarMerma(datos)
+
+    if (validacion) {
+      setError(validacion)
+      return
+    }
+
     setGuardando(true)
     setError(null)
     setExito(null)
-    const mensaje = await registrarIncidencia({ ...datos, descripcion: descripcion.trim() })
+
+    const mensaje = await registrarMerma(datos)
+
     setGuardando(false)
-    if (mensaje) return setError(mensaje)
-    setDescripcion('')
-    setProduccionIncidencia('')
-    setExito('Incidencia registrada correctamente.')
+
+    if (mensaje) {
+      setError(mensaje)
+      return
+    }
+
+    setProductoMermaId('')
+    setCantidadMerma('')
+    setMotivoMerma('')
+
+    setExito(
+      'Merma registrada correctamente. Las existencias fueron actualizadas.',
+    )
+
     await cargarDatos()
   }
 
@@ -159,13 +194,123 @@ export default function Produccion() {
 
       {!cargando && seccion === 'incidencias' && (
         <div className="grid gap-6 xl:grid-cols-[minmax(18rem,24rem)_1fr]">
-          <form className={`${cardCls} space-y-4 p-5`} onSubmit={(event) => void guardarIncidencia(event)}>
-            <h2 className="font-semibold text-slate-900">Nueva incidencia</h2>
-            <label className={labelCls}>Producción relacionada (opcional)<select className={inputCls} value={produccionIncidencia} onChange={(event) => setProduccionIncidencia(event.target.value)}><option value="">Incidencia general de jornada</option>{producciones.map((item) => <option key={item.id} value={item.id}>{new Date(item.creado_en).toLocaleString('es-CL')} · {nombreProducto(item.producto_id)}</option>)}</select></label>
-            <label className={labelCls}>Descripción<textarea className={inputCls} rows={5} maxLength={1000} value={descripcion} onChange={(event) => setDescripcion(event.target.value)} /></label>
-            <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar incidencia'}</button>
+          <form
+            className={`${cardCls} space-y-4 p-5`}
+            onSubmit={(event) => void guardarMerma(event)}
+          >
+            <div>
+              <h2 className="font-semibold text-slate-900">
+                Registrar merma
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Registra productos dañados o perdidos para descontarlos del
+                stock de bodega.
+              </p>
+            </div>
+
+            <label className={labelCls}>
+              Producto
+
+              <select
+                className={inputCls}
+                value={productoMermaId}
+                onChange={(event) => setProductoMermaId(event.target.value)}
+              >
+                <option value="">Selecciona...</option>
+
+                {productos.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={labelCls}>
+              Cantidad
+
+              <input
+                className={inputCls}
+                type="number"
+                min="1"
+                step="1"
+                value={cantidadMerma}
+                onChange={(event) => setCantidadMerma(event.target.value)}
+              />
+            </label>
+
+            <label className={labelCls}>
+              Motivo
+
+              <textarea
+                className={inputCls}
+                rows={4}
+                maxLength={1000}
+                value={motivoMerma}
+                onChange={(event) => setMotivoMerma(event.target.value)}
+                placeholder="Ej.: Bidón dañado durante producción"
+              />
+            </label>
+
+            <button
+              disabled={guardando}
+              className={btnPrimary}
+            >
+              {guardando ? 'Registrando...' : 'Registrar merma'}
+            </button>
           </form>
-          <section className={cardCls}><h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Incidencias recientes</h2>{incidencias.length === 0 ? <EstadoVacio texto="No hay incidencias registradas." /> : <ul className="divide-y divide-slate-100">{incidencias.map((item) => <li className="px-5 py-4" key={item.id}><p className="text-sm text-slate-800">{item.descripcion}</p><p className="mt-1 text-xs text-slate-500">{new Date(item.creado_en).toLocaleString('es-CL')}{item.produccion_id ? ' · Asociada a producción' : ' · Jornada general'}</p></li>)}</ul>}</section>
+
+          <section className={cardCls}>
+            <div className="border-b border-slate-100 px-5 py-4">
+              <h2 className="font-semibold">
+                Mermas recientes
+              </h2>
+            </div>
+
+            {mermas.length === 0 ? (
+              <EstadoVacio texto="No hay mermas registradas." />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className={thCls}>Fecha</th>
+                      <th className={thCls}>Producto</th>
+                      <th className={`${thCls} text-right`}>
+                        Cantidad
+                      </th>
+                      <th className={thCls}>Motivo</th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-100">
+                    {mermas.map((item) => (
+                      <tr key={item.id}>
+                        <td className={tdCls}>
+                          {new Date(item.creado_en).toLocaleString('es-CL')}
+                        </td>
+
+                        <td className={tdCls}>
+                          {item.producto_id
+                            ? nombreProducto(item.producto_id)
+                            : 'Producto'}
+                        </td>
+
+                        <td className={`${tdCls} text-right font-semibold`}>
+                          {item.cantidad}
+                        </td>
+
+                        <td className={tdCls}>
+                          {item.motivo}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         </div>
       )}
 
