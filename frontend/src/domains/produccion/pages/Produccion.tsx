@@ -24,6 +24,10 @@ export default function Produccion() {
   const { pathname } = useLocation()
   const sucursalId = perfil?.sucursal_id ?? ''
   const seccion = pathname.split('/').at(-1) as Seccion
+  useEffect(() => {
+    setError(null)
+    setExito(null)
+  }, [seccion])
   const [productos, setProductos] = useState<Producto[]>([])
   const [empaques, setEmpaques] = useState<TipoEmpaque[]>([])
   const [producciones, setProducciones] = useState<RegistroProduccion[]>([])
