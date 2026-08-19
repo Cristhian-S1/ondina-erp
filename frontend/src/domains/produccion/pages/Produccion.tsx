@@ -52,13 +52,13 @@ export default function Produccion() {
     setError(null)
     try {
       const [productosData, empaquesData, produccionesData, mermasData] = await Promise.all([
-        obtenerProductos(),
+        obtenerProductos(true),
         obtenerTiposEmpaque(),
         obtenerProducciones(sucursalId),
         obtenerMermas(sucursalId),
       ])
       const envasesData = await obtenerEnvasesDisponibles(sucursalId, empaquesData)
-      setProductos(productosData.filter((item) => item.activo))
+      setProductos(productosData)
       setEmpaques(empaquesData)
       setProducciones(produccionesData)
       setMermas(mermasData)
@@ -187,7 +187,19 @@ export default function Produccion() {
         <div className="grid gap-6 xl:grid-cols-[minmax(18rem,24rem)_1fr]">
           <form className={`${cardCls} space-y-4 p-5`} onSubmit={(event) => void guardarProduccion(event)}>
             <h2 className="font-semibold text-slate-900">Nueva producción</h2>
-            <label className={labelCls}>Producto<select className={inputCls} value={productoId} onChange={(event) => setProductoId(event.target.value)}><option value="">Selecciona...</option>{productos.map((item) => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select></label>
+            <label className={labelCls}>Producto
+              <select className={inputCls} value={productoId} onChange={(event) => setProductoId(event.target.value)}>
+                <option value="">
+                  Selecciona...
+                  </option>
+                    {productos
+                      .filter((item) => item.activo)
+                      .map((item) => ( 
+                  <option key={item.id} value={item.id}>{item.nombre}
+                </option>
+              ))}
+              </select>
+            </label>
             <label className={labelCls}>Cantidad<input className={inputCls} type="number" min="1" step="1" value={cantidad} onChange={(event) => setCantidad(event.target.value)} /></label>
             <label className={labelCls}>Observaciones (opcional)<textarea className={inputCls} rows={3} maxLength={1000} value={observaciones} onChange={(event) => setObservaciones(event.target.value)} /></label>
             <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
@@ -223,7 +235,9 @@ export default function Produccion() {
               >
                 <option value="">Selecciona...</option>
 
-                {productos.map((item) => (
+                {productos
+                  .filter((item) => item.activo)
+                  .map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.nombre}
                   </option>

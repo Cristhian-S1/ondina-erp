@@ -39,7 +39,24 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
 
   return <section className="space-y-4">
     <div className={`${cardCls} grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4`}>
-      <label className={labelCls}>Producto<select className={inputCls} value={productoId} onChange={(event) => setProductoId(event.target.value)}><option value="">Todos</option>{productos.map((producto) => <option key={producto.id} value={producto.id}>{producto.nombre}</option>)}</select></label>
+      <label className={labelCls}>
+        Producto
+        <select 
+          className={inputCls} 
+          value={productoId} 
+          onChange={(event) => setProductoId(event.target.value)}
+        >
+          <option value="">Todos</option>
+          
+          {productos
+            .filter((producto) => producto.activo)
+            .map((producto) => (
+              <option key={producto.id} value={producto.id}>
+                {producto.nombre}
+              </option>
+            ))}
+        </select>
+      </label>
       <label className={labelCls}>Desde<input type="date" className={inputCls} value={desde} max={hasta || undefined} onChange={(event) => setDesde(event.target.value)} /></label>
       <label className={labelCls}>Hasta<input type="date" className={inputCls} value={hasta} min={desde || undefined} onChange={(event) => setHasta(event.target.value)} /></label>
       <div className="flex items-end"><button type="button" className={btnSecondary} onClick={limpiarFiltros}>Limpiar filtros</button></div>
