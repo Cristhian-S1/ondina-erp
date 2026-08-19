@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { validarIncidencia, validarProduccion } from './validacion'
-import type { NuevaIncidencia, NuevaProduccion } from './types'
+import { validarMerma, validarProduccion } from './validacion'
+import type { NuevaMermaProduccion, NuevaProduccion } from './types'
 
 describe('validarProduccion', () => {
   it('acepta una producción válida', () => {
@@ -70,50 +70,81 @@ describe('validarProduccion', () => {
   })
 })
 
-describe('validarIncidencia', () => {
-  it('acepta una incidencia válida', () => {
-    const datos: NuevaIncidencia = {
-      produccion_id: null,
-      descripcion: 'Falla temporal en la máquina de hielo.',
-      creado_por: 'usuario-1',
-    }
+describe('validarMerma', () => {
+  const base: NuevaMermaProduccion = {
+    sucursal_id: 'sucursal-1',
+    producto_id: 'producto-1',
+    tipo_empaque_id: null,
+    despacho_id: null,
+    cantidad: 1,
+    motivo: 'Bidón dañado durante producción.',
+    creado_por: 'usuario-1',
+  }
 
-    expect(validarIncidencia(datos)).toBeNull()
+  it('acepta una merma válida', () => {
+    expect(validarMerma(base)).toBeNull()
   })
 
-  it('rechaza una descripción vacía', () => {
-    const datos: NuevaIncidencia = {
-      produccion_id: null,
-      descripcion: '',
-      creado_por: 'usuario-1',
-    }
-
-    expect(validarIncidencia(datos)).toBe(
-      'Describe la incidencia antes de registrarla.',
-    )
+  it('rechaza una merma sin producto', () => {
+    expect(
+      validarMerma({
+        ...base,
+        producto_id: '',
+      }),
+    ).toBe('Selecciona un producto.')
   })
 
-  it('rechaza una descripción que solo contiene espacios', () => {
-    const datos: NuevaIncidencia = {
-      produccion_id: null,
-      descripcion: '   ',
-      creado_por: 'usuario-1',
-    }
-
-    expect(validarIncidencia(datos)).toBe(
-      'Describe la incidencia antes de registrarla.',
-    )
+  it('rechaza una cantidad igual a cero', () => {
+    expect(
+      validarMerma({
+        ...base,
+        cantidad: 0,
+      }),
+    ).toBe('La cantidad debe ser un número entero mayor que cero.')
   })
 
-  it('rechaza una descripción superior a 1000 caracteres', () => {
-    const datos: NuevaIncidencia = {
-      produccion_id: null,
-      descripcion: 'a'.repeat(1001),
-      creado_por: 'usuario-1',
-    }
+  it('rechaza una cantidad negativa', () => {
+    expect(
+      validarMerma({
+        ...base,
+        cantidad: -1,
+      }),
+    ).toBe('La cantidad debe ser un número entero mayor que cero.')
+  })
 
-    expect(validarIncidencia(datos)).toBe(
-      'La descripción no puede superar 1000 caracteres.',
-    )
+  it('rechaza una cantidad con decimales', () => {
+    expect(
+      validarMerma({
+        ...base,
+        cantidad: 1.5,
+      }),
+    ).toBe('La cantidad debe ser un número entero mayor que cero.')
+  })
+
+  it('rechaza un motivo vacío', () => {
+    expect(
+      validarMerma({
+        ...base,
+        motivo: '',
+      }),
+    ).toBe('Indica el motivo de la merma.')
+  })
+
+  it('rechaza un motivo que solo contiene espacios', () => {
+    expect(
+      validarMerma({
+        ...base,
+        motivo: '   ',
+      }),
+    ).toBe('Indica el motivo de la merma.')
+  })
+
+  it('rechaza un motivo superior a 1000 caracteres', () => {
+    expect(
+      validarMerma({
+        ...base,
+        motivo: 'a'.repeat(1001),
+      }),
+    ).toBe('El motivo no puede superar 1000 caracteres.')
   })
 })

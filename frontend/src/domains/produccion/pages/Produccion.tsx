@@ -24,10 +24,6 @@ export default function Produccion() {
   const { pathname } = useLocation()
   const sucursalId = perfil?.sucursal_id ?? ''
   const seccion = pathname.split('/').at(-1) as Seccion
-  useEffect(() => {
-    setError(null)
-    setExito(null)
-  }, [seccion])
   const [productos, setProductos] = useState<Producto[]>([])
   const [empaques, setEmpaques] = useState<TipoEmpaque[]>([])
   const [producciones, setProducciones] = useState<RegistroProduccion[]>([])
@@ -40,11 +36,20 @@ export default function Produccion() {
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState<string | null>(null)
   const [versionDatos, setVersionDatos] = useState(0)
-
+  
   const [mermas, setMermas] = useState<MermaProduccion[]>([])
   const [productoMermaId, setProductoMermaId] = useState('')
   const [cantidadMerma, setCantidadMerma] = useState('')
   const [motivoMerma, setMotivoMerma] = useState('')
+  
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setError(null)
+      setExito(null)
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [seccion])
 
   const cargarDatos = useCallback(async () => {
     if (!sucursalId) return

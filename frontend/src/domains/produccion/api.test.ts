@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-    obtenerEnvasesDisponibles,
+  obtenerEnvasesDisponibles,
   obtenerHistorialProduccion,
-  obtenerIncidencias,
+  obtenerMermas,
   obtenerIndicadoresProduccion,
   obtenerProducciones,
-  registrarIncidencia,
+  registrarMerma,
   registrarProduccion,
 } from './api'
 
@@ -13,6 +13,8 @@ const returnsMock = vi.fn()
 const insertMock = vi.fn()
 const gteMock = vi.fn()
 const lteMock = vi.fn()
+const isMock = vi.fn()
+const notMock = vi.fn()
 
 const queryMock = {
   select: vi.fn(),
@@ -23,6 +25,8 @@ const queryMock = {
   insert: insertMock,
   gte: gteMock,
   lte: lteMock,
+  is: isMock,
+  not: notMock,
 }
 
 vi.mock('../../lib/supabase', () => ({
@@ -136,19 +140,23 @@ describe('registrarProduccion', () => {
   })
 })
 
-describe('registrarIncidencia', () => {
+describe('registrarMerma', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('registra una incidencia correctamente', async () => {
+  it('registra una merma correctamente', async () => {
     insertMock.mockResolvedValue({
       error: null,
     })
 
-    const resultado = await registrarIncidencia({
-      produccion_id: 'produccion-1',
-      descripcion: 'Falla en la máquina de hielo.',
+    const resultado = await registrarMerma({
+      sucursal_id: 'sucursal-1',
+      producto_id: 'producto-1',
+      tipo_empaque_id: null,
+      despacho_id: null,
+      cantidad: 2,
+      motivo: 'Producto dañado durante producción.',
       creado_por: 'usuario-1',
     })
 
@@ -156,8 +164,12 @@ describe('registrarIncidencia', () => {
 
     expect(insertMock).toHaveBeenCalledWith([
       {
-        produccion_id: 'produccion-1',
-        descripcion: 'Falla en la máquina de hielo.',
+        sucursal_id: 'sucursal-1',
+        producto_id: 'producto-1',
+        tipo_empaque_id: null,
+        despacho_id: null,
+        cantidad: 2,
+        motivo: 'Producto dañado durante producción.',
         creado_por: 'usuario-1',
       },
     ])
@@ -165,69 +177,86 @@ describe('registrarIncidencia', () => {
 
   it('devuelve el mensaje de error cuando falla el registro', async () => {
     insertMock.mockResolvedValue({
-      error: { message: 'No fue posible guardar la incidencia' },
+      error: { message: 'Stock insuficiente' },
     })
 
-    const resultado = await registrarIncidencia({
-      produccion_id: null,
-      descripcion: 'Problema general en producción.',
+    const resultado = await registrarMerma({
+      sucursal_id: 'sucursal-1',
+      producto_id: 'producto-1',
+      tipo_empaque_id: null,
+      despacho_id: null,
+      cantidad: 2,
+      motivo: 'Producto dañado.',
       creado_por: 'usuario-1',
     })
 
-    expect(resultado).toBe('No fue posible guardar la incidencia')
+    expect(resultado).toBe('Stock insuficiente')
   })
 })
 
-describe('obtenerIncidencias', () => {
+describe('obtenerMermas', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
     queryMock.select.mockReturnValue(queryMock)
+    queryMock.eq.mockReturnValue(queryMock)
+    isMock.mockReturnValue(queryMock)
+    notMock.mockReturnValue(queryMock)
     queryMock.order.mockReturnValue(queryMock)
     queryMock.limit.mockReturnValue(queryMock)
   })
 
-  it('devuelve las incidencias obtenidas desde Supabase', async () => {
-    const incidencias = [
+  it('devuelve las mermas obtenidas desde Supabase', async () => {
+    const mermas = [
       {
-        id: 'incidencia-1',
-        produccion_id: 'produccion-1',
-        descripcion: 'Falla en la máquina de hielo.',
+        id: 'merma-1',
+        sucursal_id: 'sucursal-1',
+        producto_id: 'producto-1',
+        tipo_empaque_id: null,
+        despacho_id: null,
+        cantidad: 2,
+        motivo: 'Producto dañado.',
+        anulado: false,
         creado_por: 'usuario-1',
-        creado_en: '2026-08-12T12:00:00',
+        creado_en: '2026-08-19T12:00:00',
       },
     ]
 
     returnsMock.mockResolvedValue({
-      data: incidencias,
+      data: mermas,
       error: null,
     })
 
-    const resultado = await obtenerIncidencias()
+    const resultado = await obtenerMermas('sucursal-1')
 
-    expect(resultado).toEqual(incidencias)
+    expect(resultado).toEqual(mermas)
+
+    expect(queryMock.eq).toHaveBeenCalledWith(
+      'sucursal_id',
+      'sucursal-1',
+    )
   })
 
-  it('devuelve un arreglo vacío cuando no existen incidencias', async () => {
+  it('devuelve un arreglo vacío cuando no existen mermas', async () => {
     returnsMock.mockResolvedValue({
       data: null,
       error: null,
     })
 
-    const resultado = await obtenerIncidencias()
+    const resultado = await obtenerMermas('sucursal-1')
 
     expect(resultado).toEqual([])
   })
 
-  it('lanza un error cuando falla la consulta de incidencias', async () => {
+  it('lanza un error cuando falla la consulta de mermas', async () => {
     returnsMock.mockResolvedValue({
       data: null,
-      error: { message: 'Error al consultar incidencias' },
+      error: { message: 'Error al consultar mermas' },
     })
 
-    await expect(obtenerIncidencias()).rejects.toThrow(
-      'Error al consultar incidencias',
-    )
+    await expect(
+      obtenerMermas('sucursal-1'),
+    ).rejects.toThrow('Error al consultar mermas')
   })
 })
 
