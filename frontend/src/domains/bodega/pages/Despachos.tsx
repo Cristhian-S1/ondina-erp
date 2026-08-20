@@ -817,7 +817,16 @@ export default function Despachos() {
                     <span className="sr-only">Cantidad</span>
                     <input
                       type="number"
+                      inputMode="numeric"
                       min={1}
+                      max={(() => {
+                        const stockProd = stockBodega.find((s) => s.producto_id === linea.producto_id)
+                        const usadoEnOtras = lineas
+                          .filter((l, i) => i !== index && l.producto_id === linea.producto_id)
+                          .reduce((sum, l) => sum + (Number(l.cantidad) || 0), 0)
+                        const restante = (stockProd?.cantidad ?? 0) - usadoEnOtras
+                        return restante > 0 ? restante : 1
+                      })()}
                       placeholder="Cant."
                       className={inputCls}
                       value={linea.cantidad}
@@ -882,7 +891,15 @@ export default function Despachos() {
                       <span className="sr-only">Cantidad</span>
                       <input
                         type="number"
+                        inputMode="numeric"
                         min={1}
+                        max={(() => {
+                          const usadoEnOtras = lineasEnvase
+                            .filter((l, i) => i !== index && l.tipo_empaque_id === linea.tipo_empaque_id)
+                            .reduce((sum, l) => sum + (Number(l.cantidad) || 0), 0)
+                          const restante = stockEnvaseDe(linea.tipo_empaque_id) - usadoEnOtras
+                          return restante > 0 ? restante : 1
+                        })()}
                         placeholder="Cant."
                         className={inputCls}
                         value={linea.cantidad}

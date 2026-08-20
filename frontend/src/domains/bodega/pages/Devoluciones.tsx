@@ -580,6 +580,7 @@ export default function Devoluciones() {
                                   {editarProductos ? (
                                     <input
                                       type="number"
+                                      inputMode="numeric"
                                       min={0}
                                       max={despachado}
                                       placeholder="0"
@@ -649,7 +650,9 @@ export default function Devoluciones() {
                                 {editarEnvases ? (
                                   <input
                                     type="number"
+                                    inputMode="numeric"
                                     min={0}
+                                    max={despachadas}
                                     placeholder="0"
                                     className={inputCompact}
                                     value={input.buenos}
@@ -670,7 +673,9 @@ export default function Devoluciones() {
                                 {editarEnvases ? (
                                   <input
                                     type="number"
+                                    inputMode="numeric"
                                     min={0}
+                                    max={despachadas - (Number(input.buenos) || 0)}
                                     placeholder="0"
                                     className={inputCompact}
                                     value={input.malos}
