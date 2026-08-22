@@ -1,6 +1,6 @@
 # Convenciones del Frontend
 
-Reglas de diseño, mensajes, errores y comentarios para todos los módulos del frontend.
+Reglas de diseño, mensajes, errores, comentarios y responsividad para todos los módulos del frontend. **Estándar aplicado y verificado en el módulo de ventas; los demás módulos deben seguir las mismas reglas.**
 
 ---
 
@@ -31,6 +31,7 @@ Reglas:
 - Todo formulario de escritura debe mostrar Toast en éxito y error.
 - Los errores de validación de campo (campo requerido faltante) se muestran como `errorTextCls` bajo el input, no como Toast.
 - El Toast se auto-cierra a los 4 segundos.
+- El Toast es responsive: en móvil ocupa ancho completo (`left-2 right-2 sm:left-auto sm:right-4`).
 
 ### Tabla de comportamientos
 
@@ -40,6 +41,14 @@ Reglas:
 | Validación de negocio | Toast flotante | Toast rojo |
 | Error de mutación (Supabase) | Toast flotante | Toast rojo con mensaje traducido |
 | Éxito de mutación | Toast flotante | Toast verde |
+
+### Compatibilidad Zod v4 + React Hook Form
+
+- Usar `@hookform/resolvers` v5.9.1+ con Zod v4. Versiones anteriores (v3.x) no detectan `ZodError` correctamente porque Zod v4 renombró `.errors` a `.issues`.
+- En schemas con `z.coerce.number()`, separar tipos de input y output:
+  - `type FormInput = z.input<typeof schema>` — para `useForm<FormInput, unknown, FormOutput>`
+  - `type FormOutput = z.infer<typeof schema>` — para `onSubmit(values: FormOutput)`
+- El `useForm` debe usar 3 generics: `useForm<TInput, Context, TOutput>`.
 
 ---
 
@@ -70,13 +79,39 @@ producto:productos(id, nombre, tipo, precio_base)
 
 ## Responsividad
 
-Breakpoints de Tailwind (por defecto):
-- `sm`: 640px (tablet horizontal)
+**Aplicable a todos los módulos.** El módulo de ventas ya cumple este estándar; los demás deben alinearse.
+
+### Breakpoints de Tailwind (por defecto):
+- `sm`: 640px (tablet horizontal / móvil grande)
 - `md`: 768px (tablet vertical)
 - `lg`: 1024px (desktop)
 
-Reglas:
-- Toda página debe funcionar en 375px (móvil chico), 768px (tablet) y 1280px (desktop).
-- Tablas con muchas columnas se convierten en tarjetas apiladas en `<640px` usando `hidden sm:table` para tabla y `sm:hidden` para tarjetas.
+### Reglas:
+- Toda página debe funcionar en **375px** (móvil chico), **768px** (tablet) y **1280px** (desktop).
+- Tablas con muchas columnas se transforman en tarjetas en `<640px` usando CSS single-view: `thead` con `hidden sm:table-header-group`, filas con `block sm:table-row`, celdas con `block sm:table-cell`. Esto evita duplicar registros de RHF.
 - Formularios usan `grid grid-cols-1 sm:grid-cols-N` para apilar en móvil.
 - Botones usan `flex flex-wrap gap-3` para no desbordar en móvil.
+- Headers de página usan `flex flex-col sm:flex-row sm:flex-wrap sm:items-end sm:justify-between`.
+- Inputs en tabla responsive usan `w-full sm:w-N` (ancho completo en móvil, fijo en desktop).
+- Cada celda de tabla en móvil muestra un label con `block text-xs font-medium text-slate-500 sm:hidden`.
+- Verificar siempre que `document.body.scrollWidth <= document.body.clientWidth` (sin scroll horizontal).
+
+### Implementación tabla → tarjetas (patrón):
+
+```tsx
+<table className="w-full">
+  <thead className="hidden sm:table-header-group">
+    {/* headers solo en desktop */}
+  </thead>
+  <tbody className="block gap-3 sm:table sm:table-row-group">
+    {items.map((item, i) => (
+      <tr key={i} className="mb-3 block rounded-xl border border-slate-200 p-4 sm:mb-0 sm:table-row sm:border-0 sm:p-0">
+        <td className="mb-2 block sm:table-cell sm:mb-0">
+          <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Label</span>
+          {/* contenido */}
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+```

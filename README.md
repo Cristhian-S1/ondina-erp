@@ -147,6 +147,9 @@ mantener una experiencia consistente en tablets y computadores:
 - Comentarios para explicar el porqué, no para repetir el código.
 - La lógica no trivial debe incluir JSDoc/TSDoc con la regla de negocio o HU relacionada.
 - No dejar `console.log`, código comentado ni `catch` vacío.
+- **Mensajes de validación y errores:** usar `errorTextCls`/`errorBlockCls`/`inputErrorCls` de `lib/ui.ts` (no strings inline). Toast verde en éxito, rojo en error. Ver `docs/convenciones-frontend.md` para el estándar completo.
+- **Responsividad:** todas las páginas deben funcionar en 375px (móvil), 768px (tablet) y 1280px (desktop). Tablas → tarjetas en `<640px` con CSS single-view. Ver `docs/convenciones-frontend.md`.
+- **Zod v4 + RHF:** usar `@hookform/resolvers` v5.9.1+. Separar tipos `z.input` (formulario) de `z.infer`/`z.output` (onSubmit) en schemas con `z.coerce`.
 
 ## Base De Datos
 

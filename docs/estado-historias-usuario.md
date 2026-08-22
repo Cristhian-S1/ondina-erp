@@ -1,6 +1,6 @@
 # Estado de Historias de Usuario
 
-Documento el estado de implementación de cada HU al 2026-08-17, tras la restauración de archivos perdidos en merges y corrección de bugs en el módulo de ventas.
+Documento el estado de implementación de cada HU al 2026-08-21, tras la restauración de archivos perdidos en merges, corrección de bugs en el módulo de ventas y mejoras de UI/responsividad.
 
 ---
 
@@ -8,13 +8,13 @@ Documento el estado de implementación de cada HU al 2026-08-17, tras la restaur
 
 | HU | Nombre | Estado | Frontend | BD | Tests | Notas |
 |:---|:-------|:------|:---------|:---|:------|:------|
-| HU-01 | Registrar venta | ✅ Completo | RegistrarVenta.tsx | RPC `registrar_venta` | api.test.ts, RegistrarVenta.test.tsx | 3 filas preseleccionadas (POL/PET/CUBO), sessionStorage, productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 permitida en validación (filtrada en onSubmit), sidebar sin dual-highlight en /ventas/registrar, máximo 6 productos por venta, tabla responsive (tarjetas en móvil), Toast rojo al submit sin productos válidos |
-| HU-02 | Registrar cliente | ✅ Completo | RegistrarCliente.tsx | RLS + `clientes` | RegistrarCliente.test.tsx | Admin selecciona vendedor asignado. Toast verde en éxito, modal responsive |
+| HU-01 | Registrar venta | ✅ Completo | RegistrarVenta.tsx | RPC `registrar_venta` | api.test.ts, RegistrarVenta.test.tsx | 3 filas preseleccionadas (POL/PET/CUBO), sessionStorage, productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 permitida en validación (filtrada en onSubmit), sidebar sin dual-highlight, máximo 6 productos, tabla responsive (CSS single-view), Toast rojo sin productos válidos, mensajes de validación visibles con errorTextCls (fix @hookform/resolvers v5.9.1) |
+| HU-02 | Registrar cliente | ✅ Completo | RegistrarCliente.tsx | RLS + `clientes` | RegistrarCliente.test.tsx | Admin selecciona vendedor. Toast verde en éxito, modal responsive, mensajes de validación visibles con errorTextCls |
 | HU-03 | Consultar carga | ✅ Completo | Carga.tsx | `carga_vendedor` | Carga.test.tsx | Solo lectura; la asigna bodega. Filtra cantidad=0. Nombres reales via alias `producto:productos()`. Grid responsive |
 | HU-04 | Consultar clientes ruta | ✅ Completo | Clientes.tsx | RLS por `vendedor_id` | Clientes.test.tsx | Solo ve su cartera. Tabla responsive (tarjetas en móvil) |
 | HU-05 | Bidones vacíos | ⛔ Eliminada del frontend | — | Vista `v_bidones_vacios_vendedor` | — | La vista queda en BD para bodega/HU-28 |
 | HU-06 | Boleta/factura | ⛔ Fuera de scope | — | `tipo_documento`, `folio_documento` en `ventas` | — | Pendiente para sprint futuro |
-| HU-07 | Registrar gasto extra | ✅ Completo | Gastos.tsx | `gastos_extras` | Gastos.test.tsx | Toast verde/rojo, errorTextCls en validación, responsive. Sin Storage upload (fuera de scope) |
+| HU-07 | Registrar gasto extra | ✅ Completo | Gastos.tsx | `gastos_extras` | Gastos.test.tsx | Toast verde/rojo, errorTextCls en validación, responsive, mensajes de validación visibles. Sin Storage upload (fuera de scope) |
 | HU-08 | Ranking vendedores | ✅ Completo | RankingVendedores.tsx | Vista `v_ranking_vendedores` | — | MonthPickerInput (Mantine), `count(distinct)` |
 | HU-09 | Mi comisión | ✅ Completo | MiComision.tsx | Vista `v_comision_vendedor` + `obtenerCantidadVentasJornada` | — | Jornada en zona America/Santiago. Total ventas real via count de ventas del día (fix Laoch-11 commit 027cc22) |
 
@@ -97,10 +97,11 @@ Documento el estado de implementación de cada HU al 2026-08-17, tras la restaur
 
 **Tests:** 95 (ventas 29, bodega 29, producción 34). Verificación: `npm run test` en `frontend/`.
 
-**Verificación Playwright (2026-08-17):**
+**Verificación Playwright (2026-08-21):**
 - Vendedor (vendedor@ondina.cl): 7 páginas verificadas, 0 errores de consola.
 - Sidebar sin dual-highlight en /ventas/registrar (fix NavLink `end` dinámico).
-- RegistrarVenta: productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 no bloquea el formulario.
+- RegistrarVenta: productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 no bloquea el formulario, máximo 6 productos con botón deshabilitado, Toast rojo al submit sin productos válidos, tabla responsive (tarjetas en 375px sin scroll horizontal).
+- Gastos: Toast verde "Gasto registrado" en éxito.
 - Carga: nombres reales via alias `producto:productos()`, filtra cantidad=0.
 - Bodega (despacho@ondina.cl): 3 páginas verificadas (Despachos, Devoluciones, Stock), 0 errores.
 - Admin (admin@ondina.cl): 19 rutas visibles, administración y producción muestran "En construcción" o "Cargando...", 0 errores.
@@ -109,5 +110,5 @@ Documento el estado de implementación de cada HU al 2026-08-17, tras la restaur
 **Verificación técnica:**
 - `npm run lint` ✅ 0 errores
 - `npm run build` ✅ Build exitoso
-- `npm run test` ✅ 83/83 tests pasan
-- Migraciones SQL: 8 archivos (0001-0008), sintaxis válida
+- `npm run test` ✅ 95/95 tests pasan
+- Migraciones SQL: 10 archivos (0001-0010), sintaxis válida
