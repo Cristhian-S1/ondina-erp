@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCrearCliente } from '../hooks/useCrearCliente'
 import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
 import { useAuth } from '../../../context/auth-context'
-import { crearClienteSchema, type CrearClienteInput } from '../schemas'
+import { crearClienteSchema, type CrearClienteForm, type CrearClienteInput } from '../schemas'
 import { btnPrimary, btnSecondary, errorTextCls, inputCls, labelCls } from '../../../lib/ui'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
@@ -32,7 +32,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CrearClienteInput>({
+  } = useForm<CrearClienteForm, unknown, CrearClienteInput>({
     resolver: zodResolver(crearClienteSchema),
     defaultValues: {
       nombre: '',

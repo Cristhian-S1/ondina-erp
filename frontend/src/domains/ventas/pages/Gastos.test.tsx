@@ -42,7 +42,7 @@ function setNativeValue(el: HTMLInputElement, value: string) {
 }
 
 describe('HU-07 · Gastos — validación de formulario', () => {
-  it('no llama crearGasto si el monto está vacío', async () => {
+  it('muestra error si el monto está vacío', async () => {
     await renderGastos()
 
     const motivoInput = screen.getByPlaceholderText('Descripción breve') as HTMLInputElement
@@ -50,11 +50,11 @@ describe('HU-07 · Gastos — validación de formulario', () => {
     fireEvent.click(screen.getByRole('button', { name: /Registrar gasto/i }))
 
     await waitFor(() => {
-      expect(api.crearGasto).not.toHaveBeenCalled()
-    })
+      expect(screen.getByText(/El monto debe ser mayor a 0/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 
-  it('no llama crearGasto si el motivo está vacío', async () => {
+  it('muestra error si el motivo está vacío', async () => {
     await renderGastos()
 
     const inputs = screen.getAllByRole('spinbutton')
@@ -63,8 +63,8 @@ describe('HU-07 · Gastos — validación de formulario', () => {
     fireEvent.click(screen.getByRole('button', { name: /Registrar gasto/i }))
 
     await waitFor(() => {
-      expect(api.crearGasto).not.toHaveBeenCalled()
-    })
+      expect(screen.getByText(/Ingresa el motivo/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 
   it('muestra Toast verde al registrar exitosamente', async () => {

@@ -21,6 +21,7 @@ export const crearClienteSchema = z.object({
 })
 
 export type CrearClienteInput = z.infer<typeof crearClienteSchema>
+export type CrearClienteForm = z.input<typeof crearClienteSchema>
 
 // --- HU-07: registrar gasto extra ---
 export const tipoGastoEnum = z.enum(['combustible', 'averia', 'otra'])
@@ -32,6 +33,7 @@ export const crearGastoSchema = z.object({
 })
 
 export type CrearGastoInput = z.infer<typeof crearGastoSchema>
+export type CrearGastoForm = z.input<typeof crearGastoSchema>
 
 // --- HU-01: registrar venta ---
 export const metodoPagoEnum = z.enum(['efectivo', 'transferencia'])
@@ -55,3 +57,4 @@ export const registrarVentaSchema = z.object({
 })
 
 export type RegistrarVentaForm = z.infer<typeof registrarVentaSchema>
+export type RegistrarVentaFormInput = z.input<typeof registrarVentaSchema>

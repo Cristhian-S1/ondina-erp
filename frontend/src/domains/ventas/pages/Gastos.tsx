@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGastosHoy } from '../hooks/useGastosHoy'
 import { useCrearGasto } from '../hooks/useCrearGasto'
-import { crearGastoSchema, type CrearGastoInput } from '../schemas'
+import { crearGastoSchema, type CrearGastoForm, type CrearGastoInput } from '../schemas'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import { btnPrimary, cardCls, errorTextCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
@@ -27,7 +27,7 @@ export default function Gastos() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CrearGastoInput>({
+  } = useForm<CrearGastoForm, unknown, CrearGastoInput>({
     resolver: zodResolver(crearGastoSchema),
     defaultValues: { tipo: 'otra', monto: undefined as unknown as number, motivo: '' },
   })

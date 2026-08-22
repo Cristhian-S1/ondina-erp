@@ -7,7 +7,7 @@ import { useClientesRuta } from '../hooks/useClientesRuta'
 import { useProductosVenta } from '../hooks/useProductosVenta'
 import { useCargaVendedor } from '../hooks/useCargaVendedor'
 import { useRegistrarVenta } from '../hooks/useRegistrarVenta'
-import { registrarVentaSchema, type RegistrarVentaForm } from '../schemas'
+import { registrarVentaSchema, type RegistrarVentaForm, type RegistrarVentaFormInput } from '../schemas'
 import type { DetalleVentaDraft, ProductoVenta } from '../types'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
@@ -128,7 +128,7 @@ export default function RegistrarVenta() {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<RegistrarVentaForm>({
+  } = useForm<RegistrarVentaFormInput, unknown, RegistrarVentaForm>({
     resolver: zodResolver(registrarVentaSchema),
     defaultValues: defaults,
   })

@@ -40,7 +40,7 @@ function setNativeValue(el: HTMLInputElement, value: string) {
 }
 
 describe('HU-02 · RegistrarCliente — validación de formulario', () => {
-  it('no llama crearCliente si el nombre está vacío', async () => {
+  it('muestra error si el nombre está vacío', async () => {
     await renderModal()
 
     const direccionInput = screen.getByPlaceholderText('Calle, número, comuna') as HTMLInputElement
@@ -49,11 +49,11 @@ describe('HU-02 · RegistrarCliente — validación de formulario', () => {
     fireEvent.click(screen.getByRole('button', { name: /Guardar cliente/i }))
 
     await waitFor(() => {
-      expect(api.crearCliente).not.toHaveBeenCalled()
-    })
+      expect(screen.getByText(/Ingresa el nombre/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 
-  it('no llama crearCliente si la dirección está vacía', async () => {
+  it('muestra error si la dirección está vacía', async () => {
     await renderModal()
 
     const nombreInput = screen.getByPlaceholderText('Nombre o razón comercial') as HTMLInputElement
@@ -62,8 +62,8 @@ describe('HU-02 · RegistrarCliente — validación de formulario', () => {
     fireEvent.click(screen.getByRole('button', { name: /Guardar cliente/i }))
 
     await waitFor(() => {
-      expect(api.crearCliente).not.toHaveBeenCalled()
-    })
+      expect(screen.getByText(/Ingresa la dirección/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 
   it('muestra Toast verde al registrar exitosamente', async () => {
