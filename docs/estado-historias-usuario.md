@@ -8,17 +8,17 @@ Documento el estado de implementación de cada HU al 2026-08-17, tras la restaur
 
 | HU | Nombre | Estado | Frontend | BD | Tests | Notas |
 |:---|:-------|:------|:---------|:---|:------|:------|
-| HU-01 | Registrar venta | ✅ Completo | RegistrarVenta.tsx | RPC `registrar_venta` | api.test.ts, RegistrarVenta.test.tsx | 3 filas preseleccionadas (POL/PET/CUBO), sessionStorage, productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 permitida en validación (filtrada en onSubmit), sidebar sin dual-highlight en /ventas/registrar |
-| HU-02 | Registrar cliente | ✅ Completo | RegistrarCliente.tsx | RLS + `clientes` | — | Admin selecciona vendedor asignado |
-| HU-03 | Consultar carga | ✅ Completo | Carga.tsx | `carga_vendedor` | Carga.test.tsx | Solo lectura; la asigna bodega. Filtra cantidad=0. Nombres reales via alias `producto:productos()` |
-| HU-04 | Consultar clientes ruta | ✅ Completo | Clientes.tsx | RLS por `vendedor_id` | Clientes.test.tsx | Solo ve su cartera |
+| HU-01 | Registrar venta | ✅ Completo | RegistrarVenta.tsx | RPC `registrar_venta` | api.test.ts, RegistrarVenta.test.tsx | 3 filas preseleccionadas (POL/PET/CUBO), sessionStorage, productos duplicados deshabilitados dinámicamente, columna Disponible se actualiza al seleccionar, cantidad 0 permitida en validación (filtrada en onSubmit), sidebar sin dual-highlight en /ventas/registrar, máximo 6 productos por venta, tabla responsive (tarjetas en móvil), Toast rojo al submit sin productos válidos |
+| HU-02 | Registrar cliente | ✅ Completo | RegistrarCliente.tsx | RLS + `clientes` | RegistrarCliente.test.tsx | Admin selecciona vendedor asignado. Toast verde en éxito, modal responsive |
+| HU-03 | Consultar carga | ✅ Completo | Carga.tsx | `carga_vendedor` | Carga.test.tsx | Solo lectura; la asigna bodega. Filtra cantidad=0. Nombres reales via alias `producto:productos()`. Grid responsive |
+| HU-04 | Consultar clientes ruta | ✅ Completo | Clientes.tsx | RLS por `vendedor_id` | Clientes.test.tsx | Solo ve su cartera. Tabla responsive (tarjetas en móvil) |
 | HU-05 | Bidones vacíos | ⛔ Eliminada del frontend | — | Vista `v_bidones_vacios_vendedor` | — | La vista queda en BD para bodega/HU-28 |
 | HU-06 | Boleta/factura | ⛔ Fuera de scope | — | `tipo_documento`, `folio_documento` en `ventas` | — | Pendiente para sprint futuro |
-| HU-07 | Registrar gasto extra | ✅ Parcial | Gastos.tsx | `gastos_extras` | — | Sin Storage upload (comprobante foto fuera de scope) |
+| HU-07 | Registrar gasto extra | ✅ Completo | Gastos.tsx | `gastos_extras` | Gastos.test.tsx | Toast verde/rojo, errorTextCls en validación, responsive. Sin Storage upload (fuera de scope) |
 | HU-08 | Ranking vendedores | ✅ Completo | RankingVendedores.tsx | Vista `v_ranking_vendedores` | — | MonthPickerInput (Mantine), `count(distinct)` |
 | HU-09 | Mi comisión | ✅ Completo | MiComision.tsx | Vista `v_comision_vendedor` + `obtenerCantidadVentasJornada` | — | Jornada en zona America/Santiago. Total ventas real via count de ventas del día (fix Laoch-11 commit 027cc22) |
 
-**Tests del módulo:** 5 archivos, 20 tests (api, schemas, Carga, Clientes, RegistrarVenta).
+**Tests del módulo:** 7 archivos, 29 tests (api, schemas, Carga, Clientes, RegistrarVenta, Gastos, RegistrarCliente).
 
 ---
 
@@ -95,7 +95,7 @@ Documento el estado de implementación de cada HU al 2026-08-17, tras la restaur
 | Transversal | 1 | 1 | 0 | 0 | 0 | 0 |
 | **Total** | **29** | **16** | **3** | **4** | **4** | **2** |
 
-**Tests:** 83 (ventas 20, bodega 29, producción 34). Verificación: `npm run test` en `frontend/`.
+**Tests:** 95 (ventas 29, bodega 29, producción 34). Verificación: `npm run test` en `frontend/`.
 
 **Verificación Playwright (2026-08-17):**
 - Vendedor (vendedor@ondina.cl): 7 páginas verificadas, 0 errores de consola.

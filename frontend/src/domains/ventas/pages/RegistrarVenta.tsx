@@ -15,7 +15,10 @@ import {
   btnPrimary,
   btnSecondary,
   cardCls,
+  errorTextCls,
+  errorBlockCls,
   inputCls,
+  inputErrorCls,
   labelCls,
   tdCls,
   thCls,
@@ -30,6 +33,9 @@ const METODOS: { value: 'efectivo' | 'transferencia'; label: string }[] = [
 const STORAGE_KEY = 'ondina:draft-registrar-venta'
 
 const PRODUCTOS_DEFAULT = ['Bidón POL', 'Bidón PET', 'Hielo CUBO']
+
+// HU-01: limite maximo de productos por venta
+const MAX_PRODUCTOS = 6
 
 const DETALLES_VACIOS: DetalleVentaDraft[] = PRODUCTOS_DEFAULT.map(() => ({
   productoId: '',
@@ -198,7 +204,11 @@ export default function RegistrarVenta() {
       ...values,
       detalles: values.detalles.filter((d) => d.productoId && d.cantidad > 0),
     }
-    if (limpio.detalles.length === 0) return
+    // HU-01: filtrar cantidad>0 porque el schema permite 0
+    if (limpio.detalles.length === 0) {
+      mostrar('Agrega al menos un producto con cantidad mayor a 0.', 'error')
+      return
+    }
 
     const errCarga = validarCarga(limpio)
     if (errCarga) {
@@ -229,7 +239,7 @@ export default function RegistrarVenta() {
       <Toast toast={toast} onClose={cerrar} />
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Registrar venta</h1>
             <p className="mt-1 text-sm text-slate-500">
@@ -258,7 +268,7 @@ export default function RegistrarVenta() {
                 ))}
               </select>
               {errors.clienteId && (
-                <span className="mt-1 block text-xs text-red-600">
+                <span className={errorTextCls}>
                   {errors.clienteId.message}
                 </span>
               )}
@@ -279,21 +289,28 @@ export default function RegistrarVenta() {
         <section className={cardCls}>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">2 · Productos</h2>
-            <button
-              type="button"
-              className={btnSecondary}
-              onClick={() =>
-                append({ productoId: '', cantidad: 0, precioUnitario: 0 })
-              }
-            >
-              <PlusCircleIcon className="h-4 w-4" />
-              Agregar producto
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className={btnSecondary}
+                disabled={fields.length >= MAX_PRODUCTOS}
+                onClick={() =>
+                  append({ productoId: '', cantidad: 0, precioUnitario: 0 })
+                }
+              >
+                <PlusCircleIcon className="h-4 w-4" />
+                Agregar producto
+              </button>
+              {fields.length >= MAX_PRODUCTOS && (
+                <span className={errorTextCls}>Máximo {MAX_PRODUCTOS} productos por venta</span>
+              )}
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* HU-01: tabla responsive — se transforma en tarjetas en movil con CSS */}
+          <div className="overflow-x-auto p-4">
             <table className="w-full">
-              <thead>
+              <thead className="hidden sm:table-header-group">
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className={thCls}>Producto</th>
                   <th className={thCls}>Disponible</th>
@@ -303,7 +320,7 @@ export default function RegistrarVenta() {
                   <th className={thCls}></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="block gap-3 sm:table sm:table-row-group sm:divide-y sm:divide-slate-100">
                 {fields.map((field, index) => {
                   const d = detalles?.[index]
                   const subtotal =
@@ -319,8 +336,9 @@ export default function RegistrarVenta() {
                   )
                   const productoReg = register(`detalles.${index}.productoId` as const)
                   return (
-                    <tr key={field.id}>
-                      <td className={tdCls}>
+                    <tr key={field.id} className="mb-3 block rounded-xl border border-slate-200 p-4 sm:mb-0 sm:table-row sm:border-0 sm:p-0">
+                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
+                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Producto</span>
                         <select
                           className={inputCls}
                           {...productoReg}
@@ -342,12 +360,13 @@ export default function RegistrarVenta() {
                           ))}
                         </select>
                         {errors.detalles?.[index]?.productoId && (
-                          <span className="mt-1 block text-xs text-red-600">
+                          <span className={errorTextCls}>
                             {errors.detalles[index]?.productoId?.message}
                           </span>
                         )}
                       </td>
-                      <td className={`${tdCls} text-sm font-medium`}>
+                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls} text-sm font-medium`}>
+                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Disponible</span>
                         {disponible !== undefined ? (
                           <span className={excede ? 'text-red-600' : 'text-slate-700'}>
                             {disponible}
@@ -356,40 +375,45 @@ export default function RegistrarVenta() {
                           <span className="text-slate-400">—</span>
                         )}
                       </td>
-                      <td className={tdCls}>
+                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
+                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Cantidad</span>
                         <input
                           type="number"
                           min={0}
                           step={1}
                           inputMode="numeric"
-                          className={`${inputCls} w-24 ${excede ? 'border-red-400' : ''}`}
+                          className={`${inputCls} w-full sm:w-24 ${excede ? inputErrorCls : ''}`}
                           {...register(`detalles.${index}.cantidad` as const)}
                           onKeyDown={soloNumeros}
                         />
                         {excede && (
-                          <span className="mt-1 block text-xs text-red-600">
+                          <span className={errorTextCls}>
                             Excede tu carga
                           </span>
                         )}
                         {errors.detalles?.[index]?.cantidad && (
-                          <span className="mt-1 block text-xs text-red-600">
+                          <span className={errorTextCls}>
                             {errors.detalles[index]?.cantidad?.message}
                           </span>
                         )}
                       </td>
-                      <td className={tdCls}>
+                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
+                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Precio unit.</span>
                         <input
                           type="number"
                           min={0}
                           step={100}
                           inputMode="numeric"
-                          className={`${inputCls} w-28`}
+                          className={`${inputCls} w-full sm:w-28`}
                           {...register(`detalles.${index}.precioUnitario` as const)}
                           onKeyDown={soloNumeros}
                         />
                       </td>
-                      <td className={`${tdCls} font-semibold`}>{fmtCLP(subtotal)}</td>
-                      <td className={tdCls}>
+                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls} font-semibold`}>
+                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Subtotal</span>
+                        {fmtCLP(subtotal)}
+                      </td>
+                      <td className="block sm:table-cell">
                         <button
                           type="button"
                           className={btnSecondary}
@@ -406,7 +430,7 @@ export default function RegistrarVenta() {
             </table>
           </div>
           {errors.detalles?.message && (
-            <p className="px-5 py-2 text-xs text-red-600">{errors.detalles.message}</p>
+            <p className={`px-5 py-2 ${errorTextCls}`}>{errors.detalles.message}</p>
           )}
         </section>
 
@@ -438,7 +462,7 @@ export default function RegistrarVenta() {
                 onKeyDown={soloNumeros}
               />
               {errors.descuento && (
-                <span className="mt-1 block text-xs text-red-600">
+                <span className={errorTextCls}>
                   {errors.descuento.message}
                 </span>
               )}
@@ -461,7 +485,7 @@ export default function RegistrarVenta() {
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">4 · Resumen</h2>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-5">
+          <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <dl className="space-y-1 text-sm">
               <div className="flex justify-between gap-6">
                 <dt className="text-slate-500">Subtotal</dt>
@@ -487,14 +511,14 @@ export default function RegistrarVenta() {
               </div>
             </dl>
 
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
               {registrar.data?.error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                <p className={errorBlockCls}>
                   {registrar.data.error}
                 </p>
               )}
               {registrar.error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                <p className={errorBlockCls}>
                   {registrar.error instanceof Error
                     ? registrar.error.message
                     : 'No se pudo registrar la venta'}
@@ -512,7 +536,7 @@ export default function RegistrarVenta() {
         </section>
 
         {!perfil && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          <p className={errorBlockCls}>
             No hay sesión activa.
           </p>
         )}

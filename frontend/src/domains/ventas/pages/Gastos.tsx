@@ -3,7 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useGastosHoy } from '../hooks/useGastosHoy'
 import { useCrearGasto } from '../hooks/useCrearGasto'
 import { crearGastoSchema, type CrearGastoInput } from '../schemas'
-import { btnPrimary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
+import { Toast } from '../../../components/Toast'
+import { useToast } from '../../../components/toast-utils'
+import { btnPrimary, cardCls, errorTextCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
 
 const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
   { value: 'combustible', label: 'Combustible' },
@@ -18,6 +20,7 @@ function fmtMonto(n: number) {
 export default function Gastos() {
   const { data, isLoading } = useGastosHoy()
   const crear = useCrearGasto()
+  const { toast, mostrar, cerrar } = useToast()
 
   const {
     register,
@@ -32,8 +35,15 @@ export default function Gastos() {
   function onSubmit(values: CrearGastoInput) {
     crear.mutate(values, {
       onSuccess: (res) => {
-        if (res.error) return
+        if (res.error) {
+          mostrar(res.error, 'error')
+          return
+        }
         reset({ tipo: 'otra', monto: undefined as unknown as number, motivo: '' })
+        mostrar('Gasto registrado.', 'exito')
+      },
+      onError: (err) => {
+        mostrar(err instanceof Error ? err.message : 'No se pudo registrar el gasto', 'error')
       },
     })
   }
@@ -42,6 +52,7 @@ export default function Gastos() {
 
   return (
     <div className="space-y-6">
+      <Toast toast={toast} onClose={cerrar} />
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Gastos extras</h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -77,7 +88,7 @@ export default function Gastos() {
               {...register('monto')}
             />
             {errors.monto && (
-              <span className="mt-1 block text-xs text-red-600">{errors.monto.message}</span>
+              <span className={errorTextCls}>{errors.monto.message}</span>
             )}
           </label>
 
@@ -91,28 +102,12 @@ export default function Gastos() {
               {...register('motivo')}
             />
             {errors.motivo && (
-              <span className="mt-1 block text-xs text-red-600">{errors.motivo.message}</span>
+              <span className={errorTextCls}>{errors.motivo.message}</span>
             )}
           </label>
         </div>
 
-        {crear.error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-            {crear.error instanceof Error ? crear.error.message : 'No se pudo registrar el gasto'}
-          </p>
-        )}
-        {crear.data?.error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-            {crear.data.error}
-          </p>
-        )}
-        {crear.isSuccess && !crear.data?.error && (
-          <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-            Gasto registrado.
-          </p>
-        )}
-
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end">
           <button type="submit" className={btnPrimary} disabled={crear.isPending}>
             {crear.isPending ? 'Registrando...' : 'Registrar gasto'}
           </button>

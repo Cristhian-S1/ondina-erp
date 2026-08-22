@@ -16,6 +16,7 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `bd/ondina_schema_supabase.sql`: esquema relacional final.
 - `docs/setup-vercel-supabase-github.md`: pasos manuales de configuración de Vercel, Supabase y GitHub (environments, secrets, branch protection, migraciones).
 - `docs/estado-historias-usuario.md`: estado de implementación de cada HU (completas, parciales, placeholders, sin UI).
+- `docs/convenciones-frontend.md`: reglas de mensajes de validación, errores, Toast y comentarios de código para todos los módulos.
 
 Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
 

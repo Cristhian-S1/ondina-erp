@@ -56,7 +56,7 @@ export default function RankingVendedores() {
         seleccionado.
       </p>
 
-      <div className="mt-4 max-w-xs">
+      <div className="mt-4 w-full max-w-xs">
         <MonthPickerInput
           label="Seleccionar período"
           placeholder="Selecciona un mes"

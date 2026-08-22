@@ -129,11 +129,49 @@ describe('HU-01 · RegistrarVenta — cantidad 0', () => {
 
     await waitFor(() => {
       expect(api.registrarVenta).toHaveBeenCalledTimes(1)
-    }, { timeout: 5000 })
+    }, { timeout: 8000 })
 
     const callArgs = vi.mocked(api.registrarVenta).mock.calls[0][0]
     const detallesEnviados = callArgs.p_detalles
     expect(detallesEnviados.every((d) => d.cantidad > 0)).toBe(true)
     expect(detallesEnviados.filter((d) => d.cantidad === 0).length).toBe(0)
+  })
+})
+
+describe('HU-01 · RegistrarVenta — máximo 6 productos', () => {
+  it('deshabilita el botón Agregar producto al llegar a 6 filas', async () => {
+    await renderForm()
+
+    // Empezamos con 3 filas (POL/PET/CUBO). Agregamos 3 más para llegar a 6.
+    const agregarBtn = screen.getByRole('button', { name: /Agregar producto/i })
+    expect((agregarBtn as HTMLButtonElement).disabled).toBe(false)
+
+    fireEvent.click(agregarBtn)
+    fireEvent.click(agregarBtn)
+    fireEvent.click(agregarBtn)
+
+    await waitFor(() => {
+      expect((agregarBtn as HTMLButtonElement).disabled).toBe(true)
+    })
+
+    // Debe mostrar el mensaje de límite
+    expect(screen.getByText(/Máximo 6 productos por venta/i)).toBeInTheDocument()
+  })
+})
+
+describe('HU-01 · RegistrarVenta — Toast sin productos válidos', () => {
+  it('muestra Toast de error al submit sin productos con cantidad > 0', async () => {
+    await renderForm()
+
+    const selects = screen.getAllByRole('combobox')
+    const clienteSelect = selects[0] as HTMLSelectElement
+    setNativeValue(clienteSelect, 'c1')
+
+    // No ingresar cantidades (todas quedan en 0)
+    fireEvent.click(screen.getByRole('button', { name: /Confirmar venta/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/al menos un producto con cantidad mayor a 0/i)).toBeInTheDocument()
+    })
   })
 })

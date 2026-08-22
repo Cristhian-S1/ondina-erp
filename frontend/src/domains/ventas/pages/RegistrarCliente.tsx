@@ -5,7 +5,9 @@ import { useCrearCliente } from '../hooks/useCrearCliente'
 import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
 import { useAuth } from '../../../context/auth-context'
 import { crearClienteSchema, type CrearClienteInput } from '../schemas'
-import { btnPrimary, btnSecondary, inputCls, labelCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, errorTextCls, inputCls, labelCls } from '../../../lib/ui'
+import { Toast } from '../../../components/Toast'
+import { useToast } from '../../../components/toast-utils'
 
 const TIPOS: { value: 'mayorista' | 'minorista' | 'ocasional'; label: string }[] = [
   { value: 'minorista', label: 'Minorista' },
@@ -23,6 +25,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
   const esAdmin = perfil?.rol === 'administrador'
   const vendedores = useVendedoresSucursal()
   const crear = useCrearCliente()
+  const { toast, mostrar, cerrar } = useToast()
 
   const {
     register,
@@ -59,8 +62,15 @@ export default function RegistrarCliente({ open, onClose }: Props) {
   function onSubmit(values: CrearClienteInput) {
     crear.mutate(values, {
       onSuccess: (res) => {
-        if (res.error) return
-        onClose()
+        if (res.error) {
+          mostrar(res.error, 'error')
+          return
+        }
+        mostrar('Cliente registrado.', 'exito')
+        setTimeout(onClose, 1500)
+      },
+      onError: (err) => {
+        mostrar(err instanceof Error ? err.message : 'No se pudo registrar el cliente', 'error')
       },
     })
   }
@@ -69,7 +79,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="max-h-full w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        className="max-h-full w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl sm:p-6"
         noValidate
       >
         <div className="flex items-center justify-between">
@@ -96,7 +106,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
               ))}
             </select>
             {errors.vendedor_id && (
-              <span className="mt-1 block text-xs text-red-600">
+              <span className={errorTextCls}>
                 {errors.vendedor_id.message}
               </span>
             )}
@@ -113,7 +123,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
             {...register('nombre')}
           />
           {errors.nombre && (
-            <span className="mt-1 block text-xs text-red-600">{errors.nombre.message}</span>
+            <span className={errorTextCls}>{errors.nombre.message}</span>
           )}
         </label>
 
@@ -127,7 +137,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
             {...register('direccion')}
           />
           {errors.direccion && (
-            <span className="mt-1 block text-xs text-red-600">{errors.direccion.message}</span>
+            <span className={errorTextCls}>{errors.direccion.message}</span>
           )}
         </label>
 
@@ -166,18 +176,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
           </select>
         </label>
 
-        {crear.error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-            {crear.error instanceof Error ? crear.error.message : 'No se pudo registrar el cliente'}
-          </p>
-        )}
-        {crear.data?.error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-            {crear.data.error}
-          </p>
-        )}
-
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3">
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancelar
           </button>
@@ -186,6 +185,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
           </button>
         </div>
       </form>
+      <Toast toast={toast} onClose={cerrar} />
     </div>
   )
 }

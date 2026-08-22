@@ -147,7 +147,7 @@ export default function MiComision() {
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div>
                 <p className="text-gray-500">Total vendido</p>
                 <p>{formatearMoneda(item.base_comision)}</p>

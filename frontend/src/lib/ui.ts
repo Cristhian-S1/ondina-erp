@@ -19,6 +19,15 @@ export const thCls =
 
 export const tdCls = 'px-4 py-3 text-sm text-slate-900'
 
+// Texto rojo bajo un input con error de validacion de campo
+export const errorTextCls = 'mt-1 block text-xs text-red-600'
+
+// Bloque de error para mutaciones fallidas (query/mutation)
+export const errorBlockCls = 'rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600'
+
+// Borde rojo para inputs que fallan validacion
+export const inputErrorCls = 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/30'
+
 export function fmtFecha(iso: string) {
   return new Date(iso).toLocaleString('es-CL', {
     day: '2-digit',

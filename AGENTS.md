@@ -11,7 +11,7 @@
 - **Fix HU-09 (commit 027cc22 de Laoch-11):** `obtenerCantidadVentasJornada` cuenta ventas reales del día en vez de sumar `ventas_del_tipo` de la vista de comisión.
 - El módulo de bodega cubre HU-13 (despachos, devoluciones de productos y envases, stock). El módulo de producción cubre HU-19 a HU-23.
 - Se agregó Mantine UI (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) + `dayjs` para componentes complejos como MonthPickerInput (selector de mes en ranking). El resto del frontend sigue con Tailwind CSS.
-- Tests: 83 total (ventas 20, bodega 29, producción 34) en 13 archivos. Ver `docs/estado-historias-usuario.md` para el detalle por HU.
+- Tests: 95 total (ventas 29, bodega 29, producción 34) en 15 archivos. Ver `docs/estado-historias-usuario.md` para el detalle por HU.
 - Los datos de la base local de Beads viven en `.beads/`; se reinicializó el tracker con prefix `OND` el 2026-08-17. `config.yaml` tiene `repos.primary = "."` y `sync.remote` configurado.
 - Los archivos `.agents/skills/` contienen las skills de trabajo (ask-matt, codebase-design, supabase, etc.) y deben versionarse; no se deben borrar en merges entre ramas.
 
@@ -38,6 +38,7 @@ npm run lint       # eslint .
 - Los dominios se componen como módulos en `frontend/src/domains/index.ts` y cada uno expone un `DomainModule`. La lógica de tu dominio debe quedar en `frontend/src/domains/<dominio>/`, no fuera.
 - No accedas a Supabase desde componentes de presentación; usa el cliente compartido en `frontend/src/lib/supabase.ts` y los servicios de cada dominio.
 - Componentes en `PascalCase`, hooks `useCamelCase`, utilidades `camelCase`, carpetas `kebab-case`, mensajes al usuario en español.
+- **Convenciones de UI y comentarios:** ver `docs/convenciones-frontend.md` para reglas de mensajes de validación, errores, Toast y comentarios de código. Resumen: usar `errorTextCls`/`errorBlockCls`/`inputErrorCls` de `lib/ui.ts` para todos los errores (no strings inline). Toast verde en éxito, rojo en error. Comentarios `//` en español explicando el por qué, marcar HU relacionada.
 
 ## Base De Datos
 
