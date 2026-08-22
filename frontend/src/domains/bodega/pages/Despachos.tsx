@@ -19,7 +19,7 @@ import {
   obtenerVendedores,
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, soloNumeros } from '../../../lib/ui'
 import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
@@ -42,11 +42,6 @@ interface LineaProducto {
   cantidad: string
 }
 
-interface LineaEnvaseDespacho {
-  tipo_empaque_id: string
-  cantidad: string
-}
-
 interface GrupoDevolucion {
   despachoId: string
   vendedor: string
@@ -60,6 +55,8 @@ interface GrupoDevolucion {
 }
 
 type FiltroDia = 'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'
+
+const CAPACIDAD_BANDEJA = 10
 
 const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['hoy', 'Hoy'],
@@ -121,9 +118,11 @@ export default function Despachos() {
   const [modalOpen, setModalOpen] = useState(false)
   const [vendedorId, setVendedorId] = useState('')
   const [lineas, setLineas] = useState<LineaProducto[]>([{ producto_id: '', cantidad: '' }])
-  const [lineasEnvase, setLineasEnvase] = useState<LineaEnvaseDespacho[]>([
-    { tipo_empaque_id: '', cantidad: '' },
-  ])
+  // Bandejas: valor manual del usuario junto al total de hielo con que se
+  // escribió. Si el hielo cambia, manda el auto-cálculo (1 cada CAPACIDAD_BANDEJA).
+  const [bandejasManual, setBandejasManual] = useState<{ hielo: number; valor: string } | null>(
+    null,
+  )
   const [enviando, setEnviando] = useState(false)
 
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
@@ -132,6 +131,28 @@ export default function Despachos() {
   const [vendedorFiltro, setVendedorFiltro] = useState('')
 
   const [error, setError] = useState<string | null>(null)
+
+  const bandejaTipo = useMemo(
+    () => tiposEmpaque.find((t) => t.categoria === 'uso_interno') ?? null,
+    [tiposEmpaque],
+  )
+
+  const totalHieloSolicitado = useMemo(
+    () =>
+      lineas.reduce((sum, l) => {
+        if (!l.producto_id || Number(l.cantidad) <= 0) return sum
+        const productoLinea = productos.find((p) => p.id === l.producto_id)
+        return productoLinea?.tipo === 'hielo' ? sum + Number(l.cantidad) : sum
+      }, 0),
+    [lineas, productos],
+  )
+
+  const bandejasSugeridas = Math.ceil(totalHieloSolicitado / CAPACIDAD_BANDEJA)
+  const bandejasAuto = totalHieloSolicitado > 0 ? String(bandejasSugeridas) : ''
+  const bandejasCantidad =
+    bandejasManual && bandejasManual.hielo === totalHieloSolicitado
+      ? bandejasManual.valor
+      : bandejasAuto
 
   useEffect(() => {
     async function init() {
@@ -228,21 +249,15 @@ export default function Despachos() {
       }
     }
 
-    const envasesValidos = lineasEnvase.filter(
-      (l) => l.tipo_empaque_id && Number(l.cantidad) > 0,
-    )
-    const solicitadoPorEnvase = new Map<string, number>()
+    const bandejas = Number(bandejasCantidad)
+    const envasesValidos =
+      bandejaTipo && bandejas > 0 ? [{ tipo_empaque_id: bandejaTipo.id, cantidad: bandejas }] : []
     for (const l of envasesValidos) {
-      const actual = solicitadoPorEnvase.get(l.tipo_empaque_id) ?? 0
-      solicitadoPorEnvase.set(l.tipo_empaque_id, actual + Number(l.cantidad))
-    }
-    for (const [tipoEmpaqueId, solicitado] of solicitadoPorEnvase) {
-      const disponible = stockEnvases.find((s) => s.tipo_empaque_id === tipoEmpaqueId)?.cantidad ?? 0
-      if (solicitado > disponible) {
-        const empaque = tiposEmpaque.find((t) => t.id === tipoEmpaqueId)
+      const disponible = stockEnvases.find((s) => s.tipo_empaque_id === l.tipo_empaque_id)?.cantidad ?? 0
+      if (l.cantidad > disponible) {
         setError(
-          `Stock insuficiente de envases para ${empaque?.nombre ?? 'el envase'}: ` +
-            `disponible ${disponible}, solicitado ${solicitado}.`,
+          `Stock insuficiente de envases para ${bandejaTipo?.nombre ?? 'el envase'}: ` +
+            `disponible ${disponible}, solicitado ${l.cantidad}.`,
         )
         return
       }
@@ -274,7 +289,7 @@ export default function Despachos() {
     setModalOpen(false)
     setVendedorId('')
     setLineas([{ producto_id: '', cantidad: '' }])
-    setLineasEnvase([{ tipo_empaque_id: '', cantidad: '' }])
+    setBandejasManual(null)
     await load()
   }
 
@@ -296,11 +311,6 @@ export default function Despachos() {
 
   const envasesDeDespacho = (despachoId: string) =>
     despachoEnvases.filter((e) => e.despacho_id === despachoId)
-
-  const tiposEmpaqueDespachables = useMemo(
-    () => tiposEmpaque.filter((t) => t.categoria === 'uso_interno'),
-    [tiposEmpaque],
-  )
 
   const devolucionesDe = (despachoId: string) => ({
     productos: desvProducto.filter((x) => x.despacho_id === despachoId),
@@ -793,7 +803,13 @@ export default function Despachos() {
                       {productos
                         .filter((p) => p.activo)
                         .map((p) => (
-                          <option key={p.id} value={p.id}>
+                          <option
+                            key={p.id}
+                            value={p.id}
+                            disabled={lineas.some(
+                              (l, i) => i !== index && l.producto_id === p.id,
+                            )}
+                          >
                             {p.nombre} (disp. {stockDisponible(p.id)})
                           </option>
                         ))}
@@ -818,6 +834,7 @@ export default function Despachos() {
                     <input
                       type="number"
                       inputMode="numeric"
+                      onKeyDown={soloNumeros}
                       min={1}
                       max={(() => {
                         const stockProd = stockBodega.find((s) => s.producto_id === linea.producto_id)
@@ -856,80 +873,34 @@ export default function Despachos() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-700">Envases del despacho</p>
-              <p className="text-xs text-slate-500">
-                Bandejas, cajas u otros de uso interno que salen con el vendedor.
-              </p>
-              {tiposEmpaqueDespachables.length === 0 ? (
+              <p className="text-sm font-semibold text-slate-700">Bandejas del despacho</p>
+              {!bandejaTipo ? (
                 <p className="text-sm text-slate-500">No hay tipos de envase configurados.</p>
               ) : (
-                lineasEnvase.map((linea, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_auto]"
-                  >
-                    <label className="block">
-                      <span className="sr-only">Envase</span>
-                      <select
-                        className={inputCls}
-                        value={linea.tipo_empaque_id}
-                        onChange={(e) => {
-                          const next = [...lineasEnvase]
-                          next[index] = { ...linea, tipo_empaque_id: e.target.value }
-                          setLineasEnvase(next)
-                        }}
-                      >
-                        <option value="">Selecciona envase...</option>
-                        {tiposEmpaqueDespachables.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.nombre} (disp. {stockEnvaseDe(t.id)})
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="sr-only">Cantidad</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min={1}
-                        max={(() => {
-                          const usadoEnOtras = lineasEnvase
-                            .filter((l, i) => i !== index && l.tipo_empaque_id === linea.tipo_empaque_id)
-                            .reduce((sum, l) => sum + (Number(l.cantidad) || 0), 0)
-                          const restante = stockEnvaseDe(linea.tipo_empaque_id) - usadoEnOtras
-                          return restante > 0 ? restante : 1
-                        })()}
-                        placeholder="Cant."
-                        className={inputCls}
-                        value={linea.cantidad}
-                        onChange={(e) => {
-                          const next = [...lineasEnvase]
-                          next[index] = { ...linea, cantidad: e.target.value }
-                          setLineasEnvase(next)
-                        }}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className={btnSecondary}
-                      onClick={() => setLineasEnvase((prev) => prev.filter((_, i) => i !== index))}
-                    >
-                      Quitar
-                    </button>
-                  </div>
-                ))
-              )}
-              {tiposEmpaqueDespachables.length > 0 && (
-                <button
-                  type="button"
-                  className={btnSecondary}
-                  onClick={() =>
-                    setLineasEnvase((prev) => [...prev, { tipo_empaque_id: '', cantidad: '' }])
-                  }
-                >
-                  + Agregar envase
-                </button>
+                <>
+                  <label className="block">
+                    <span className="sr-only">Bandejas</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      onKeyDown={soloNumeros}
+                      min={0}
+                      max={stockEnvaseDe(bandejaTipo.id)}
+                      placeholder="Cant."
+                      className={inputCls}
+                      value={bandejasCantidad}
+                      onChange={(e) =>
+                        setBandejasManual({ hielo: totalHieloSolicitado, valor: e.target.value })
+                      }
+                    />
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Se completan solas: 1 bandeja cada {CAPACIDAD_BANDEJA} bolsas de hielo.
+                  </p>
+                  {totalHieloSolicitado > 0 && Number(bandejasCantidad) !== bandejasSugeridas && (
+                    <p className="text-xs text-amber-600">Sugerido: {bandejasSugeridas}</p>
+                  )}
+                </>
               )}
             </div>
 

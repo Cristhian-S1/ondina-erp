@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from 'react'
+
 export const labelCls = 'block text-sm font-medium text-slate-700'
 
 export const inputCls =
@@ -35,4 +37,10 @@ export function fmtFecha(iso: string) {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+export function soloNumeros(e: KeyboardEvent<HTMLInputElement>) {
+  const teclasPermitidas = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']
+  if (teclasPermitidas.includes(e.key) || (e.ctrlKey && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase()))) return
+  if (!/^\d$/.test(e.key)) e.preventDefault()
 }
