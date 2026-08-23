@@ -115,3 +115,33 @@ producto:productos(id, nombre, tipo, precio_base)
   </tbody>
 </table>
 ```
+
+---
+
+## Formato numérico (miles)
+
+**Vigente desde 2026-08-22. Aplicable a todos los módulos.**
+
+### Helpers
+
+`frontend/src/lib/format.ts`:
+
+| Función | Uso |
+|:---|:---|
+| `formatMiles(n)` | `1000` → `"1.000"` con `es-CL` sin decimales |
+| `parseMiles(s)` | `"1.000"` → `1000` (`""` → `0`) |
+| `formatMilesInput(raw)` | Formatea vivo: `"1000a"` → `"1.000"` (solo dígitos) |
+
+### Inputs
+
+- Usar `type="text" inputMode="numeric"` + `Controller` de RHF (no `type="number"`).
+- Live: `onChange => formatMilesInput(e.target.value)` → `field.onChange(parseMiles(formatted))`.
+- **CANTIDAD:** inicia vacío `placeholder=""` (`0` → `""`). **Precio unit.:** inicia con `precio_base` formateado. **Descuento:** inicia `"0"`.
+- Validación: `z.preprocess(parseMilesInput, z.number()...)` en `schemas.ts` para que `"1.000"` pase como `1000`.
+- Columnas **DISPONIBLE**, **Stock UNIDADES**, **Producción CANTIDAD**, **Historial**, **Indicadores**, **Envases vacíos**, **Mermas recientes** usan `formatMiles(n)` para mostrar `1.000`. Gastos **Monto CLP** solo números con formato vivo.
+
+### Reglas
+
+- Nunca mostrar `1000` plano; siempre `1.000`.
+- No usar `toLocaleString` inline; usar `formatMiles`.
+- Mantener `type="text"` para permitir punto de miles sin conflicto con `valueAsNumber` de `number`.

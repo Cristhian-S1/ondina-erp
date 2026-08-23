@@ -149,7 +149,8 @@ mantener una experiencia consistente en tablets y computadores:
 - No dejar `console.log`, código comentado ni `catch` vacío.
 - **Mensajes de validación y errores:** usar `errorTextCls`/`errorBlockCls`/`inputErrorCls` de `lib/ui.ts` (no strings inline). Toast verde en éxito, rojo en error. Ver `docs/convenciones-frontend.md` para el estándar completo.
 - **Responsividad:** todas las páginas deben funcionar en 375px (móvil), 768px (tablet) y 1280px (desktop). Tablas → tarjetas en `<640px` con CSS single-view. Ver `docs/convenciones-frontend.md`.
-- **Zod v4 + RHF:** usar `@hookform/resolvers` v5.9.1+. Separar tipos `z.input` (formulario) de `z.infer`/`z.output` (onSubmit) en schemas con `z.coerce`.
+- **Zod v4 + RHF:** usar `@hookform/resolvers` v5.9.1+. Separar tipos `z.input` (formulario) de `z.infer`/`z.output` (onSubmit) en schemas con `z.preprocess(parseMilesInput)` para formato miles.
+- **Formato miles vivo (es-CL):** usar `frontend/src/lib/format.ts` (`formatMiles`/`parseMiles`/`formatMilesInput`) para mostrar `1.000` en inputs y columnas. Inputs numéricos con `type="text" inputMode="numeric"` + `Controller` en RHF; CANTIDAD inicia vacío (`""`, `0` → `""`), precio con `precio_base` formateado, descuento inicia `"0"`. Ver `docs/convenciones-frontend.md`.
 
 ## Base De Datos
 
