@@ -23,12 +23,27 @@ export const crearClienteSchema = z.object({
 export type CrearClienteInput = z.infer<typeof crearClienteSchema>
 export type CrearClienteForm = z.input<typeof crearClienteSchema>
 
+// Helper para parsear "1.000" -> 1000 en inputs con formato miles vivo
+function parseMilesInput(val: unknown): number {
+  if (typeof val === 'string') {
+    const t = val.trim()
+    if (t === '') return 0
+    const sinPuntos = t.replace(/\./g, '')
+    const soloNumerico = sinPuntos.replace(/[^\d-]/g, '')
+    if (soloNumerico === '' || soloNumerico === '-') return 0
+    const n = Number(soloNumerico)
+    return Number.isNaN(n) ? 0 : n
+  }
+  if (typeof val === 'number') return val
+  return 0
+}
+
 // --- HU-07: registrar gasto extra ---
 export const tipoGastoEnum = z.enum(['combustible', 'averia', 'otra'])
 
 export const crearGastoSchema = z.object({
   tipo: tipoGastoEnum.default('otra'),
-  monto: z.coerce.number('Ingresa un monto').positive('El monto debe ser mayor a 0'),
+  monto: z.preprocess(parseMilesInput, z.number('Ingresa un monto').positive('El monto debe ser mayor a 0')),
   motivo: z.string().min(1, 'Ingresa el motivo').max(300, 'Máximo 300 caracteres'),
 })
 
@@ -40,14 +55,14 @@ export const metodoPagoEnum = z.enum(['efectivo', 'transferencia'])
 
 export const detalleVentaSchema = z.object({
   productoId: z.string().min(1, 'Selecciona un producto'),
-  cantidad: z.coerce.number().int('Debe ser un entero').min(0, 'La cantidad no puede ser negativa'),
-  precioUnitario: z.coerce.number().min(0, 'El precio no puede ser negativo'),
+  cantidad: z.preprocess(parseMilesInput, z.number().int('Debe ser un entero').min(0, 'La cantidad no puede ser negativa')),
+  precioUnitario: z.preprocess(parseMilesInput, z.number().min(0, 'El precio no puede ser negativo')),
 })
 
 export const registrarVentaSchema = z.object({
   clienteId: z.string().min(1, 'Selecciona un cliente'),
   metodoPago: metodoPagoEnum,
-  descuento: z.coerce.number().min(0, 'El descuento no puede ser negativo').default(0),
+  descuento: z.preprocess(parseMilesInput, z.number().min(0, 'El descuento no puede ser negativo').default(0)),
   observaciones: z
     .string()
     .max(500, 'Máximo 500 caracteres')

@@ -57,8 +57,7 @@ describe('HU-07 · Gastos — validación de formulario', () => {
   it('muestra error si el motivo está vacío', async () => {
     await renderGastos()
 
-    const inputs = screen.getAllByRole('spinbutton')
-    const montoInput = inputs[0] as HTMLInputElement
+    const montoInput = screen.getByLabelText(/Monto \(CLP\)/i) as HTMLInputElement
     setNativeValue(montoInput, '5000')
     fireEvent.click(screen.getByRole('button', { name: /Registrar gasto/i }))
 
@@ -70,8 +69,7 @@ describe('HU-07 · Gastos — validación de formulario', () => {
   it('muestra Toast verde al registrar exitosamente', async () => {
     await renderGastos()
 
-    const inputs = screen.getAllByRole('spinbutton')
-    const montoInput = inputs[0] as HTMLInputElement
+    const montoInput = screen.getByLabelText(/Monto \(CLP\)/i) as HTMLInputElement
     const motivoInput = screen.getByPlaceholderText('Descripción breve') as HTMLInputElement
 
     setNativeValue(montoInput, '5000')

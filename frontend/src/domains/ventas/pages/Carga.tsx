@@ -1,6 +1,7 @@
 import { useCargaVendedor } from '../hooks/useCargaVendedor'
 import { btnSecondary, cardCls } from '../../../lib/ui'
 import { RefreshIcon } from '../../../components/icons'
+import { formatMiles } from '../../../lib/format'
 
 export default function Carga() {
   const { data, isLoading, refetch, isFetching } = useCargaVendedor()
@@ -49,7 +50,7 @@ export default function Carga() {
               </div>
               <p className="px-5 py-4 text-sm text-slate-600">
                 Unidades disponibles:{' '}
-                <span className="text-lg font-bold text-slate-900">{c.cantidad}</span>
+                <span className="text-lg font-bold text-slate-900">{formatMiles(c.cantidad)}</span>
               </p>
             </article>
           ))}

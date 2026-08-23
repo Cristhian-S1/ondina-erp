@@ -3,6 +3,7 @@ import { useAuth } from '../../../context/auth-context'
 import { obtenerStockBodega, obtenerStockEnvases } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { formatMiles } from '../../../lib/format'
 import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type { StockBodega, StockEnvases } from '../types'
 
@@ -182,7 +183,7 @@ export default function Stock() {
                     <tr key={f.producto_id}>
                       <td className={tdCls}>{f.producto?.nombre ?? 'Desconocido'}</td>
                       <td className={tdCls}>{f.producto?.tipo ?? '-'}</td>
-                      <td className={`${tdCls} text-right font-semibold`}>{f.cantidad}</td>
+                      <td className={`${tdCls} text-right font-semibold`}>{formatMiles(f.cantidad)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -211,7 +212,7 @@ export default function Stock() {
                     <tr key={f.tipo_empaque_id}>
                       <td className={tdCls}>{f.empaque?.nombre ?? 'Desconocido'}</td>
                       <td className={tdCls}>{f.empaque?.categoria ?? '-'}</td>
-                      <td className={`${tdCls} text-right font-semibold`}>{f.cantidad}</td>
+                      <td className={`${tdCls} text-right font-semibold`}>{formatMiles(f.cantidad)}</td>
                     </tr>
                   ))}
                 </tbody>

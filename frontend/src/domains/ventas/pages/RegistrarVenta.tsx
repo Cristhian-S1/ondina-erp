@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import { useAuth } from '../../../context/auth-context'
 import { useClientesRuta } from '../hooks/useClientesRuta'
 import { useProductosVenta } from '../hooks/useProductosVenta'
@@ -44,7 +45,7 @@ const DETALLES_VACIOS: DetalleVentaDraft[] = PRODUCTOS_DEFAULT.map(() => ({
 }))
 
 function fmtCLP(n: number) {
-  return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })
+  return formatMiles(n)
 }
 
 function cargarDraft(): Partial<RegistrarVentaForm> | null {
@@ -101,11 +102,7 @@ function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVen
   }
 }
 
-function soloNumeros(e: React.KeyboardEvent<HTMLInputElement>) {
-  const teclasPermitidas = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End']
-  if (teclasPermitidas.includes(e.key) || (e.ctrlKey && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase()))) return
-  if (!/^\d$/.test(e.key)) e.preventDefault()
-}
+
 
 export default function RegistrarVenta() {
   const { perfil } = useAuth()
@@ -369,7 +366,7 @@ export default function RegistrarVenta() {
                         <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Disponible</span>
                         {disponible !== undefined ? (
                           <span className={excede ? 'text-red-600' : 'text-slate-700'}>
-                            {disponible}
+                            {formatMiles(disponible)}
                           </span>
                         ) : (
                           <span className="text-slate-400">—</span>
@@ -377,14 +374,27 @@ export default function RegistrarVenta() {
                       </td>
                       <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
                         <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Cantidad</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={1}
-                          inputMode="numeric"
-                          className={`${inputCls} w-full sm:w-24 ${excede ? inputErrorCls : ''}`}
-                          {...register(`detalles.${index}.cantidad` as const)}
-                          onKeyDown={soloNumeros}
+                        <Controller
+                          control={control}
+                          name={`detalles.${index}.cantidad` as const}
+                          render={({ field }) => (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              placeholder=""
+                              className={`${inputCls} w-full sm:w-24 ${excede ? inputErrorCls : ''}`}
+                              value={field.value ? formatMiles(field.value as number) : ''}
+                              onChange={(e) => {
+                                const formatted = formatMilesInput(e.target.value)
+                                e.target.value = formatted
+                                const numeric = parseMiles(formatted)
+                                field.onChange(numeric)
+                              }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                          )}
                         />
                         {excede && (
                           <span className={errorTextCls}>
@@ -399,14 +409,27 @@ export default function RegistrarVenta() {
                       </td>
                       <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
                         <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Precio unit.</span>
-                        <input
-                          type="number"
-                          min={0}
-                          step={100}
-                          inputMode="numeric"
-                          className={`${inputCls} w-full sm:w-28`}
-                          {...register(`detalles.${index}.precioUnitario` as const)}
-                          onKeyDown={soloNumeros}
+                        <Controller
+                          control={control}
+                          name={`detalles.${index}.precioUnitario` as const}
+                          render={({ field }) => (
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              placeholder=""
+                              className={`${inputCls} w-full sm:w-28`}
+                              value={field.value ? formatMiles(field.value as number) : ''}
+                              onChange={(e) => {
+                                const formatted = formatMilesInput(e.target.value)
+                                e.target.value = formatted
+                                const numeric = parseMiles(formatted)
+                                field.onChange(numeric)
+                              }}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
+                            />
+                          )}
                         />
                       </td>
                       <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls} font-semibold`}>
@@ -452,14 +475,29 @@ export default function RegistrarVenta() {
             </label>
             <label className={labelCls}>
               Descuento (CLP)
-              <input
-                type="number"
-                min={0}
-                step={100}
-                inputMode="numeric"
-                className={inputCls}
-                {...register('descuento')}
-                onKeyDown={soloNumeros}
+              <Controller
+                control={control}
+                name="descuento"
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    className={inputCls}
+                    value={field.value ? formatMiles(field.value as number) : '0'}
+                    onChange={(e) => {
+                      const formatted = formatMilesInput(e.target.value)
+                      // Si queda vacio, mostrar 0
+                      const display = formatted || '0'
+                      e.target.value = display
+                      const numeric = parseMiles(display)
+                      field.onChange(numeric)
+                    }}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
               />
               {errors.descuento && (
                 <span className={errorTextCls}>

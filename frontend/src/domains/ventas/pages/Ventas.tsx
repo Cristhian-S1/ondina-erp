@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useCargaVendedor } from '../hooks/useCargaVendedor'
 import { btnPrimary, btnSecondary, cardCls } from '../../../lib/ui'
+import { formatMiles } from '../../../lib/format'
 import {
   DollarIcon,
   DropletIcon,
@@ -107,7 +108,7 @@ export default function Ventas() {
                   {c.producto?.nombre ?? 'Producto'}
                 </span>
                 <span className="shrink-0 text-sm font-semibold text-slate-900">
-                  {c.cantidad}
+                  {formatMiles(c.cantidad)}
                 </span>
               </li>
             ))}

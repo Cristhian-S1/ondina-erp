@@ -102,7 +102,7 @@ describe('HU-01 · RegistrarVenta — productos duplicados', () => {
     setNativeValue(row0Select, 'p2')
 
     await waitFor(() => {
-      expect(screen.getAllByText('1000').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('1.000').length).toBeGreaterThan(0)
     })
   })
 })
@@ -115,8 +115,9 @@ describe('HU-01 · RegistrarVenta — cantidad 0', () => {
     const clienteSelect = selects[0] as HTMLSelectElement
     setNativeValue(clienteSelect, 'c1')
 
-    // The first 3 spinbuttons are cantidades for the 3 product rows
-    const cantidadInputs = screen.getAllByRole('spinbutton')
+    // Cantidades ahora son textbox con formato miles (vacío = 0)
+    const cantidadInputs = screen.getAllByRole('textbox') as HTMLInputElement[]
+    // Orden: row0 cantidad, row0 precio, row1 cantidad, row1 precio, row2 cantidad, row2 precio, descuento, observaciones
     const row0Cantidad = cantidadInputs[0] as HTMLInputElement
     setNativeValue(row0Cantidad, '5')
 

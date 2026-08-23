@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGastosHoy } from '../hooks/useGastosHoy'
 import { useCrearGasto } from '../hooks/useCrearGasto'
@@ -6,6 +6,7 @@ import { crearGastoSchema, type CrearGastoForm, type CrearGastoInput } from '../
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import { btnPrimary, cardCls, errorTextCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
+import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 
 const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
   { value: 'combustible', label: 'Combustible' },
@@ -14,7 +15,7 @@ const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
 ]
 
 function fmtMonto(n: number) {
-  return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })
+  return formatMiles(n)
 }
 
 export default function Gastos() {
@@ -26,6 +27,7 @@ export default function Gastos() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<CrearGastoForm, unknown, CrearGastoInput>({
     resolver: zodResolver(crearGastoSchema),
@@ -79,13 +81,27 @@ export default function Gastos() {
 
           <label className={labelCls}>
             Monto (CLP)
-            <input
-              type="number"
-              min={1}
-              step={1}
-              className={inputCls}
-              placeholder="0"
-              {...register('monto')}
+            <Controller
+              control={control}
+              name="monto"
+              render={({ field }) => (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={inputCls}
+                  placeholder=""
+                  value={field.value ? formatMiles(field.value as number) : ''}
+                  onChange={(e) => {
+                    const formatted = formatMilesInput(e.target.value)
+                    e.target.value = formatted
+                    const numeric = formatted ? parseMiles(formatted) : undefined
+                    field.onChange(numeric)
+                  }}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                />
+              )}
             />
             {errors.monto && (
               <span className={errorTextCls}>{errors.monto.message}</span>

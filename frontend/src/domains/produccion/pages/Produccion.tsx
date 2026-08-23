@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/auth-context'
 import { supabase } from '../../../lib/supabase'
 import { obtenerProductos, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import type { Producto, TipoEmpaque } from '../../../types'
 import {
   obtenerEnvasesDisponibles,
@@ -108,7 +109,7 @@ export default function Produccion() {
     const datos = {
       sucursal_id: perfil.sucursal_id,
       producto_id: productoId,
-      cantidad: Number(cantidad),
+      cantidad: parseMiles(cantidad),
       observaciones: observaciones.trim() || null,
       creado_por: perfil.id,
     }
@@ -136,7 +137,7 @@ export default function Produccion() {
       producto_id: productoMermaId,
       tipo_empaque_id: null,
       despacho_id: null,
-      cantidad: Number(cantidadMerma),
+      cantidad: parseMiles(cantidadMerma),
       motivo: motivoMerma.trim(),
       creado_por: perfil.id,
     }
@@ -205,7 +206,7 @@ export default function Produccion() {
               ))}
               </select>
             </label>
-            <label className={labelCls}>Cantidad<input className={inputCls} type="number" min="1" step="1" value={cantidad} onChange={(event) => setCantidad(event.target.value)} /></label>
+            <label className={labelCls}>Cantidad<input className={inputCls} type="text" inputMode="numeric" placeholder="" value={cantidad} onChange={(event) => setCantidad(formatMilesInput(event.target.value))} /></label>
             <label className={labelCls}>Observaciones (opcional)<textarea className={inputCls} rows={3} maxLength={1000} value={observaciones} onChange={(event) => setObservaciones(event.target.value)} /></label>
             <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
           </form>
@@ -255,11 +256,11 @@ export default function Produccion() {
 
               <input
                 className={inputCls}
-                type="number"
-                min="1"
-                step="1"
+                type="text"
+                inputMode="numeric"
+                placeholder=""
                 value={cantidadMerma}
-                onChange={(event) => setCantidadMerma(event.target.value)}
+                onChange={(event) => setCantidadMerma(formatMilesInput(event.target.value))}
               />
             </label>
 
@@ -321,7 +322,7 @@ export default function Produccion() {
                         </td>
 
                         <td className={`${tdCls} text-right font-semibold`}>
-                          {item.cantidad}
+                          {formatMiles(item.cantidad)}
                         </td>
 
                         <td className={tdCls}>
@@ -349,9 +350,9 @@ function EstadoVacio({ texto }: { texto: string }) {
 }
 
 function TablaProducciones({ registros, nombreProducto }: { registros: RegistroProduccion[]; nombreProducto: (id: string) => string }) {
-  return <section className={cardCls}><h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Producción reciente</h2>{registros.length === 0 ? <EstadoVacio texto="No hay producciones registradas." /> : <div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-slate-50"><th className={thCls}>Fecha</th><th className={thCls}>Producto</th><th className={`${thCls} text-right`}>Cantidad</th></tr></thead><tbody className="divide-y divide-slate-100">{registros.map((item) => <tr key={item.id}><td className={tdCls}>{new Date(item.creado_en).toLocaleString('es-CL')}</td><td className={tdCls}>{nombreProducto(item.producto_id)}</td><td className={`${tdCls} text-right font-semibold`}>{item.cantidad}</td></tr>)}</tbody></table></div>}</section>
+  return <section className={cardCls}><h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Producción reciente</h2>{registros.length === 0 ? <EstadoVacio texto="No hay producciones registradas." /> : <div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-slate-50"><th className={thCls}>Fecha</th><th className={thCls}>Producto</th><th className={`${thCls} text-right`}>Cantidad</th></tr></thead><tbody className="divide-y divide-slate-100">{registros.map((item) => <tr key={item.id}><td className={tdCls}>{new Date(item.creado_en).toLocaleString('es-CL')}</td><td className={tdCls}>{nombreProducto(item.producto_id)}</td><td className={`${tdCls} text-right font-semibold`}>{formatMiles(item.cantidad)}</td></tr>)}</tbody></table></div>}</section>
 }
 
 function TablaEnvases({ envases, empaques }: { envases: EnvaseDisponible[]; empaques: TipoEmpaque[] }) {
-  return <section className={cardCls}><div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Envases vacíos disponibles</h2><p className="mt-1 text-sm text-slate-500">Solo se muestran empaques retornables de tu sucursal.</p></div>{envases.length === 0 ? <EstadoVacio texto="No hay envases retornables disponibles." /> : <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">{envases.map((item) => <article className="rounded-xl border border-slate-200 p-5" key={item.tipo_empaque_id}><p className="text-sm font-medium text-slate-600">{item.nombre}</p><p className="mt-2 text-3xl font-bold text-brand-800">{item.cantidad}</p><p className="mt-2 text-xs text-slate-500">{empaques.find((empaque) => empaque.id === item.tipo_empaque_id)?.categoria} · actualizado {new Date(item.modificado_en).toLocaleString('es-CL')}</p></article>)}</div>}</section>
+  return <section className={cardCls}><div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Envases vacíos disponibles</h2><p className="mt-1 text-sm text-slate-500">Solo se muestran empaques retornables de tu sucursal.</p></div>{envases.length === 0 ? <EstadoVacio texto="No hay envases retornables disponibles." /> : <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">{envases.map((item) => <article className="rounded-xl border border-slate-200 p-5" key={item.tipo_empaque_id}><p className="text-sm font-medium text-slate-600">{item.nombre}</p><p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(item.cantidad)}</p><p className="mt-2 text-xs text-slate-500">{empaques.find((empaque) => empaque.id === item.tipo_empaque_id)?.categoria} · actualizado {new Date(item.modificado_en).toLocaleString('es-CL')}</p></article>)}</div>}</section>
 }

@@ -192,14 +192,14 @@ describe('HU-13 · Nuevo despacho', () => {
     const inputCantidad = screen.getByLabelText('Cantidad')
     fireEvent.change(inputCantidad, { target: { value: '15' } })
 
-    expect(screen.getByLabelText('Bandejas')).toHaveValue(2)
+    expect(screen.getByLabelText('Bandejas')).toHaveValue('2')
 
     fireEvent.change(screen.getByLabelText('Bandejas'), { target: { value: '3' } })
-    expect(screen.getByLabelText('Bandejas')).toHaveValue(3)
+    expect(screen.getByLabelText('Bandejas')).toHaveValue('3')
     expect(screen.getByText('Sugerido: 2')).toBeInTheDocument()
 
     fireEvent.change(inputCantidad, { target: { value: '40' } })
-    expect(screen.getByLabelText('Bandejas')).toHaveValue(4)
+    expect(screen.getByLabelText('Bandejas')).toHaveValue('4')
     expect(screen.queryByText('Sugerido: 2')).not.toBeInTheDocument()
   })
 
@@ -231,6 +231,6 @@ describe('HU-13 · Nuevo despacho', () => {
 
     await abrirModal()
 
-    expect(screen.getByLabelText('Bandejas')).toHaveValue(null)
+    expect(screen.getByLabelText('Bandejas')).toHaveValue('')
   })
 })

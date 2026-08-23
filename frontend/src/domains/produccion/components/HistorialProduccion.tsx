@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { formatMiles } from '../../../lib/format'
 import type { Producto } from '../../../types'
 import { obtenerHistorialProduccion } from '../api'
 import type { Produccion } from '../types'
@@ -66,7 +67,7 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
       <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Historial de producción</h2><p className="mt-1 text-xs text-slate-500">Máximo 200 registros, ordenados desde el más reciente.</p></div>
       {cargando ? <p className="p-8 text-center text-sm text-slate-500">Cargando historial...</p> : null}
       {!cargando && registros.length === 0 ? <p className="p-8 text-center text-sm text-slate-500">No hay registros para los filtros seleccionados.</p> : null}
-      {!cargando && registros.length > 0 ? <div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-slate-50"><th className={thCls}>Fecha y hora</th><th className={thCls}>Producto</th><th className={`${thCls} text-right`}>Cantidad</th><th className={thCls}>Observaciones</th></tr></thead><tbody className="divide-y divide-slate-100">{registros.map((registro) => <tr key={registro.id}><td className={tdCls}>{new Date(registro.creado_en).toLocaleString('es-CL')}</td><td className={tdCls}>{productos.find((producto) => producto.id === registro.producto_id)?.nombre ?? 'Producto'}</td><td className={`${tdCls} text-right font-semibold`}>{registro.cantidad}</td><td className={tdCls}>{registro.observaciones || '—'}</td></tr>)}</tbody></table></div> : null}
+      {!cargando && registros.length > 0 ? <div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-slate-50"><th className={thCls}>Fecha y hora</th><th className={thCls}>Producto</th><th className={`${thCls} text-right`}>Cantidad</th><th className={thCls}>Observaciones</th></tr></thead><tbody className="divide-y divide-slate-100">{registros.map((registro) => <tr key={registro.id}><td className={tdCls}>{new Date(registro.creado_en).toLocaleString('es-CL')}</td><td className={tdCls}>{productos.find((producto) => producto.id === registro.producto_id)?.nombre ?? 'Producto'}</td><td className={`${tdCls} text-right font-semibold`}>{formatMiles(registro.cantidad)}</td><td className={tdCls}>{registro.observaciones || '—'}</td></tr>)}</tbody></table></div> : null}
     </div>
   </section>
 }

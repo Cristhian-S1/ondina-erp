@@ -19,7 +19,8 @@ import {
   obtenerVendedores,
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, soloNumeros } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
+import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
@@ -140,9 +141,9 @@ export default function Despachos() {
   const totalHieloSolicitado = useMemo(
     () =>
       lineas.reduce((sum, l) => {
-        if (!l.producto_id || Number(l.cantidad) <= 0) return sum
+        if (!l.producto_id || parseMiles(l.cantidad) <= 0) return sum
         const productoLinea = productos.find((p) => p.id === l.producto_id)
-        return productoLinea?.tipo === 'hielo' ? sum + Number(l.cantidad) : sum
+        return productoLinea?.tipo === 'hielo' ? sum + parseMiles(l.cantidad) : sum
       }, 0),
     [lineas, productos],
   )
@@ -226,7 +227,7 @@ export default function Despachos() {
       return
     }
 
-    const lineasValidas = lineas.filter((l) => l.producto_id && Number(l.cantidad) > 0)
+    const lineasValidas = lineas.filter((l) => l.producto_id && parseMiles(l.cantidad) > 0)
     if (!vendedorId || lineasValidas.length === 0) {
       setError('Selecciona un vendedor y agrega al menos un producto.')
       return
@@ -235,7 +236,7 @@ export default function Despachos() {
     const solicitadoPorProducto = new Map<string, number>()
     for (const l of lineasValidas) {
       const actual = solicitadoPorProducto.get(l.producto_id) ?? 0
-      solicitadoPorProducto.set(l.producto_id, actual + Number(l.cantidad))
+      solicitadoPorProducto.set(l.producto_id, actual + parseMiles(l.cantidad))
     }
     for (const [productoId, solicitado] of solicitadoPorProducto) {
       const disponible = stockBodega.find((s) => s.producto_id === productoId)?.cantidad ?? 0
@@ -243,13 +244,13 @@ export default function Despachos() {
         const producto = productos.find((p) => p.id === productoId)
         setError(
           `Stock insuficiente en bodega para ${producto?.nombre ?? 'el producto'}: ` +
-            `disponible ${disponible}, solicitado ${solicitado}.`,
+            `disponible ${formatMiles(disponible)}, solicitado ${formatMiles(solicitado)}.`,
         )
         return
       }
     }
 
-    const bandejas = Number(bandejasCantidad)
+    const bandejas = parseMiles(bandejasCantidad)
     const envasesValidos =
       bandejaTipo && bandejas > 0 ? [{ tipo_empaque_id: bandejaTipo.id, cantidad: bandejas }] : []
     for (const l of envasesValidos) {
@@ -257,7 +258,7 @@ export default function Despachos() {
       if (l.cantidad > disponible) {
         setError(
           `Stock insuficiente de envases para ${bandejaTipo?.nombre ?? 'el envase'}: ` +
-            `disponible ${disponible}, solicitado ${l.cantidad}.`,
+            `disponible ${formatMiles(disponible)}, solicitado ${formatMiles(l.cantidad)}.`,
         )
         return
       }
@@ -271,11 +272,11 @@ export default function Despachos() {
       creado_por: perfil.id,
       lineas: lineasValidas.map((l) => ({
         producto_id: l.producto_id,
-        cantidad: Number(l.cantidad),
+        cantidad: parseMiles(l.cantidad),
       })),
       envases: envasesValidos.map((l) => ({
         tipo_empaque_id: l.tipo_empaque_id,
-        cantidad: Number(l.cantidad),
+        cantidad: parseMiles(String(l.cantidad)),
       })),
     })
 
@@ -305,9 +306,6 @@ export default function Despachos() {
 
   const detallesDeDespacho = (despachoId: string) =>
     despachoDetalles.filter((d) => d.despacho_id === despachoId)
-
-  const stockEnvaseDe = (tipoEmpaqueId: string) =>
-    stockEnvases.find((s) => s.tipo_empaque_id === tipoEmpaqueId)?.cantidad ?? 0
 
   const envasesDeDespacho = (despachoId: string) =>
     despachoEnvases.filter((e) => e.despacho_id === despachoId)
@@ -540,7 +538,7 @@ export default function Despachos() {
                       </div>
                       <div className="flex shrink-0 items-center gap-3">
                         <span className="rounded-full bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white">
-                          {d.totalUnidades} unid.
+                          {formatMiles(d.totalUnidades)} unid.
                         </span>
                         {llegada && (
                           <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">
@@ -578,13 +576,13 @@ export default function Despachos() {
                                       'Producto'}
                                   </span>
                                   <span className="font-semibold text-slate-900">
-                                    {det.cantidad}
+                                    {formatMiles(det.cantidad)}
                                   </span>
                                 </li>
                               ))}
                               <li className="flex items-center justify-between bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-900">
                                 <span>Total</span>
-                                <span>{d.totalUnidades}</span>
+                                <span>{formatMiles(d.totalUnidades)}</span>
                               </li>
                             </ul>
                           )}
@@ -606,7 +604,7 @@ export default function Despachos() {
                                       'Envase'}
                                   </span>
                                   <span className="font-semibold text-slate-900">
-                                    {env.cantidad}
+                                    {formatMiles(env.cantidad)}
                                   </span>
                                 </li>
                               ))}
@@ -636,7 +634,7 @@ export default function Despachos() {
                                     {productos.find((p) => p.id === dv.producto_id)?.nombre ??
                                       'Producto'}
                                   </span>
-                                  <span className="font-medium text-amber-600">−{dv.cantidad}</span>
+                                  <span className="font-medium text-amber-600">−{formatMiles(dv.cantidad)}</span>
                                 </li>
                               ))}
                               {devs.envases.map((de) => (
@@ -655,7 +653,7 @@ export default function Despachos() {
                                         : 'font-medium text-amber-600'
                                     }
                                   >
-                                    +{de.cantidad} {de.estado === 'bueno' ? 'buenas' : 'malas'}
+                                    +{formatMiles(de.cantidad)} {de.estado === 'bueno' ? 'buenas' : 'malas'}
                                   </span>
                                 </li>
                               ))}
@@ -713,7 +711,7 @@ export default function Despachos() {
                             l.tipo === 'producto' ? 'text-amber-600' : 'text-emerald-600'
                           }`}
                         >
-                          {l.tipo === 'producto' ? `−${l.cantidad}` : `+${l.cantidad}`}
+                          {l.tipo === 'producto' ? `−${formatMiles(l.cantidad)}` : `+${formatMiles(l.cantidad)}`}
                         </span>
                       </li>
                     ))}
@@ -773,7 +771,7 @@ export default function Despachos() {
                         <span>
                           {productos.find((p) => p.id === c.producto_id)?.nombre ?? 'Producto'}
                         </span>
-                        <span className="font-semibold text-slate-900">{c.cantidad}</span>
+                        <span className="font-semibold text-slate-900">{formatMiles(c.cantidad)}</span>
                       </li>
                     ))}
                   </ul>
@@ -810,19 +808,19 @@ export default function Despachos() {
                               (l, i) => i !== index && l.producto_id === p.id,
                             )}
                           >
-                            {p.nombre} (disp. {stockDisponible(p.id)})
+                            {p.nombre} (disp. {formatMiles(stockDisponible(p.id))})
                           </option>
                         ))}
                     </select>
                     {linea.producto_id && (
                       <span className="mt-1 block text-xs text-slate-500">
                         Disponible en bodega:{' '}
-                        <b className="text-slate-700">{stockDisponible(linea.producto_id)}</b>
+                        <b className="text-slate-700">{formatMiles(stockDisponible(linea.producto_id))}</b>
                         {vendedorId && (
                           <>
                             {' · '}Carga del vendedor:{' '}
                             <b className="text-slate-700">
-                              {cargaDelVendedor(linea.producto_id)}
+                              {formatMiles(cargaDelVendedor(linea.producto_id))}
                             </b>
                           </>
                         )}
@@ -832,24 +830,15 @@ export default function Despachos() {
                   <label className="block">
                     <span className="sr-only">Cantidad</span>
                     <input
-                      type="number"
+                      type="text"
                       inputMode="numeric"
-                      onKeyDown={soloNumeros}
-                      min={1}
-                      max={(() => {
-                        const stockProd = stockBodega.find((s) => s.producto_id === linea.producto_id)
-                        const usadoEnOtras = lineas
-                          .filter((l, i) => i !== index && l.producto_id === linea.producto_id)
-                          .reduce((sum, l) => sum + (Number(l.cantidad) || 0), 0)
-                        const restante = (stockProd?.cantidad ?? 0) - usadoEnOtras
-                        return restante > 0 ? restante : 1
-                      })()}
-                      placeholder="Cant."
+                      placeholder=""
                       className={inputCls}
                       value={linea.cantidad}
                       onChange={(e) => {
+                        const formatted = formatMilesInput(e.target.value)
                         const next = [...lineas]
-                        next[index] = { ...linea, cantidad: e.target.value }
+                        next[index] = { ...linea, cantidad: formatted }
                         setLineas(next)
                       }}
                     />
@@ -881,24 +870,22 @@ export default function Despachos() {
                   <label className="block">
                     <span className="sr-only">Bandejas</span>
                     <input
-                      type="number"
+                      type="text"
                       inputMode="numeric"
-                      onKeyDown={soloNumeros}
-                      min={0}
-                      max={stockEnvaseDe(bandejaTipo.id)}
-                      placeholder="Cant."
+                      placeholder=""
                       className={inputCls}
                       value={bandejasCantidad}
-                      onChange={(e) =>
-                        setBandejasManual({ hielo: totalHieloSolicitado, valor: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const formatted = formatMilesInput(e.target.value)
+                        setBandejasManual({ hielo: totalHieloSolicitado, valor: formatted })
+                      }}
                     />
                   </label>
                   <p className="text-xs text-slate-500">
                     Se completan solas: 1 bandeja cada {CAPACIDAD_BANDEJA} bolsas de hielo.
                   </p>
-                  {totalHieloSolicitado > 0 && Number(bandejasCantidad) !== bandejasSugeridas && (
-                    <p className="text-xs text-amber-600">Sugerido: {bandejasSugeridas}</p>
+                  {totalHieloSolicitado > 0 && parseMiles(bandejasCantidad) !== bandejasSugeridas && (
+                    <p className="text-xs text-amber-600">Sugerido: {formatMiles(bandejasSugeridas)}</p>
                   )}
                 </>
               )}
