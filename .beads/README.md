@@ -14,13 +14,13 @@ bd ready
 bd show OND-8ox
 ```
 
-El script comprueba la base existente mediante `bd stats`; no la reinicializa. Instala los hooks y configura `core.hooksPath=.beads/hooks` relativo al repositorio. Si no existe base local, usa `bd bootstrap --yes` para recuperar el remoto. Para usar los comandos se necesita bd en PATH; no hace falta un servidor Dolt externo en modo embedded.
+El script comprueba la base existente mediante `bd stats`; no la reinicializa. Restringe permisos locales de .beads a 0700, configura el rol contributor solo si falta, instala los hooks y configura `core.hooksPath=.beads/hooks` relativo al repositorio. Si no existe base local, usa `bd bootstrap --yes` para recuperar el remoto. Para usar los comandos se necesita bd en PATH; no hace falta un servidor Dolt externo en modo embedded.
 
 ## Clon nuevo y sincronización
 
-La primera publicación de la base sigue pendiente de autorización explícita: el repositorio es público y la base contiene descripciones, comentarios, identidad de autores y memorias históricas. Hasta publicarla, un clon nuevo no puede recuperar estos issues solo con Git. No interpretar “No remote configured — skipping” como sincronización exitosa.
+La base se publicó el 2026-10-09 con autorización explícita del usuario para el repositorio público. Un clon nuevo recuperó 29 issues y 4 memorias por `refs/dolt/data`; sus 33 registros exportados eran idénticos a los del origen. No interpretar “No remote configured — skipping” como sincronización exitosa.
 
-Después de publicar la base y verificar `refs/dolt/data`, los colaboradores pueden ejecutar el script anterior y:
+Los colaboradores pueden ejecutar el script anterior y:
 
 ```bash
 bd dolt pull
@@ -35,7 +35,7 @@ No usar `bd init --force` como reparación. Los comandos `bd statistics`, `bd do
 
 ## Evidencia de recuperación
 
-El 2026-10-09 se exportaron 28 issues y se importaron en una base nueva aislada en `/tmp/ondina-beads-recuperacion`: se conservaron las cantidades por estado y las dependencias, sin issues huérfanos. Esa prueba no valida todavía la sincronización con GitHub ni las memorias/historial Dolt completos.
+El 2026-10-09 se exportaron 28 issues y se importaron en una base nueva aislada en `/tmp/ondina-beads-recuperacion`: se conservaron las cantidades por estado y las dependencias, sin issues huérfanos. Además, `/tmp/ondina-clon-verificacion-20261009` se creó mediante Git clone sin base local y recuperó correctamente la base Dolt de GitHub, incluidos los registros de memorias. La comparación canónica de los exports completos fue idéntica.
 
 Copias recuperables de esta sesión: `/tmp/ondina-beads-antes-2026-10-09.tar.gz` y `/tmp/ondina-issues-recuperacion.jsonl`. `/tmp` es temporal; mueve los respaldos a un destino privado duradero si necesitas conservarlos.
 

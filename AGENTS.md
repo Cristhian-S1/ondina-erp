@@ -17,7 +17,7 @@ La auditoría actual es `docs/auditoria-integral-2026-10-09.md`. Las cifras y de
 - El módulo de bodega cubre HU-13 (despachos, devoluciones de productos y envases, stock). El módulo de producción cubre HU-19 a HU-23.
 - Se agregó Mantine UI (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) + `dayjs` para componentes complejos como MonthPickerInput (selector de mes en ranking). El resto del frontend sigue con Tailwind CSS.
 - Tests: 99 total (ventas 29, bodega 29+4, producción 34) en 15 archivos. Ver `docs/estado-historias-usuario.md` para el detalle por HU.
-- Los datos locales de Beads viven en `.beads/embeddeddolt/` (prefix `OND`). El remoto Dolt está configurado; su publicación inicial requiere autorización pendiente. Ver `.beads/README.md`.
+- Los datos locales de Beads viven en `.beads/embeddeddolt/` (prefix `OND`). El remoto Dolt está configurado y publicado con autorización explícita; la recuperación en un clon nuevo se verificó el 2026-10-09. Ver `.beads/README.md`.
 - Los archivos `.agents/skills/` contienen las skills de trabajo (ask-matt, codebase-design, supabase, etc.) y deben versionarse; no se deben borrar en merges entre ramas.
 
 ## Fuente De Verdad

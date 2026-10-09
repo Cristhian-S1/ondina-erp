@@ -17,8 +17,8 @@ Esta revisión combina código y relaciones de CodeGraph, comandos locales, cons
 | Supabase | Proyecto activo, 23 tablas públicas con RLS | RLS habilitado no significa políticas correctas |
 | Migraciones | 0001–0006 aplican en prueba aislada; 0007 falla | PostgreSQL 16 con Auth/Storage mínimos, frente a PostgreSQL 17.6 remoto |
 | Seguridad | `anon` lee 15 filas de comisión y 2 de ranking | Consulta de conteos; no se publican datos comerciales individuales |
-| Beads | Base embebida funcional; hooks y configuración reparados | Primera sincronización a GitHub pendiente de autorización |
-| Recuperación Beads | 28 issues importados en una base aislada, sin huérfanos | No certifica historial Dolt/memorias ni recuperación remota |
+| Beads | Base embebida funcional; hooks y configuración reparados | Sincronización a GitHub autorizada y verificada |
+| Recuperación Beads | 28 issues importados en una base aislada, sin huérfanos | La prueba adicional de clon remoto recuperó 29 issues y 4 memorias con exports idénticos |
 | Navegador | Validación vacía, stock/despachos, carga permanente de producción y redirección al login comprobados | Se utilizó administrador; no se certificaron sesiones independientes de todos los roles |
 
 ## 2. Herramientas e integraciones
@@ -325,7 +325,9 @@ Se verificaron creación/actualización de issues, dependencias, ready y ausenci
 
 Limitaciones del CLI actual: `bd statistics` no existe; `bd doctor` y `bd dolt test` no soportan este modo embebido; `config validate` pide federation.remote y `config drift` intenta llamar a una CLI Dolt externa ausente. No se añadieron claves inventadas ni se cambió a servidor solo para silenciar esos diagnósticos. `bd stats`, `bd ready`, `bd orphans`, `bd hooks list` y `bd dolt remote list` sí funcionan.
 
-**Pendiente de autorización:** publicar la base Dolt mediante `bd dolt push` en `Cristhian-S1/ondina-erp`, repositorio público. La revisión automática rechazó ese envío porque transporta metadatos de issues y exige autorización explícita del contenido y destino. La publicación incluye issues, comentarios, autores, historial y cuatro memorias de proyecto; no es solo el archivo de configuración. No se intentó enviarla por otra vía. Sin ese paso, la recuperación de los issues en un clon nuevo por GitHub sigue sin estar verificada.
+**Sincronización remota verificada:** la revisión automática inicialmente rechazó `bd dolt push` por la publicación de metadatos e historial en el repositorio público. El usuario autorizó explícitamente ese contenido y destino. El push posterior terminó correctamente y `refs/dolt/data` existe. Un Git clone nuevo, sin base local ni exports, ejecutó el script y recuperó 29 issues y cuatro memorias; los 33 registros de su export completo eran idénticos a los del origen. No se enviaron los datos por una vía alternativa al flujo autorizado.
+
+El bootstrap también restringe permisos locales de `.beads` a 0700 y define rol contributor solo cuando el clon no tiene un rol propio, evitando los dos avisos observados al recuperar un clon nuevo.
 
 No se debe confundir el push de esta rama de documentación/configuración con la sincronización de Beads. [Guía oficial de sincronización](https://github.com/gastownhall/beads/blob/main/docs/getting-started/sync-setup.md).
 
@@ -374,7 +376,7 @@ Los hallazgos se registraron en Beads; este documento es evidencia y análisis, 
 | OND-gu3 | Dependencias revisadas y actualización con pruebas |
 | OND-get | Publicación controlada y SQL comprobado realmente en CI |
 | OND-w76 | Cortes de funcionalidades pendientes; depende de OND-8wi |
-| OND-6p6 | Auditoría y reparación Beads, con sincronización remota pendiente |
+| OND-6p6 | Auditoría y reparación Beads, incluida recuperación remota verificada |
 | OND-jf6 | Alineación de documentación/herramientas de recuperación |
 
 Para retomar el desarrollo, comenzar por OND-8ox y OND-8wi. Después estabilizar sesiones, sucursales y stock; implementar administración sobre esa base. Confirmar las decisiones comerciales pendientes antes de reactivar offline, documentos, GPS o cambios de comisión. Un criterio de aceptación útil es poder reconstruir un entorno aislado, operar cada rol y restaurar una copia sin recurrir a scripts manuales contradictorios.
