@@ -1,3 +1,5 @@
+> Plan objetivo histórico. El despliegue y las funcionalidades efectivas se describen en la [auditoría 2026-10-09](auditoria-integral-2026-10-09.md); las migraciones y E2E no se ejecutan automáticamente como propone este plan.
+
 # Plan de Desarrollo
 
 ## Sistema de Gestión de Ventas, Producción y Bodega — Ondina

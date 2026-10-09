@@ -6,9 +6,8 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 
 ## Documentación Principal
 
-- `AGENTS_para_equipo_desarrollo.md`: convenciones obligatorias de código, Git, base de datos, seguridad y pruebas.
 - `AGENTS.md`: contexto operativo para agentes y sesiones de desarrollo.
-- `Plan De Desarrollo.md`: alcance, cronograma, stack, despliegue y modelo de datos propuesto.
+- `docs/Plan De Desarrollo.md`: alcance, cronograma, stack, despliegue y modelo de datos propuesto.
 - `docs/Problematica.md`: situación actual y necesidades del negocio.
 - `docs/Requerimentos RF y RNF.md`: requisitos funcionales y no funcionales.
 - `docs/Historias de Usuario.md`: historias y criterios de aceptación.
@@ -18,13 +17,27 @@ La aplicación será utilizada principalmente desde tablets por vendedores, pers
 - `docs/estado-historias-usuario.md`: estado de implementación de cada HU (completas, parciales, placeholders, sin UI).
 - `docs/convenciones-frontend.md`: reglas de mensajes de validación, errores, Toast y comentarios de código para todos los módulos.
 
-Lee `AGENTS_para_equipo_desarrollo.md` completo antes de escribir, revisar o modificar código.
+Lee `AGENTS.md` completo antes de escribir, revisar o modificar código.
 
 ## Estado Actual
 
-El repositorio se encuentra en etapa de definición. Actualmente contiene documentación y esquemas SQL, pero todavía no tiene aplicación React, `package.json`, migraciones Supabase, configuración de Vite, workflows de CI ni pruebas ejecutables.
+El proyecto tiene una aplicación React/Vite/TypeScript en `frontend/`, diez migraciones SQL y tres workflows de GitHub Actions. Producción responde en <https://ondina-erp.vercel.app>; administración todavía contiene pantallas pendientes.
 
-No inventes comandos de instalación, build, lint o test hasta que se incorpore la aplicación y sus archivos de configuración. Cuando se agregue el código, actualiza este README con los comandos reales.
+La [auditoría integral del 2026-10-09](docs/auditoria-integral-2026-10-09.md) documenta diferencias entre la base remota y las migraciones, exposición de vistas y límites de las verificaciones. **No ejecutar `supabase db push` contra producción antes de reconciliar ese historial.**
+
+Para iniciar el frontend (Node 22+):
+
+```bash
+cd frontend
+npm ci
+cp .env.example .env # completar URL y clave pública de un entorno de desarrollo
+npm run dev
+npm run lint
+npm run build
+npm run test
+```
+
+Para recuperar Beads en un clon, consultar [.beads/README.md](.beads/README.md) y ejecutar `bash scripts/bootstrap-beads.sh`. La base Dolt se sincroniza por separado del código; un commit no garantiza que los issues estén publicados.
 
 ## Stack Elegido
 
@@ -36,13 +49,13 @@ No inventes comandos de instalación, build, lint o test hasta que se incorpore 
 - **Base de datos:** PostgreSQL administrado por Supabase.
 - **Autenticación:** Supabase Auth.
 - **Autorización:** Row Level Security (RLS) en la base de datos.
-- **Archivos:** Supabase Storage para comprobantes de gastos.
-- **Tiempo real:** Supabase Realtime donde sea necesario.
-- **Mapas:** Leaflet o Mapbox para GPS.
-- **Pruebas:** Vitest, Testing Library, Playwright y k6.
+- **Archivos (previsto):** Supabase Storage para comprobantes; no hay buckets en la base auditada.
+- **Tiempo real (parcial):** producción suscribe cambios, pero la publicación remota auditada no contiene tablas.
+- **Mapas (previsto):** GPS no tiene una implementación funcional.
+- **Pruebas:** Vitest y Testing Library implementados; E2E y carga pendientes.
 - **CI/CD:** GitHub Actions.
 - **Despliegue:** Vercel para React/Vite y Supabase para backend y datos.
-- **PWA:** manifest y service worker básico, sujeto a validar primero los flujos online.
+- **PWA (previsto):** sin manifest/service worker implementados. HU-30 offline fue retirada del alcance.
 
 No se incorporará un backend Node separado en la primera versión. No agregues dependencias nuevas sin justificar la necesidad en el PR.
 
@@ -213,11 +226,11 @@ Todo PR debe indicar qué cambia, qué HU cubre, cómo probarlo y cómo se valid
 
 ### Verificación con Playwright MCP
 
-Para depurar y verificar correctamente el funcionamiento de la página desde el navegador se recomienda usar el **MCP de Playwright** que vive declarado en `opencode.json`. Permite abrir la URL del frontend (local o el preview de Vercel por PR), navegar como vendedor/admin, tomar screenshots, inspeccionar la consola y validar flujos de dominio sin instalar Playwright aparte. Es complementario a las pruebas Vitest+Testing Library y no reemplaza las E2E del repositorio.
+Para probar la página, comprueba qué herramienta de navegador está conectada en la sesión: Playwright MCP o Computer Use. `opencode.json` no garantiza disponibilidad en otros clientes. La auditoría de octubre usó Computer Use; las pruebas E2E automatizadas del repositorio siguen pendientes.
 
 ## Flujo De Trabajo
 
-1. Leer `AGENTS_para_equipo_desarrollo.md`, la HU correspondiente y los requisitos relacionados.
+1. Leer `AGENTS.md`, la HU correspondiente y los requisitos relacionados.
 2. Confirmar el alcance y crear una rama específica.
 3. Diseñar o actualizar primero la migración y las reglas RLS cuando el cambio afecte datos.
 4. Implementar la lógica de negocio fuera de los componentes visuales.
@@ -240,7 +253,7 @@ El pipeline vive en `.github/workflows/`:
 
 | Workflow | Disparador | Qué hace |
 | :------- | :--------- | :------- |
-| `ci.yml` | `pull_request` a `develop`/`main` | Lint + typecheck + build + tests (Vitest) y validación de sintaxis SQL de migraciones (`migrations-check`). **No aplica** migraciones a la BD. |
+| `ci.yml` | `pull_request` a `develop`/`main` | Lint + typecheck + build + tests (Vitest) y comprobación de presencia de punto y coma en migraciones (`migrations-check`, no valida sintaxis PostgreSQL). **No aplica** migraciones a la BD. |
 | `deploy-develop.yml` | `push` a `develop` | Deploy del frontend a Vercel (ambiente `development`). |
 | `deploy-prod.yml` | `push` a `main` | Verifica lint+build+tests; luego job `deploy` con `environment: production` que espera aprobación manual de un reviewer antes de publicar en Vercel Production (`ondina-erp.vercel.app`). |
 
@@ -318,7 +331,7 @@ y coordinarse mediante `develop`.
 
 ### Skills locales del proyecto
 
-Las skills instaladas en `.agents/skills/` son: `ask-matt`, `codebase-design`,
+Las skills instaladas en `.agents/skills/` son: `ask-matt`, `beads`, `codebase-design`,
 `domain-modeling`, `find-skills`, `grill-with-docs`, `handoff`,
 `improve-codebase-architecture`, `prototype`, `setup-matt-pocock-skills`,
 `supabase`, `supabase-postgres-best-practices`, `to-spec`, `to-tickets` y
@@ -336,15 +349,12 @@ de planes y verificación.
 - **Mem0:** memoria persistente de decisiones y aprendizajes del proyecto mediante el plugin configurado en `.opencode/`.
 - **Beads:** seguimiento de tareas, dependencias y estado de trabajo. Las issues viven en `.beads/` y se sincronizan con el repositorio.
 - **Superpowers:** flujos de diseño, implementación, pruebas, revisión y verificación usados por los agentes.
-- **GitHub:** repositorio remoto, Pull Requests, revisión cruzada y futura automatización CI/CD.
+- **GitHub:** repositorio remoto, Pull Requests, revisión cruzada y automatización CI/CD existente.
 
 ### MCPs
 
 El proyecto contempla MCPs para Supabase, GitHub y herramientas auxiliares de
-desarrollo. En el entorno de esta revisión no se expusieron recursos ni plantillas
-MCP verificables; por eso no se afirma que una conexión Supabase o GitHub esté
-activa. Antes de ejecutar operaciones remotas, el agente debe comprobar que el
-MCP correspondiente aparece conectado y autenticado.
+desarrollo. En la auditoría del 2026-10-09 se verificaron lecturas autenticadas con los plugins de Supabase, GitHub y Vercel. Esa evidencia corresponde a esa sesión; cada entorno debe volver a comprobar sus conexiones antes de operar.
 
 ## Estado De Los Objetos SQL
 
@@ -399,11 +409,11 @@ node --version
 npm --version
 ```
 
-Instala las dependencias versionadas del frontend y ejecuta sus comandos reales:
+Instala las dependencias del lockfile del frontend y ejecuta sus comandos reales:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 npm run build
 npm run lint
@@ -425,19 +435,18 @@ psql --version
 sudo -u postgres psql
 ```
 
-Para instalar la CLI de Supabase globalmente:
+Para ejecutar una versión de Supabase CLI sin instalarla globalmente:
 
 ```bash
-npm install -g supabase
-supabase --version
+npx supabase@2.111.0 --version
 ```
 
 La CLI usa Docker para `supabase start`. Inicializa el proyecto únicamente
 cuando se vaya a crear la estructura local de Supabase:
 
 ```bash
-supabase init
-supabase start
+npx supabase init
+npx supabase start
 ```
 
 No ejecutes el esquema contra producción. Los cambios definitivos deben quedar
@@ -458,7 +467,7 @@ La base de datos de CodeGraph es local y no debe versionarse.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/gastownhall/beads/main/scripts/install.sh | bash
 cd /ruta/al/proyecto/Ondina
-bd init
+bash scripts/bootstrap-beads.sh
 bd ready
 ```
 

@@ -1,81 +1,42 @@
-# Beads - AI-Native Issue Tracking
+# Beads en Ondina
 
-Welcome to Beads! This repository uses **Beads** for issue tracking - a modern, AI-native tool designed to live directly in your codebase alongside your code.
+Versión verificada: bd 1.0.4, Dolt embebido, prefix `OND`.
 
-## What is Beads?
+Los issues viven en `.beads/embeddeddolt/`. Git versiona configuración y hooks, no la base, los metadatos por máquina ni los exports pasivos. La sincronización de issues usa `refs/dolt/data` en `git+ssh://git@github.com/Cristhian-S1/ondina-erp.git`, separada de las ramas de código.
 
-Beads is issue tracking that lives in your repo, making it perfect for AI coding agents and developers who want their issues close to their code. No web UI required - everything works through the CLI and integrates seamlessly with git.
-
-**Learn more:** [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
-
-## Quick Start
-
-### Essential Commands
+## Entorno existente
 
 ```bash
-# Create new issues
-bd create "Add user authentication"
+bash scripts/bootstrap-beads.sh
+bd prime
+bd stats
+bd ready
+bd show OND-8ox
+```
 
-# View all issues
-bd list
+El script comprueba la base existente mediante `bd stats`; no la reinicializa. Instala los hooks y configura `core.hooksPath=.beads/hooks` relativo al repositorio. Si no existe base local, usa `bd bootstrap --yes` para recuperar el remoto. Para usar los comandos se necesita bd en PATH; no hace falta un servidor Dolt externo en modo embedded.
 
-# View issue details
-bd show <issue-id>
+## Clon nuevo y sincronización
 
-# Update issue status
-bd update <issue-id> --claim
-bd update <issue-id> --status done
+La primera publicación de la base sigue pendiente de autorización explícita: el repositorio es público y la base contiene descripciones, comentarios, identidad de autores y memorias históricas. Hasta publicarla, un clon nuevo no puede recuperar estos issues solo con Git. No interpretar “No remote configured — skipping” como sincronización exitosa.
 
-# Sync with Dolt remote
+Después de publicar la base y verificar `refs/dolt/data`, los colaboradores pueden ejecutar el script anterior y:
+
+```bash
+bd dolt pull
+bd update <id> --claim
+bd close <id> --reason="Resultado verificado"
 bd dolt push
 ```
 
-### Working with Issues
+`git push` de código no sustituye `bd dolt push`. `export.auto: true` mantiene un JSONL local; `export.git-add: false` evita añadirlo al índice; `import.auto: false` evita revivir estados de exports de ramas antiguas. Para recuperar un JSONL elegido conscientemente existe `bd import <archivo>`; conserva primero una copia de la base.
 
-Issues in Beads are:
-- **Git-native**: Stored in Dolt database with version control and branching
-- **AI-friendly**: CLI-first design works perfectly with AI coding agents
-- **Branch-aware**: Issues can follow your branch workflow
-- **Always in sync**: Auto-syncs with your commits
+No usar `bd init --force` como reparación. Los comandos `bd statistics`, `bd doctor` y `bd dolt test` no son adecuados para esta instalación: el primero no existe; los dos últimos no admiten el modo embebido. `bd config validate` exige `federation.remote`, y `bd config drift` intenta usar una CLI Dolt externa; estos resultados no prueban corrupción de la base local. Comprueba `bd stats`, `bd ready`, `bd orphans`, `bd dolt remote list` y `bd hooks list`.
 
-## Why Beads?
+## Evidencia de recuperación
 
-✨ **AI-Native Design**
-- Built specifically for AI-assisted development workflows
-- CLI-first interface works seamlessly with AI coding agents
-- No context switching to web UIs
+El 2026-10-09 se exportaron 28 issues y se importaron en una base nueva aislada en `/tmp/ondina-beads-recuperacion`: se conservaron las cantidades por estado y las dependencias, sin issues huérfanos. Esa prueba no valida todavía la sincronización con GitHub ni las memorias/historial Dolt completos.
 
-🚀 **Developer Focused**
-- Issues live in your repo, right next to your code
-- Works offline, syncs when you push
-- Fast, lightweight, and stays out of your way
+Copias recuperables de esta sesión: `/tmp/ondina-beads-antes-2026-10-09.tar.gz` y `/tmp/ondina-issues-recuperacion.jsonl`. `/tmp` es temporal; mueve los respaldos a un destino privado duradero si necesitas conservarlos.
 
-🔧 **Git Integration**
-- Automatic sync with git commits
-- Branch-aware issue tracking
-- Dolt-native three-way merge resolution
-
-## Get Started with Beads
-
-Try Beads in your own projects:
-
-```bash
-# Install Beads
-curl -sSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
-
-# Initialize in your repo
-bd init
-
-# Create your first issue
-bd create "Try out Beads"
-```
-
-## Learn More
-
-- **Documentation**: [github.com/steveyegge/beads/docs](https://github.com/steveyegge/beads/tree/main/docs)
-- **Quick Start Guide**: Run `bd quickstart`
-- **Examples**: [github.com/steveyegge/beads/examples](https://github.com/steveyegge/beads/tree/main/examples)
-
----
-
-*Beads: Issue tracking that moves at the speed of thought* ⚡
+[Documentación oficial de sincronización](https://github.com/gastownhall/beads/blob/main/docs/getting-started/sync-setup.md).

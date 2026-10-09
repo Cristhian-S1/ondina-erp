@@ -2,6 +2,8 @@
 
 ## Estado Actual Del Repositorio
 
+La auditoría actual es `docs/auditoria-integral-2026-10-09.md`. Las cifras y descripciones de agosto siguientes son antecedentes del código, no garantías del esquema desplegado. No ejecutar db push contra producción hasta reconciliar el historial remoto.
+
 - El repo contiene documentación, esquemas SQL, una aplicación frontend funcional en `frontend/` (React + Vite + TypeScript), migraciones versionadas en `supabase/migrations/` (0001 a 0010), CI/CD con GitHub Actions (`.github/workflows/`), `frontend/vercel.json` y pruebas ejecutables (`lint`, `build`, `test`).
 - Las migraciones se aplican manualmente con `supabase db push --linked` o vía Supabase MCP (no automatizadas en CI). Ver `docs/setup-vercel-supabase-github.md` para el flujo completo de configuración de Vercel, Supabase y GitHub.
 - El frontend requiere variables de entorno `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`; existe `frontend/.env.example` como plantilla.
@@ -15,7 +17,7 @@
 - El módulo de bodega cubre HU-13 (despachos, devoluciones de productos y envases, stock). El módulo de producción cubre HU-19 a HU-23.
 - Se agregó Mantine UI (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) + `dayjs` para componentes complejos como MonthPickerInput (selector de mes en ranking). El resto del frontend sigue con Tailwind CSS.
 - Tests: 99 total (ventas 29, bodega 29+4, producción 34) en 15 archivos. Ver `docs/estado-historias-usuario.md` para el detalle por HU.
-- Los datos de la base local de Beads viven en `.beads/`; se reinicializó el tracker con prefix `OND` el 2026-08-17. `config.yaml` tiene `repos.primary = "."` y `sync.remote` configurado.
+- Los datos locales de Beads viven en `.beads/embeddeddolt/` (prefix `OND`). El remoto Dolt está configurado; su publicación inicial requiere autorización pendiente. Ver `.beads/README.md`.
 - Los archivos `.agents/skills/` contienen las skills de trabajo (ask-matt, codebase-design, supabase, etc.) y deben versionarse; no se deben borrar en merges entre ramas.
 
 ## Fuente De Verdad
@@ -23,7 +25,7 @@
 - `README.md` y `docs/` son la fuente principal de alcance, ramas, convenciones, y modelos. Lee `README.md` antes de tocar código o SQL.
 - `docs/Plan De Desarrollo.md` documenta el alcance y el stack elegido.
 - `docs/Problematica.md`, `docs/Requerimentos RF y RNF.md` y `docs/Historias de Usuario.md` contienen requisitos del negocio. Trata lo pendiente en las notas como no resuelto.
-- No existe `AGENTS_para_equipo_desarrollo.md` (referenciado en `README.md`). No lo busques; la convención real de código/Git/seguridad está en `README.md` y `AGENTS.md`.
+- Las convenciones reales de código/Git/seguridad están en `README.md` y `AGENTS.md`.
 - Para el estado detallado de cada HU (completas, parciales, placeholders, sin UI), ver `docs/estado-historias-usuario.md`. Resumen: 16 completas, 3 parciales, 4 placeholders (administración), 4 sin UI, 2 eliminadas.
 
 ## Frontend
@@ -76,7 +78,7 @@ bd ready              # encontrar trabajo disponible
 bd show <id>          # ver detalles de un issue
 bd update <id> --claim  # reclamar un issue
 bd close <id>         # cerrar un issue
-bd statistics         # resumen del proyecto
+bd stats         # resumen del proyecto
 ```
 
 ### Reglas
@@ -84,8 +86,8 @@ bd statistics         # resumen del proyecto
 - Usa `bd` para el seguimiento de TODAS las tareas; no uses TodoWrite, markdown TODO ni tablas de seguimiento por fuera de `bd`.
 - Ejecuta `bd prime` para el flujo detallado de cierre de sesión y las referencias.
 - Usa `bd remember <texto>` para memoria persistente; no uses archivos `MEMORY.md`.
-- `config.yaml` de beads solo debe tener `repos.primary = "."`; no agregues la sección `additional`.
-- `.beads/embeddeddolt/` es la fuente de datos local y NO se versiona. `.beads/issues.jsonl` es un export pasivo que el hook de beads regenera con cada commit; se eliminó del tracking en git y no debe volver a añadirse. Borrar `issues.jsonl` no borra los datos reales (viven en `embeddeddolt/`), y beads puede reimportar desde ese export al cambiar de rama vía `import.auto`. Para limpiar del todo, borra del Dolt local con `bd delete` y luego quita el export en git.
+- `config.yaml` de beads debe mantener `repos.primary = "."`; no agregues `repos.additional`. Los ajustes de sync/export están documentados en `.beads/README.md`.
+- `.beads/embeddeddolt/` es la fuente de datos local y NO se versiona. `.beads/issues.jsonl` es un export pasivo local que bd regenera tras escrituras; se eliminó del tracking en git y no debe volver a añadirse. Borrar `issues.jsonl` no borra los datos reales (viven en `embeddeddolt/`), y `import.auto` queda desactivado para evitar reimportar estados viejos al cambiar de rama. Para limpiar del todo, borra del Dolt local con `bd delete` y luego quita el export en git.
 
 <!-- END BEATS INTEGRATION -->
 
@@ -102,7 +104,7 @@ Al acabar abandonar una sesión, NO estás completo hasta que `git push` tenga �
    git push
    git status   # debe mostrar "up to date with origin"
    ```
-5. Limpia: descarta `git stash` y poda ramas remotas.
+5. Limpia solo artefactos de esta sesión; conserva stashes y ramas con trabajo ajeno o pendiente.
 6. Verifica que todo esté commiteado y pusheado.
 7. Deja contexto del hand‑off para la siguiente sesión.
 
@@ -129,5 +131,5 @@ bd prime                # Refresh Beads context
 - Run `bd prime` when Beads context is missing or stale. Codex 0.129.0+ can load Beads context automatically through native hooks; use `/hooks` to inspect or toggle them.
 - Keep persistent project memory in Beads via `bd remember`; do not create ad hoc memory files.
 
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
+**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/getting-started/sync-setup.md for details and anti-patterns.
 <!-- END BEADS CODEX SETUP -->

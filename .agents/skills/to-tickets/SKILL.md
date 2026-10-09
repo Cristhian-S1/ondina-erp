@@ -1,10 +1,13 @@
 ---
 name: to-tickets
 description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker — edges as text in one file per ticket locally, or native blocking links on a real tracker.
-disable-model-invocation: true
 ---
 
 # To Tickets
+
+## Adaptación de Ondina
+
+El tracker está configurado: Beads (`bd`). Esta sección prevalece sobre las alternativas genéricas de abajo. Crea cada corte con `bd create`, describe criterios de aceptación y vincula bloqueos con `bd dep add <issue> <bloqueo>`. No crees archivos de issues en `.scratch` ni publiques en otro tracker. Si el usuario ya autorizó generar las tareas, procede sin exigir una segunda aprobación del desglose. Usa `bd ready` para identificar trabajo sin bloqueos.
 
 Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it.
 

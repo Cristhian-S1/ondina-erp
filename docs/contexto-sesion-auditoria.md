@@ -1,3 +1,5 @@
+> Contexto histórico de la restauración de agosto. `referencia_archivos/` fue retirada el 2026-10-09 tras comprobar que no tenía commits adicionales y guardar un respaldo temporal. Consulta [la auditoría vigente](auditoria-integral-2026-10-09.md).
+
 # Contexto de Sesión — Auditoría y Restauración de Develop
 
 **Fecha:** 2026-08-12

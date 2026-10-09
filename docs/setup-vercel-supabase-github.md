@@ -1,3 +1,5 @@
+> Revisión 2026-10-09: el historial remoto no coincide con las diez migraciones locales. Reconciliar esquema e historial en un entorno aislado antes de usar los comandos de despliegue de esta guía. Ver [auditoría](auditoria-integral-2026-10-09.md).
+
 # Setup: Vercel, Supabase y GitHub
 
 Documenta todos los pasos manuales de configuración necesarios para que el CI/CD y el despliegue funcionen correctamente. Creado el 2026-08-07.
@@ -219,13 +221,14 @@ Las migraciones son **manuales** (no automatizadas en CI/CD). Razones:
 3. Una migración fallida en CI deja la BD en estado inconsistente sin rollback simple.
 4. El equipo (4 personas) puede manejar el control manual sin cuello de botella.
 
-El CI **valida** sintaxis SQL (`migrations-check` job en `ci.yml`) pero **no aplica** migraciones.
+El CI solo comprueba presencia de punto y coma (`migrations-check`); no valida sintaxis con PostgreSQL ni aplica migraciones.
 
 ### 7.1 Una sola vez: link al proyecto
 
 ```bash
 # Instala la CLI
-npm install -g supabase
+npm install --save-dev supabase
+npx supabase --version
 
 # Login (genera access token en https://supabase.com/dashboard/account/tokens)
 supabase login

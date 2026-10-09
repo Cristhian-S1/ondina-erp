@@ -1,3 +1,5 @@
+> Este es un inventario histórico al 2026-08-22, no una certificación de producción. La [auditoría del 2026-10-09](auditoria-integral-2026-10-09.md) confirma diferencias en vistas, auditoría, Realtime y permisos. Los checks de agosto se conservan como evidencia histórica.
+
 # Estado de Historias de Usuario
 
 Documento el estado de implementación de cada HU al 2026-08-22, tras la restauración de archivos perdidos en merges, corrección de bugs en el módulo de ventas, mejoras de UI/responsividad y formato miles vivo en inputs/columnas.
@@ -30,8 +32,8 @@ Documento el estado de implementación de cada HU al 2026-08-22, tras la restaur
 | HU-24 | Consultar stock | ✅ Completo | Stock.tsx | `stock_bodega`, `stock_envases` | Stock.test.tsx | Tabs Productos/Envases. **UNIDADES con `formatMiles` (`1.000`)** |
 | HU-25 | Registrar despacho | ✅ Completo | Despachos.tsx | RPC `crear_despacho` | Despachos.test.tsx | Descuenta stock automáticamente. **Nuevo despacho: cantidades y bandejas con formato vivo `1.000`; listas con `formatMiles`** |
 | HU-26 | Ventana de ajuste | ✅ BD completo | — | Trigger con `ventana_ajuste_minutos` | — | Frontend no expone UI específica; ajuste vía API |
-| HU-27 | Devolución productos | ✅ Completo | Devoluciones.tsx | RPC `registrar_devolucion_productos` | Devoluciones.test.tsx | Reingresa al stock de bodega |
-| HU-28 | Devolución envases | ✅ Completo | Devoluciones.tsx | RPC `registrar_devolucion_envases` | Devoluciones.test.tsx | Suma a stock_envases |
+| HU-27 | Devolución productos | ✅ Completo | Devoluciones.tsx | INSERT en `devoluciones_productos` | Devoluciones.test.tsx | Reingresa al stock de bodega |
+| HU-28 | Devolución envases | ✅ Completo | Devoluciones.tsx | INSERT en `devoluciones_envases` | Devoluciones.test.tsx | Suma a stock_envases |
 | HU-29 | Registrar mermas | ⚠️ Sin UI | — | Triggers en BD | — | BD soporta mermas; frontend no tiene página específica |
 
 **Tests del módulo:** 5 archivos, 29 tests (Despachos, Devoluciones, Stock).
@@ -43,7 +45,7 @@ Documento el estado de implementación de cada HU al 2026-08-22, tras la restaur
 | HU | Nombre | Estado | Frontend | BD | Tests | Notas |
 |:---|:-------|:------|:---------|:---|:------|:------|
 | HU-19 | Envases vacíos disponibles | ✅ Completo | Produccion.tsx (sección envases) | `stock_envases` | Produccion.test.tsx | Realtime via Supabase channels. **Cantidades con `formatMiles` (`1.000`)** |
-| HU-20 | Registrar producción | ✅ Completo | Produccion.tsx (sección registrar) | RPC `registrar_produccion` | Produccion.test.tsx, validacion.test.ts | Valida con `validacion.ts`, suma stock. **Input Cantidad vivo `1.000` con `formatMilesInput`, vacío sin `0`** |
+| HU-20 | Registrar producción | ✅ Completo | Produccion.tsx (sección registrar) | INSERT en `producciones` + trigger | Produccion.test.tsx, validacion.test.ts | Valida con `validacion.ts`, suma stock. **Input Cantidad vivo `1.000` con `formatMilesInput`, vacío sin `0`** |
 | HU-21 | Historial de producción | ✅ Completo | HistorialProduccion.tsx | `producciones` | HistorialProduccion.test.tsx | Componente separado, filtros por fecha/producto. **Columna CANTIDAD con `formatMiles`** |
 | HU-22 | Indicadores de producción | ✅ Completo | IndicadoresProduccion.tsx | `calculos.ts` | calculos.test.ts | Métricas calculadas en frontend. **Totales y por producto con `formatMiles`** |
 | HU-23 | Registrar incidencias | ✅ Completo | Produccion.tsx (sección incidencias) | `incidencias_produccion` | Produccion.test.tsx | Fecha, hora y responsable. **Input Cantidad vivo + columna Mermas recientes con `formatMiles`** |
@@ -112,4 +114,4 @@ Documento el estado de implementación de cada HU al 2026-08-22, tras la restaur
 - `npm run lint` ✅ 0 errores
 - `npm run build` ✅ Build exitoso (911KB, 258KB gzip)
 - `npm run test` ✅ 99/99 tests pasan (15 archivos, helpers `format.ts`)
-- Migraciones SQL: 10 archivos (0001-0010), sintaxis válida
+- Migraciones SQL: 10 archivos (0001-0010); el chequeo CI no demuestra sintaxis PostgreSQL válida
