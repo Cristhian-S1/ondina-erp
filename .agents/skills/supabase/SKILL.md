@@ -8,6 +8,9 @@ metadata:
 
 # Supabase
 
+## Ámbito de Ondina
+Antes de escribir SQL, confirmar un entorno local o staging aislado. El historial remoto está pendiente de reconciliación; los ejemplos de iteración de esta skill no autorizan cambios en producción ni en un remoto enlazado por defecto. Consultar [guía de base de datos](../../../docs/base-de-datos.md).
+
 ## Core Principles
 
 **1. Supabase changes frequently — verify against changelog and current docs before implementing.**

@@ -1,5 +1,7 @@
 # Contexto de Sesión — Auditoría y Restauración de Develop
 
+> Archivado el 12-10-2026. Las verificaciones y decisiones de este documento corresponden a su sesión de origen; no son instrucciones operativas vigentes.
+
 **Fecha:** 2026-08-12
 **Rama:** develop (en `1b98e05` + archivos restaurados)
 **Sesión:** GLM-5.2

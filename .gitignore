@@ -1,23 +1,40 @@
-# Dependencias (Node)
+# Dependencias y salidas generadas
 node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
 
-# Variables de entorno (copia local, no versionar)
-.env
+# Entorno personal; las plantillas se comparten
+.env*
 !.env.example
+!.env.*.example
 
-# CodeGraph: base de datos local de navegación de código (no se versiona)
-.codegraph/
+# Claude Code: configuración personal y worktrees generados
+**/.claude/settings.local.json
+CLAUDE.local.md
+.claude.json
+/.claude/worktrees/
 
-# Playwright MCP: screenshots y snapshots auto-generados (no se versionan)
-.playwright-mcp/
-
-# Beads / Dolt files (added by bd init)
+# Herramientas y configuración local de despliegue
+/.codegraph/
+/.mem0/
 .dolt/
 *.db
 .beads-credential-key
-
-# Playwright MCP artifacts
+.vercel/
+supabase/.temp/
 .playwright-mcp/
-# .opencode/node_modules: dependencias locales del plugin de opencode
 .opencode/node_modules/
 referencia_archivos/
+
+# Respaldos locales realizados antes de reorganizar el repositorio
+/.local-backups/
+
+# .agents/skills/, .claude/settings.json, .claude/rules/,
+# .claude/skills/ y .mcp.json compartido permanecen versionables.
+# La base Dolt, exports y runtime de Beads se excluyen en .beads/.gitignore.
+
+# Preferencias de orquestación y salidas de revisión personales
+/docs/orquestacion/perfiles.local.json
+/.superpowers/

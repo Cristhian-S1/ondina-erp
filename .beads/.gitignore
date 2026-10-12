@@ -66,5 +66,8 @@ db.sqlite
 bd.db
 # NOTE: Do NOT add negation patterns here.
 # They would override fork protection in .git/info/exclude.
-# Config files (metadata.json, config.yaml) are tracked by git by default
-# since no pattern above ignores them.
+# Exports pasivos y metadatos de esta maquina; la fuente real es Dolt.
+issues.jsonl
+interactions.jsonl
+metadata.json
+# config.yaml y los hooks portables si se versionan.

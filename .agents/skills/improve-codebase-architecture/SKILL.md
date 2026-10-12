@@ -24,7 +24,7 @@ This command is _informed_ by the project's domain model and built on a shared d
 
 Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
 
-Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
+Explorar con CodeGraph antes de buscar manualmente. Delegar solo si está autorizado; cuando se pida el runtime de Orca, usar orchestration y sus guías vigentes. Si no hay delegación disponible, realizar la revisión directamente. Don't follow rigid heuristics — explore organically and note where you experience friction:
 
 - Where does understanding one concept require bouncing between many small modules?
 - Where are modules **shallow** — interface nearly as complex as the implementation?
@@ -61,7 +61,7 @@ Do NOT propose interfaces yet. After the file is written, ask the user: "Which o
 
 ### 3. Grilling loop
 
-Once the user picks a candidate, run the `/grilling` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
+Once the user picks a candidate, run the installed `/grill-with-docs` skill to walk the decision tree with them — constraints, dependencies, the shape of the deepened module, what sits behind the seam, what tests survive.
 
 Side effects happen inline as decisions crystallize — run the `/domain-modeling` skill to keep the domain model current as you go:
 

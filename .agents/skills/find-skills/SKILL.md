@@ -66,9 +66,9 @@ For example:
 
 **Do not recommend a skill based solely on search results.** Always verify:
 
-1. **Install count** — Prefer skills with 1K+ installs. Be cautious with anything under 100.
+1. **Fit and evidence** — Check actual instructions, dependencies, compatibility, maintenance and license. Install count is a popularity signal, not proof of quality.
 2. **Source reputation** — Official sources (`vercel-labs`, `anthropics`, `microsoft`) are more trustworthy than unknown authors.
-3. **GitHub stars** — Check the source repository. A skill from a repo with <100 stars should be treated with skepticism.
+3. **Repository evidence** — Review the maintained source and working references; stars do not establish correctness for this project.
 
 ### Step 5: Present Options to the User
 
@@ -97,7 +97,7 @@ Learn more: https://skills.sh/vercel-labs/agent-skills/react-best-practices
 If the user wants to proceed, you can install the skill for them:
 
 ```bash
-npx skills add <owner/repo@skill> -g -y
+npx skills add <owner/repo@skill> --skill <skill-name>
 ```
 
 The `-g` flag installs globally (user-level) and `-y` skips confirmation prompts.
@@ -139,3 +139,6 @@ I can still help you with this task directly! Would you like me to proceed?
 If this is something you do often, you could create your own skill:
 npx skills init my-xyz-skill
 ```
+
+## Ondina
+Prefer project-scoped installation and the shared .agents/skills source. Preserve existing authorization; do not install globally by default or replace working skills without reviewing their diff.

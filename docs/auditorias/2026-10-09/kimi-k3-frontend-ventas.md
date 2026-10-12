@@ -1,5 +1,7 @@
 # Handoff para Kimi K3 — Módulo de Ventas (rama `feature/ventas`)
 
+> Archivado el 12-10-2026. Las verificaciones y decisiones de este documento corresponden a su sesión de origen; no son instrucciones operativas vigentes.
+
 > **Origen:** Sesión GLM‑5.2 (2026‑08‑05). Rol GLM: Supabase + plan. Rol Kimi K3:
 > implementar el frontend completo del módulo de Ventas en `frontend/src/domains/ventas/`.
 > **No editar el archivo a mano para "resumirlo";** es la fuente de verdad que Kimi K3

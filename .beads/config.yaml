@@ -1,6 +1,7 @@
 repos:
     primary: "."
-sync:
-    remote: "git+https://github.com/Cristhian-S1/ondina-erp.git"
-export:
-    auto: true
+sync.remote: "git+ssh://git@github.com/Cristhian-S1/ondina-erp.git"
+export.auto: true
+export.git-add: false
+# Las ramas no deben reimportar exports antiguos sobre la base Dolt.
+import.auto: false
