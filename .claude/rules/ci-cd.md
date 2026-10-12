@@ -2,6 +2,7 @@
 paths: [".github/**", "frontend/vercel.json"]
 ---
 
-# ci-cd
+# CI and Deployment
 
-Consultar docs/desarrollo.md y docs/setup-vercel-supabase-github.md. Verificar comandos, entornos y rutas reales. No incluir secretos en logs o Git. Un check de texto no acredita una reconstrucción SQL. Publicar o desplegar dentro del alcance autorizado.
+Read `docs/engineering/deployment.md`. Verify actual commands, project roots, environment variables and release protections; never put secrets in Git or logs.
+A migration-text check does not validate PostgreSQL. Publish/deploy only within the requested scope and configured approvals.

@@ -1,22 +1,22 @@
-# Dependencias y salidas generadas
+# Dependencies and generated output
 node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
 
-# Entorno personal; las plantillas se comparten
+# Personal environment; share templates
 .env*
 !.env.example
 !.env.*.example
 
-# Claude Code: configuración personal y worktrees generados
+# Claude Code: personal settings and generated worktrees
 **/.claude/settings.local.json
 CLAUDE.local.md
 .claude.json
 /.claude/worktrees/
 
-# Herramientas y configuración local de despliegue
+# Local tool and deployment data
 /.codegraph/
 /.mem0/
 .dolt/
@@ -28,13 +28,14 @@ supabase/.temp/
 .opencode/node_modules/
 referencia_archivos/
 
-# Respaldos locales realizados antes de reorganizar el repositorio
+# Private local backups
 /.local-backups/
 
 # .agents/skills/, .claude/settings.json, .claude/rules/,
-# .claude/skills/ y .mcp.json compartido permanecen versionables.
-# La base Dolt, exports y runtime de Beads se excluyen en .beads/.gitignore.
+# .claude/skills/ and shared .mcp.json remain versionable.
+# Dolt, passive exports and Beads runtime are excluded in .beads/.gitignore.
 
-# Preferencias de orquestación y salidas de revisión personales
+# Personal orchestration profiles and review output
+/docs/orchestration/profiles.local.json
 /docs/orquestacion/perfiles.local.json
 /.superpowers/

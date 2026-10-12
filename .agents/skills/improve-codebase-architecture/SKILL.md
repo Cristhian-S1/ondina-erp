@@ -22,9 +22,9 @@ This command is _informed_ by the project's domain model and built on a shared d
 - If the user named a direction — a module, a subsystem, a pain point — take it, and skip the inference below.
 - Otherwise, walk back a good stretch of the commit history (`git log --oneline`) to find the codebase's hot spots — the files and areas that keep coming up — and let those paths pull your attention first. If the changes are scattered with no clear hot spot, widen the net.
 
-Read the project's domain glossary (`CONTEXT.md`) and any ADRs in the area you're touching first.
+Read the project's domain glossary (`CONTEXT.md`) when present and any relevant ADRs first. Use the [domain guide](../../../docs/agents/domain.md) for the current source layout; do not invent a missing glossary.
 
-Explorar con CodeGraph antes de buscar manualmente. Delegar solo si está autorizado; cuando se pida el runtime de Orca, usar orchestration y sus guías vigentes. Si no hay delegación disponible, realizar la revisión directamente. Don't follow rigid heuristics — explore organically and note where you experience friction:
+Use CodeGraph before manual code discovery. Delegate only within the authorized scope; when Orca supervision is requested, use `orchestration` and its version-matched guide. Otherwise perform the review directly with available tools. Don't follow rigid heuristics — explore organically and note where you experience friction:
 
 - Where does understanding one concept require bouncing between many small modules?
 - Where are modules **shallow** — interface nearly as complex as the implementation?

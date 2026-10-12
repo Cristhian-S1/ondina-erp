@@ -1,6 +1,8 @@
-# Lenguaje y decisiones de dominio
+# Domain Documentation
 
-Ondina tiene una aplicación con dominios de ventas, bodega, producción y administración. Consultar requisitos, HU, SQL y evidencia fechada antes de afirmar una regla.
-La skill domain-modeling puede crear CONTEXT.md como glosario cuando exista un término aprobado; no confundirlo con memoria de sesión ni lista de tareas.
-Las decisiones de arquitectura aprobadas se registran en docs/adr/ cuando haya un trade-off que deba preservarse. Crear cada archivo cuando se necesite, sin carpetas vacías.
-Los informes de auditoría son antecedentes, no instrucciones de agentes ni autoridad para cambiar reglas de negocio.
+Use [product context](../product/context.md), the [requirements](../product/requirements.md) and the relevant [story](../product/stories/README.md) for business intent. Check code and dated evidence before asserting implementation behavior.
+Keep schema/domain identifiers stable; do not rename business concepts merely to fit an architectural vocabulary.
+
+`domain-modeling` may create `CONTEXT.md` when an approved term needs a canonical glossary. It contains business vocabulary, not implementation plans or session memory.
+Record an approved, consequential architectural trade-off in `docs/adr/` only when its rationale needs preservation. Create files when needed rather than empty scaffolding.
+Unresolved choices and follow-up work belong in Beads; historical audit reports do not authorize changing a business rule.

@@ -1,30 +1,27 @@
-# Skills de Ondina
+# Project Skills
 
-La fuente compartida es .agents/skills/. Claude accede por los enlaces relativos .claude/skills/. Las skills no son contexto que deba importarse completo: elegir las que resuelvan la tarea.
-La revisión [del 12-10-2026](auditorias/2026-10-12/skills-del-proyecto.md) cubrió las quince originales y documenta nueve adaptaciones y cuatro incorporaciones.
+The canonical source is `.agents/skills/`; `.claude/skills/` provides relative symlinks for Claude. Load the skill relevant to the task rather than importing the catalog's contents.
 
-## Núcleo técnico
-- beads: seguimiento y contexto duradero; no reimportar exports ni reinicializar.
-- supabase: documentación, Auth, RLS y servicios Supabase; el entorno de escritura se confirma antes de actuar.
-- supabase-postgres-best-practices: esquema, consultas, índices, concurrencia y autorización PostgreSQL.
-- vercel-react-best-practices: rendimiento React, bundles y renderizado; adaptar sus recetas al stack Vite/TanStack existente.
-- codebase-design: interfaces y profundidad de módulos cuando se diseña/refactoriza.
-- domain-modeling: términos y decisiones de dominio, sin convertir el glosario en tracker.
-- testing-strategy: pruebas según riesgos y capa, con integración real para RLS/stock.
-- code-review: revisión por evidencia de seguridad, rendimiento y corrección.
+| Task | Skills |
+| --- | --- |
+| Durable tasks, blockers and recovery | `beads` |
+| Supabase/Auth and PostgreSQL | `supabase`, `supabase-postgres-best-practices` |
+| React/Vite performance | `vercel-react-best-practices` |
+| Module/interface design | `codebase-design` |
+| Domain terms and architectural decisions | `domain-modeling` |
+| Tests and review | `testing-strategy`, `code-review` |
+| Clarification and exploration | `ask-matt`, `grill-with-docs`, `prototype`, `improve-codebase-architecture` |
+| Specification, task breakdown and handoff | `to-spec`, `to-tickets`, `handoff` |
+| Check setup or discover a missing capability | `setup-matt-pocock-skills`, `find-skills` |
+| Orca worktrees and supervised execution | `orca-cli`, `orchestration` |
 
-## Flujos opcionales
-ask-matt orienta entre las skills realmente instaladas. grill-with-docs aclara decisiones; prototype responde una duda con código desechable; handoff conserva referencias para otra sesión; improve-codebase-architecture evalúa refactors.
-to-spec y to-tickets convierten decisiones en especificación y tareas Beads, respetando la autorización de publicación. setup-matt-pocock-skills comprueba configuración existente; no inicializa otro tracker.
-find-skills sirve cuando falta una capacidad. Evaluar compatibilidad, fuente, mantenimiento, licencia y evidencia; popularidad no demuestra que una skill sea adecuada.
-En Claude, las skills que incluyen `disable-model-invocation: true` se invocan explícitamente. No asumir que OpenCode aplique ese campo de Claude: comprobar su configuración de skills y permisos al preparar cada worker.
+## Upstream and project adaptations
 
-## Orca
-orca-cli gestiona worktrees y terminales. orchestration supervisa workers, preguntas, intentos y cierre.
-Los entrypoints resuelven el binario y obtienen su manual versionado. Para utilizarlos en Ondina, comenzar por [orquestación](orquestacion/README.md).
+Comparison baseline: `main` commit `38b60b0`, checked on 2026-10-12. Six original skills retain their upstream content: beads, codebase-design, domain-modeling, handoff, prototype and supabase-postgres-best-practices.
+Nine original skills retain project adaptations: installed-skill routing, self-contained clarification, proportionate specs, vertical slices with Beads dependencies, idempotent setup, source-based discovery, CodeGraph-first exploration, isolated Supabase writes and React/Vite applicability.
+The four additions are code-review/testing-strategy, adapted from engineering 1.2.0, and the unchanged installed Orca discovery stubs. All 19 entrypoints use English; vendor reference files and existing metadata/invocation policies are preserved.
 
-## Validación y mantenimiento
-Comprobar frontmatter, referencias, alcance y dependencias antes de actualizar. Evitar instalar lotes de skills por keywords o copiar versiones nuevas sin revisar su diff.
-Las incorporaciones de testing/code-review se adaptaron de las skills engineering 1.2.0 instaladas. Las de Supabase y Vercel conservan sus metadatos y referencias oficiales; las de Orca conservan sus stubs originales.
-No se declara que este catálogo sea el mejor universal ni que todos sus recorridos estén certificados en cada proveedor: se evaluó su adecuación al stack y a las herramientas comprobadas de Ondina.
-El diagnóstico local `opencode --pure debug skill` descubrió las 19 skills del proyecto el 12-10-2026. Esta comprobación no carga plugins externos ni acredita sus conexiones MCP o la selección automática de skills en una sesión de LLM.
+## Invocation and maintenance
+
+`disable-model-invocation` remains on the explicitly invoked workflows. OpenCode 2 also recognizes it, but `metadata.opencode/autoinvoke` can override it; verify the installed version and permissions using its [skill documentation](https://dev.opencode.ai/v2/docs/skills/).
+Check YAML, names, references and actual discovery before replacing a skill. Valid frontmatter does not certify every workflow or connected service. Read [tooling](agents/tools.md) for client-specific setup and [archived review](archive/audits/2026-10-12/skills-del-proyecto.md) only for earlier decisions.

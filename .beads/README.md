@@ -1,43 +1,29 @@
-# Beads en Ondina
+# Beads in Ondina
 
-Versión verificada: bd 1.0.4, Dolt embebido, prefix `OND`.
+The embedded Dolt database in `.beads/embeddeddolt/` owns issues with prefix `OND`. Git tracks portable configuration/hooks; machine metadata, database files and passive exports remain ignored.
 
-Los issues viven en `.beads/embeddeddolt/`. Git versiona configuración y hooks, no la base, los metadatos por máquina ni los exports pasivos. La sincronización de issues usa `refs/dolt/data` en `git+ssh://git@github.com/Cristhian-S1/ondina-erp.git`, separada de las ramas de código.
-
-## Entorno existente
+## Recover and work
 
 ```bash
 bash scripts/bootstrap-beads.sh
 bd prime
 bd stats
 bd ready
-bd show OND-8ox
 ```
 
-El script comprueba la base existente mediante `bd stats`; no la reinicializa. Restringe permisos locales de .beads a 0700, configura el rol contributor solo si falta, instala los hooks y configura `core.hooksPath=.beads/hooks` relativo al repositorio. Si no existe base local, usa `bd bootstrap --yes` para recuperar el remoto. Para usar los comandos se necesita bd en PATH; no hace falta un servidor Dolt externo en modo embedded.
-Después de una recuperación, conserva el salto de línea final de `config.yaml`: bd 1.0.4 lo omite al escribir ese archivo. La normalización evita una modificación de formato en un clon nuevo y conserva sus opciones.
+The bootstrap validates an existing database without reinitializing it, or restores a fresh clone with `bd bootstrap --yes`. It installs hooks, sets a contributor role only when missing, and preserves the final config newline omitted by bd 1.0.4. `bd` must be on PATH; no external Dolt server is needed in embedded mode.
 
-## Clon nuevo y sincronización
+## Configuration and sync
 
-La base se publicó el 2026-10-09 con autorización explícita del usuario para el repositorio público. Un clon nuevo recuperó 29 issues y 4 memorias por `refs/dolt/data`; sus 33 registros exportados eran idénticos a los del origen. No interpretar “No remote configured — skipping” como sincronización exitosa.
+- `repos.primary: "."`; retain the agreed remote and do not add another repository as incidental setup.
+- `import.auto: false` prevents stale branch exports from reviving old state.
+- `export.auto: true` and `export.git-add: false` keep JSONL as a passive local export.
+- Dolt sync uses `refs/dolt/data` on `git+ssh://git@github.com/Cristhian-S1/ondina-erp.git`: `bd dolt pull` / `bd dolt push`. Code `git push` does not publish the issue database.
 
-Los colaboradores pueden ejecutar el script anterior y:
+Public Dolt publication was authorized on 2026-10-09. Sync changes within that scope; never put credentials or unrelated personal data in task records. Do not treat a skipped remote or failed push as success.
 
-```bash
-bd dolt pull
-bd update <id> --claim
-bd close <id> --reason="Resultado verificado"
-bd dolt push
-```
+## Diagnose safely
 
-`git push` de código no sustituye `bd dolt push`. `export.auto: true` mantiene un JSONL local; `export.git-add: false` evita añadirlo al índice; `import.auto: false` evita revivir estados de exports de ramas antiguas. Para recuperar un JSONL elegido conscientemente existe `bd import <archivo>`; conserva primero una copia de la base.
-
-No usar `bd init --force` como reparación. Los comandos `bd statistics`, `bd doctor` y `bd dolt test` no son adecuados para esta instalación: el primero no existe; los dos últimos no admiten el modo embebido. `bd config validate` exige `federation.remote`, y `bd config drift` intenta usar una CLI Dolt externa; estos resultados no prueban corrupción de la base local. Comprueba `bd stats`, `bd ready`, `bd orphans`, `bd dolt remote list` y `bd hooks list`.
-
-## Evidencia de recuperación
-
-El 2026-10-09 se exportaron 28 issues y se importaron en una base nueva aislada en `/tmp/ondina-beads-recuperacion`: se conservaron las cantidades por estado y las dependencias, sin issues huérfanos. Además, `/tmp/ondina-clon-verificacion-20261009` se creó mediante Git clone sin base local y recuperó correctamente la base Dolt de GitHub, incluidos los registros de memorias. La comparación canónica de los exports completos fue idéntica.
-
-Copias recuperables de esta sesión: `/tmp/ondina-beads-antes-2026-10-09.tar.gz` y `/tmp/ondina-issues-recuperacion.jsonl`. `/tmp` es temporal; mueve los respaldos a un destino privado duradero si necesitas conservarlos.
-
-[Documentación oficial de sincronización](https://github.com/gastownhall/beads/blob/main/docs/getting-started/sync-setup.md).
+Use `bd stats`, `bd ready`, `bd lint`, `bd orphans`, `bd hooks list` and `bd dolt remote list`. Do not use `bd init --force` or reimport a branch's JSONL to repair an existing database.
+For this verified embedded installation, `bd statistics` is absent and `bd doctor`/`bd dolt test` do not establish database health. A federation/external-Dolt config error alone does not prove corruption.
+Keep backups private and compare issues/memories after restoration. Generic `bd prime` closeout defaults do not override the user's commit/publication scope; see [agent tools](../docs/agents/tools.md).

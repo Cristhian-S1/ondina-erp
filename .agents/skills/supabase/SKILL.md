@@ -8,8 +8,9 @@ metadata:
 
 # Supabase
 
-## Ámbito de Ondina
-Antes de escribir SQL, confirmar un entorno local o staging aislado. El historial remoto está pendiente de reconciliación; los ejemplos de iteración de esta skill no autorizan cambios en producción ni en un remoto enlazado por defecto. Consultar [guía de base de datos](../../../docs/base-de-datos.md).
+## Ondina scope
+
+Confirm an isolated local or staging environment before writing SQL. Remote schema/history reconciliation is pending; the iteration examples below do not authorize production changes or writes to a default linked remote. Read the [database guide](../../../docs/engineering/database.md).
 
 ## Core Principles
 

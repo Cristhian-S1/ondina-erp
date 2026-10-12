@@ -1,13 +1,8 @@
-# Ondina con Claude Code
+# Ondina with Claude Code
 
 @AGENTS.md
 
-Las reglas por ruta están en `.claude/rules/`.
-Las skills disponibles en `.claude/skills/` enlazan a la fuente compartida de `.agents/skills/`.
-
-Para contexto detallado, consulta `docs/herramientas-agentes.md` cuando lo necesites.
-Comprueba las instrucciones cargadas con `/context` y las conexiones con `/mcp`.
-
-Mantén las preferencias personales en `.claude/settings.local.json`; las credenciales se configuran localmente.
-
-Cuando se solicite orquestación, empieza por `docs/orquestacion/README.md`. Los perfiles de modelos son una decisión pendiente del usuario; no despaches workers a partir de una plantilla vacía.
+Use `docs/README.md` to find task-specific references. Path-scoped rules live in `.claude/rules/`; `.claude/skills/` links to the shared `.agents/skills/` source.
+Keep personal preferences in ignored `.claude/settings.local.json` and credentials in local client configuration.
+Inspect loaded instructions with `/context` and connections with `/mcp` when validating a session.
+For requested Orca execution, start with `docs/orchestration/README.md`; do not choose models or dispatch from an unconfigured example profile.

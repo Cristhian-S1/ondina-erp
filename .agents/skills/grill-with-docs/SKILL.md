@@ -1,12 +1,17 @@
 ---
 name: grill-with-docs
-description: Aclarar un diseño o requisito mediante preguntas y conservar las decisiones aprobadas en el lenguaje de dominio y documentación.
+description: "Use when requirements, domain terms or design choices need clarification and approved decisions should be retained."
 disable-model-invocation: true
 ---
-# Aclarar un diseño
-Leer las decisiones existentes y aplicar domain-modeling cuando haya términos ambiguos. No depende de una skill /grilling adicional.
-Identificar los supuestos que realmente cambian el diseño; preguntar de uno en uno solo cuando el contexto no los resuelva.
-Explorar código con CodeGraph cuando esté indexado. Contrastar el requisito con el comportamiento y exponer las diferencias.
-Registrar términos y decisiones aprobados según [dominio](../../../docs/agents/domain.md). Los pendientes se siguen en Beads.
-Si el usuario ya aprobó el diseño y pide ejecución, continuar con ese alcance; no reiniciar una entrevista.
-En una ejecución supervisada de Orca, las dudas bloqueantes van al coordinador mediante el preámbulo del Dispatch.
+
+# Clarify a Design
+
+Read existing requirements and approved decisions first. Apply `domain-modeling` when business terminology is ambiguous; this workflow does not require a separate `/grilling` skill.
+
+1. Identify assumptions that materially change the design. Ask one focused question at a time when the available context cannot answer it.
+2. Use CodeGraph before locating or understanding indexed code. Explain discrepancies between the stated requirement and current behavior.
+3. Use concrete scenarios to clarify permissions, stock movements, corrections and failure cases rather than inventing requirements.
+4. Record approved terms and significant trade-offs according to the [domain guide](../../../docs/agents/domain.md). Track unresolved work in Beads.
+5. When the user has already settled the design and requested implementation, proceed within that scope instead of repeating the interview.
+
+Under Orca supervision, send blocking questions to the coordinator using the Dispatch preamble and its exact identity.

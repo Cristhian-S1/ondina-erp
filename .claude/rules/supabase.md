@@ -2,6 +2,7 @@
 paths: ["bd/**", "supabase/**"]
 ---
 
-# supabase
+# Supabase
 
-Leer docs/base-de-datos.md y las skills de Supabase/Postgres. Separar diseño, migraciones y estado remoto. Confirmar entorno antes de escribir; producción está pendiente de reconciliación. Conservar RLS, autorización, stock y trazabilidad.
+Read `docs/engineering/database.md` and the Supabase/Postgres skills. Separate SQL design, migration history and deployed state; confirm the target environment before writes.
+Keep RLS/grants, identity/role/sucursal authorization, stock and audit invariants. Production deployment remains gated on isolated reconciliation.

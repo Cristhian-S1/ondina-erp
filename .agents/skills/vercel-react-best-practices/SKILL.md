@@ -9,8 +9,9 @@ metadata:
 
 # Vercel React Best Practices
 
-## Ámbito de Ondina
-El frontend usa React/Vite y TanStack Query. Aplicar las reglas generales de concurrencia, renderizado y bundles. Las recetas de Next.js, RSC, next/dynamic o SWR requieren ese contexto; no instalar ni migrar frameworks para cumplirlas.
+## Ondina scope
+
+The frontend uses React/Vite and TanStack Query. Apply the general concurrency, rendering and bundle guidance. Next.js, RSC, `next/dynamic` and SWR recipes require those technologies; do not introduce or migrate frameworks solely to follow a recipe.
 
 Comprehensive performance optimization guide for React and Next.js applications, maintained by Vercel. Contains 70 rules across 8 categories, prioritized by impact to guide automated refactoring and code generation.
 

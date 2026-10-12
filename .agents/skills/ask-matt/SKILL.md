@@ -1,27 +1,32 @@
 ---
 name: ask-matt
-description: Orientar al usuario entre las skills instaladas para especificación, diseño, implementación, revisión u orquestación de Ondina.
+description: "Use when choosing an installed skill or engineering workflow for an Ondina task."
 disable-model-invocation: true
 ---
-# Elegir una skill
-Usar este router cuando el usuario lo invoque. Elegir el flujo más corto que resuelva la petición y respetar decisiones y autorizaciones ya dadas.
 
-| Necesidad | Entrada disponible |
+# Choose a Skill
+
+Choose the shortest workflow that fits the request. Preserve decisions and authorization already given; do not restart setup or an interview by default.
+
+## From idea to delivery
+
+1. Use `grill-with-docs` only for unresolved requirements or design choices; use `domain-modeling` for ambiguous business terms.
+2. If a question needs a runnable answer, use `prototype`. Use `handoff` when moving the investigation to another session, and retain the validated decision.
+3. For substantial work, use `to-spec`, then `to-tickets` to create independently verifiable slices and their Beads dependencies. Small, agreed changes can proceed through the project development workflow directly.
+4. Select the relevant implementation references below, validate the affected behavior, and use `code-review` for review. Do not invoke an uninstalled `/implement`, `/tdd`, `/triage`, or `/grilling` command.
+
+## Task-specific references
+
+| Need | Installed skills |
 | --- | --- |
-| Tareas, dependencias y recuperación | beads |
-| Aclarar un diseño con el usuario | grill-with-docs y domain-modeling |
-| Diseñar interfaces o refactorizar | codebase-design e improve-codebase-architecture |
-| Resolver una duda con un experimento | prototype |
-| Especificación a partir de contexto acordado | to-spec |
-| Dividir una especificación en tareas | to-tickets y beads |
-| Estrategia de pruebas | testing-strategy |
-| Revisar un diff o PR | code-review |
-| Supabase, Auth y consultas | supabase y supabase-postgres-best-practices |
-| Rendimiento React/Vite | vercel-react-best-practices |
-| Handoff de contexto | handoff |
-| Worktrees y terminales Orca | orca-cli |
-| Supervisión de workers en Orca | orchestration |
-| Descubrir una capacidad adicional | find-skills |
+| Tasks, blockers and durable context | `beads` |
+| Module design or architectural friction | `codebase-design`, `improve-codebase-architecture` |
+| Supabase, Auth and database behavior | `supabase`, `supabase-postgres-best-practices` |
+| React/Vite performance | `vercel-react-best-practices` |
+| Test coverage and validation strategy | `testing-strategy` |
+| Diff or pull request review | `code-review` |
+| Orca worktrees or terminals | `orca-cli` |
+| Supervised Orca workers | `orchestration` |
+| Missing reusable capability | `find-skills` |
 
-Consultar [catálogo](../../../docs/skills.md) y [tracker](../../../docs/agents/issue-tracker.md).
-Si falta una capacidad, describirla sin invocar comandos de skills no instaladas. No ejecutar un setup por defecto en un proyecto ya configurado.
+Use the [catalog](../../../docs/skills.md) and [tooling guide](../../../docs/agents/tools.md). If a capability is unavailable, describe the gap and continue authorized work with available tools.

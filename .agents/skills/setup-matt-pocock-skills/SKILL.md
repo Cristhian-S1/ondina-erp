@@ -1,14 +1,16 @@
 ---
 name: setup-matt-pocock-skills
-description: Comprobar la configuración de tracker y documentación requerida por las skills de ingeniería, preservando la instalación existente de Ondina.
+description: "Use when checking or repairing the issue tracker and domain documentation expected by the engineering skills."
 disable-model-invocation: true
 ---
-# Comprobar configuración de ingeniería
-Ondina ya utiliza Beads y documentos de referencia. Este comando es una comprobación y ajuste selectivo, no una reinicialización.
 
-1. Leer [tracker](../../../docs/agents/issue-tracker.md), [dominio](../../../docs/agents/domain.md), AGENTS.md y CLAUDE.md.
-2. Ejecutar bd prime y bd stats. Conservar el Dolt existente, remoto, issues y memorias.
-3. Verificar que las skills y sus referencias existan. El catálogo está en [skills](../../../docs/skills.md).
-4. Proponer y aplicar solo los ajustes que la petición autorice; reutilizar la configuración ya acordada.
-5. No instalar un tracker Markdown ni cambiar al tracker GitHub por detectar un remoto. No crear vocabularios de triage si no hay un flujo que los consuma.
-6. Si faltan archivos, crear solo la referencia que se necesite; no reemplazar los dos archivos raíz ni sus reglas por una plantilla.
+# Check Engineering Setup
+
+Ondina already has a tracker and shared instructions. Inspect and repair the existing setup; do not initialize another one.
+
+1. Read `AGENTS.md`, `CLAUDE.md`, the [tooling guide](../../../docs/agents/tools.md), and the [domain guide](../../../docs/agents/domain.md).
+2. Run `bd prime` and `bd stats`. Preserve the embedded Dolt database, remote, issue identifiers and persistent memories.
+3. Check installed skills against the [catalog](../../../docs/skills.md) and verify their references. Read existing glossary/ADR files when present; create them only for a real decision or resolved term.
+4. Apply only changes covered by the request. Reuse the agreed tracker and documentation layout rather than replacing root instructions with a scaffold.
+
+Do not switch to GitHub merely because a GitHub remote exists, create `.scratch/issues`, or add triage labels that no installed workflow consumes. If a required reference is missing, create the smallest useful reference.

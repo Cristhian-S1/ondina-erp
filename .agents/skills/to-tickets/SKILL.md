@@ -1,17 +1,25 @@
 ---
 name: to-tickets
-description: Dividir una especificación o plan en tareas verificables y sus dependencias dentro del tracker configurado.
+description: "Use when splitting an agreed specification or plan into verifiable tasks with real blocking dependencies."
 disable-model-invocation: true
 ---
-# De especificación a tareas
-Leer [tracker](../../../docs/agents/issue-tracker.md). Ondina usa Beads como seguimiento duradero y external_ref para su enlace a GitHub.
 
-1. Leer la especificación y revisar las tareas existentes para evitar duplicados.
-2. Dividir en entregables que puedan verificarse por comportamiento, preferentemente cortes verticales. Para un cambio transversal, usar expandir, migrar y retirar cuando mantenga compatibilidad.
-3. Cada tarea describe problema, alcance, propiedad de archivos, restricciones, aceptación y validación.
-4. Añadir solo dependencias reales mediante bd dep add. Identificar qué tareas pueden avanzar juntas sin compartir escritura.
-5. Si la petición ya autoriza el desglose, crear las tareas en Beads; preguntar solo por decisiones de alcance no resueltas.
-6. Publicar o actualizar GitHub cuando esté autorizado y conservar sus enlaces. No crear .scratch/issues ni archivos Markdown como tracker alternativo.
-7. No cerrar el padre por haber creado los tickets.
+# From Specification to Tasks
 
-Para supervisión, el coordinador crea Tasks de Orca que referencian los IDs de Beads. Un Dispatch es un intento, no otra tarea de producto. Ver [orquestación](../../../docs/orquestacion/README.md).
+Read the referenced specification and existing issues first. Ondina uses Beads for durable work and `external_ref` for its GitHub association; see [tooling](../../../docs/agents/tools.md).
+
+## Decomposition
+
+- Prefer narrow, complete vertical slices across the layers needed for a behavior: schema, service, UI and validation. Each slice must be demonstrable or independently verifiable and fit a fresh implementation session.
+- For a broad mechanical refactor that cannot land as independent slices, use expand–migrate–contract: add the compatible form, migrate callers in bounded batches, then remove the old form. Keep intermediate integration green, or explicitly define the integration branch and final verification task.
+- Each task states the problem, scope, ownership, constraints, observable acceptance criteria and validation. Use verified paths when useful; do not paste a speculative implementation.
+- Add only dependencies that actually gate work. Separate independent work without assigning simultaneous writers to shared files.
+
+## Record and execute
+
+1. Reuse or link existing tasks instead of creating duplicates.
+2. If the request authorizes the breakdown, create Beads tasks and add blocking edges with `bd dep add <issue> <blocker>`. Clarify only unresolved scope or dependency choices.
+3. Work the ready frontier with `bd ready`; do not use Markdown status files or `.scratch/issues` as another tracker.
+4. Publish or update GitHub when authorized and retain its URL. Creating child tasks does not complete the parent.
+
+For supervised execution, Orca Tasks reference the Beads IDs; a Dispatch records an attempt. See [orchestration](../../../docs/orchestration/README.md).

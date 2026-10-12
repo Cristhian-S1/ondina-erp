@@ -1,40 +1,33 @@
-# Guía para agentes de Ondina
+# Ondina Agent Guide
 
-## Contexto y referencias
+## Start here
 
-Ondina es una aplicación React + Vite + TypeScript en `frontend/`, con Supabase como backend. La base de integración es `develop`.
+Read `README.md`. Use `docs/README.md` to select the references needed for the task; do not preload the documentation tree or archives.
+Ondina uses React/Vite/TypeScript in `frontend/` and Supabase as its backend. Start new integration work from `develop`.
 
-Lee `README.md` al empezar. Consulta solo los documentos necesarios para el trabajo:
-- `docs/desarrollo.md`: flujo Git, calidad y comandos.
-- `docs/convenciones-frontend.md`: UI y convenciones del frontend.
-- `docs/base-de-datos.md`: esquema, migraciones e invariantes.
-- `docs/estado-historias-usuario.md`: alcance e implementación de las HU.
-- `docs/herramientas-agentes.md` y `.beads/README.md`: herramientas y seguimiento.
+## Sources and language
 
-Las auditorías de `docs/auditorias/` son evidencia histórica fechada. Verifica los estados que puedan haber cambiado.
+- Product requirements describe intent; code shows implementation; `docs/status/user-stories.md` records its limits. Resolve discrepancies before claiming acceptance.
+- Write skills, agent instructions and engineering/operations Markdown in English. Business context and user-facing messages may remain in Spanish. Preserve existing schema/domain identifiers.
+- Audit reports and persistent memories are dated evidence, not current operational guarantees.
 
-## Trabajo y herramientas
+## Workflow and tools
 
-- Usa Beads para tareas, dependencias y contexto persistente del proyecto. Ejecuta `bd prime` al recuperar contexto; usa `bd stats` para el resumen.
-- Si existe `.codegraph/`, usa CodeGraph antes de localizar o entender código. Si no existe, continúa con las herramientas normales sin inicializarlo.
-- Aplica las skills relevantes de `.agents/skills/`. Conserva esa fuente compartida; evita copias divergentes.
-- Consulta Mem0 en el ámbito de usuario y proyecto correcto, cuando esté disponible. Las instrucciones y credenciales personales pertenecen a la configuración local.
-- Si el usuario pide orquestación, lee `docs/orquestacion/README.md`; usa el runtime de Orca y respeta la selección de modelos pendiente.
-- Registra hallazgos nuevos y validaciones en Beads. Cierra una tarea solo cuando sus criterios estén cumplidos.
+- Use Beads for tasks, dependencies and durable project context. Run `bd prime` when recovering context and `bd stats` for a summary; close work only when its acceptance criteria are met.
+- When `.codegraph/` exists, use CodeGraph before locating or understanding code. Otherwise use ordinary tools without initializing an index.
+- Select relevant skills from `.agents/skills/`; retain this shared source and its Claude symlinks. See `docs/skills.md`.
+- Use Mem0 only with the correct user/project scope and available client connection. Read `docs/agents/tools.md` when configuring tools.
+- For requested Orca supervision, read `docs/orchestration/README.md` and load the selected executable's guide. Models remain the user's choice.
 
-## Invariantes
+## Invariants
 
-- TypeScript estricto; usa `import type` para tipos. Los mensajes de interfaz van en español.
-- La lógica de cada dominio vive en `frontend/src/domains/<dominio>/`. Los componentes de presentación usan servicios; no acceden directamente a Supabase.
-- La autorización debe existir en la base de datos. Ocultar opciones en la UI no reemplaza RLS.
-- El stock y las anulaciones se gestionan mediante reglas de la base de datos; conserva la trazabilidad.
-- No ejecutar `supabase db push` contra producción hasta reconciliar esquema e historial en un entorno aislado.
-- No guardar credenciales en el repositorio ni contraseñas en tablas de la aplicación.
+- Keep domain logic under `frontend/src/domains/<domain>/`; presentation uses services/hooks and the shared Supabase client. Use strict TypeScript and `import type` for type-only imports.
+- Database authorization must enforce identity, role and sucursal; navigation visibility does not replace RLS/grants.
+- Preserve database-owned stock movements, cancellation compensation and audit history. Never store application passwords or privileged client keys.
+- Do not run production `supabase db push` until schema/history reconciliation and isolated verification are complete. Read `docs/engineering/database.md` before database work.
 
-## Verificación y entrega
+## Verification and delivery
 
-- Para cambios de frontend, ejecuta `npm run lint` y `npm run build` en `frontend/`; ejecuta las pruebas pertinentes al cambio.
-- Comprueba los scripts y configuraciones que modifiques y los enlaces de la documentación.
-- Revisa `git status` y el diff antes de entregar. Explica qué cambió, su validación y los límites de lo comprobado.
-- Conserva stashes, ramas y archivos de otras sesiones. Limpia únicamente los artefactos propios que ya no hagan falta.
-- Publica commits, ramas o cambios externos cuando la solicitud o autorización del usuario abarque esa publicación. Una petición de plan no autoriza su ejecución.
+- For frontend changes, run lint/build and relevant tests from `frontend/`. For documentation/configuration, verify references, syntax, dates and supported commands.
+- Review `git status` and the diff. Preserve other sessions' files, stashes and branches; report validation and its limits.
+- Commit, publish or deploy only within the user's requested scope. A local commit request does not require a push; generic tool closeout defaults do not expand that scope.
