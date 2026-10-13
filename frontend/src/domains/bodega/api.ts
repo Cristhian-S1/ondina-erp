@@ -42,7 +42,7 @@ export interface CorregirDevolucionPayload {
 
 export async function obtenerVendedores(sucursalId?: string): Promise<Perfil[]> {
   if (!sucursalId) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('perfiles')
     .select('*')
     .eq('sucursal_id', sucursalId)
@@ -50,89 +50,98 @@ export async function obtenerVendedores(sucursalId?: string): Promise<Perfil[]> 
     .eq('activo', true)
     .order('nombres')
     .returns<Perfil[]>()
+  if (error) throw new Error('No fue posible cargar los vendedores. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerDespachos(sucursalId?: string): Promise<Despacho[]> {
   if (!sucursalId) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('despachos')
     .select('*')
     .eq('sucursal_id', sucursalId)
     .order('creado_en', { ascending: false })
     .returns<Despacho[]>()
+  if (error) throw new Error('No fue posible cargar los despachos. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerDetallesDespacho(despachoIds: string[]): Promise<DespachoDetalle[]> {
   if (despachoIds.length === 0) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('despacho_detalles')
     .select('*')
     .in('despacho_id', despachoIds)
     .returns<DespachoDetalle[]>()
+  if (error) throw new Error('No fue posible cargar los detalles del despacho. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerEnvasesDespacho(despachoIds: string[]): Promise<DespachoEnvase[]> {
   if (despachoIds.length === 0) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('despacho_envases')
     .select('*')
     .in('despacho_id', despachoIds)
     .returns<DespachoEnvase[]>()
+  if (error) throw new Error('No fue posible cargar los envases del despacho. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerDevolucionesProducto(despachoIds: string[]): Promise<DevolucionProducto[]> {
   if (despachoIds.length === 0) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('devoluciones_productos')
     .select('*')
     .in('despacho_id', despachoIds)
     .eq('anulado', false)
     .returns<DevolucionProducto[]>()
+  if (error) throw new Error('No fue posible cargar las devoluciones de productos. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerDevolucionesEnvase(despachoIds: string[]): Promise<DevolucionEnvase[]> {
   if (despachoIds.length === 0) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('devoluciones_envases')
     .select('*')
     .in('despacho_id', despachoIds)
     .eq('anulado', false)
     .returns<DevolucionEnvase[]>()
+  if (error) throw new Error('No fue posible cargar las devoluciones de envases. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerStockBodega(sucursalId: string): Promise<StockBodega[]> {
   if (!sucursalId) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('stock_bodega')
     .select('*')
     .eq('sucursal_id', sucursalId)
     .returns<StockBodega[]>()
+  if (error) throw new Error('No fue posible cargar el stock de productos. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerStockEnvases(sucursalId: string): Promise<StockEnvases[]> {
   if (!sucursalId) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('stock_envases')
     .select('*')
     .eq('sucursal_id', sucursalId)
     .returns<StockEnvases[]>()
+  if (error) throw new Error('No fue posible cargar el stock de envases. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerCargaVendedores(vendedorIds: string[]): Promise<CargaVendedor[]> {
   if (vendedorIds.length === 0) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('carga_vendedor')
     .select('*')
     .in('vendedor_id', vendedorIds)
     .returns<CargaVendedor[]>()
+  if (error) throw new Error('No fue posible cargar la carga de los vendedores. Inténtalo de nuevo.')
   return data ?? []
 }
 

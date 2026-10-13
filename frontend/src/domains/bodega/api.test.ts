@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock del cliente Supabase compartido para los servicios del dominio bodega.
 const mock = vi.hoisted(() => {
+  let readError: { message: string } | null = null
   let dataByTable: Record<string, unknown[]> = {}
   let lastQueryByTable: Record<string, Record<string, unknown>> = {}
   let insertResult: { error: { message: string; code?: string } | null } = { error: null }
@@ -22,7 +23,7 @@ const mock = vi.hoisted(() => {
         insertSpy(payload)
         return Promise.resolve(insertResult)
       },
-      returns: () => Promise.resolve({ data: dataByTable[table] ?? [] }),
+      returns: () => Promise.resolve({ data: dataByTable[table] ?? [], error: readError }),
     }
     lastQueryByTable[table] = q
     return q
@@ -40,7 +41,9 @@ const mock = vi.hoisted(() => {
     supabase: supabaseMock,
     insertSpy,
     rpcSpy,
+    setReadError: () => { readError = { message: 'private SQL detail' } },
     reset: () => {
+      readError = null
       dataByTable = {}
       lastQueryByTable = {}
       insertResult = { error: null }
@@ -312,5 +315,24 @@ describe('HU-13 · corregirDevolucion', () => {
         p_envases: [{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' }],
       }),
     )
+  })
+})
+
+
+describe('FE-05 · errores de lectura', () => {
+  it.each([
+    ['vendedores', () => obtenerVendedores('suc-1')],
+    ['despachos', () => obtenerDespachos('suc-1')],
+    ['detalles', () => obtenerDetallesDespacho(['d-1'])],
+    ['envases', () => obtenerEnvasesDespacho(['d-1'])],
+    ['devoluciones de productos', () => obtenerDevolucionesProducto(['d-1'])],
+    ['devoluciones de envases', () => obtenerDevolucionesEnvase(['d-1'])],
+    ['stock de productos', () => obtenerStockBodega('suc-1')],
+    ['stock de envases', () => obtenerStockEnvases('suc-1')],
+    ['carga de vendedores', () => obtenerCargaVendedores(['u-1'])],
+  ])('rechaza errores al leer %s con un mensaje seguro', async (_nombre, leer) => {
+    mock.setReadError()
+    await expect(leer()).rejects.toThrow(/^No fue posible cargar .* Inténtalo de nuevo\.$/)
+    await expect(leer()).rejects.not.toThrow('private SQL detail')
   })
 })

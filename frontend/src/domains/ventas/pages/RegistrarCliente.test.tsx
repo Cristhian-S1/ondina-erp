@@ -19,6 +19,7 @@ const PERFIL = makePerfil({ id: 'vendedor-1' })
 
 afterEach(() => {
   vi.mocked(api.crearCliente).mockReset()
+  vi.mocked(api.obtenerVendedoresSucursal).mockReset().mockResolvedValue([])
 })
 
 function setup() {
@@ -85,4 +86,17 @@ describe('HU-02 · RegistrarCliente — validación de formulario', () => {
       expect(screen.getByText('Cliente registrado.')).toBeInTheDocument()
     })
   })
+})
+
+
+it('FE-05 · muestra error de vendedores sin borrar los datos del cliente', async () => {
+  let rechazar!: (cause: Error) => void
+  vi.mocked(api.obtenerVendedoresSucursal).mockReturnValue(new Promise((_res, rej) => { rechazar = rej }))
+  renderWithProviders(<RegistrarCliente open={true} onClose={() => {}} />, { perfil: makePerfil({ rol: 'administrador' }) })
+  fireEvent.change(screen.getByPlaceholderText('Nombre o razón comercial'), { target: { value: 'Almacén Sur' } })
+  const { act } = await import('@testing-library/react')
+  await act(async () => { rechazar(new Error('Fallo de consulta')) })
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los vendedores')
+  expect(screen.getByPlaceholderText('Nombre o razón comercial')).toHaveValue('Almacén Sur')
+  expect(screen.getByRole('button', { name: 'Guardar cliente' })).toBeDisabled()
 })

@@ -105,6 +105,9 @@ export default function RegistrarCliente({ open, onClose }: Props) {
                 </option>
               ))}
             </select>
+            {vendedores.error && (
+              <span role="alert" className={errorTextCls}>No fue posible cargar los vendedores. Inténtalo de nuevo.</span>
+            )}
             {errors.vendedor_id && (
               <span className={errorTextCls}>
                 {errors.vendedor_id.message}
@@ -180,7 +183,7 @@ export default function RegistrarCliente({ open, onClose }: Props) {
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className={btnPrimary} disabled={crear.isPending}>
+          <button type="submit" className={btnPrimary} disabled={crear.isPending || (esAdmin && !!vendedores.error)}>
             {crear.isPending ? 'Guardando...' : 'Guardar cliente'}
           </button>
         </div>

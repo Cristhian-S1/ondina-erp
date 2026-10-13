@@ -1,7 +1,11 @@
+import { lazy, Suspense } from 'react'
 import type { DomainModule } from '../../types/module'
 import { Navigate } from 'react-router-dom'
 import { AlertIcon, BarChartIcon, BoxIcon, FactoryIcon, ShieldIcon } from '../../components/icons'
-import Produccion from './pages/Produccion'
+
+const pages = {
+  Produccion: lazy(() => import('./pages/Produccion')),
+}
 
 const produccionModule: DomainModule = {
   name: 'produccion',
@@ -14,11 +18,11 @@ const produccionModule: DomainModule = {
   ],
   routes: [
     { path: '/produccion', element: <Navigate to="/produccion/registrar" replace /> },
-    { path: '/produccion/registrar', element: <Produccion /> },
-    { path: '/produccion/envases', element: <Produccion /> },
-    { path: '/produccion/historial', element: <Produccion /> },
-    { path: '/produccion/indicadores', element: <Produccion /> },
-    { path: '/produccion/incidencias', element: <Produccion /> },
+    { path: '/produccion/registrar', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/envases', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/historial', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/indicadores', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/incidencias', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
   ],
 }
 

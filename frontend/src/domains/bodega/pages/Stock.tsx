@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerStockBodega, obtenerStockEnvases } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
@@ -60,37 +60,64 @@ export default function Stock() {
   const [cargando, setCargando] = useState(true)
   const [refrescando, setRefrescando] = useState(false)
 
+  const [version, setVersion] = useState(0)
+  const [errorCatalogo, setErrorCatalogo] = useState<string | null>(null)
+  const [errorStock, setErrorStock] = useState<string | null>(null)
+
   useEffect(() => {
+    let vigente = true
     async function init() {
       const [sucursalesData, productosData, empaquesData] = await Promise.all([
         obtenerSucursales(),
         obtenerProductos(true),
         obtenerTiposEmpaque(),
       ])
+      if (!vigente) return
+      setErrorCatalogo(null)
       setSucursales(sucursalesData)
       setProductos(productosData)
       setTiposEmpaque(empaquesData)
-      setSucursalId(perfil?.sucursal_id ?? sucursalesData[0]?.id ?? '')
+      setSucursalId((actual) => actual || perfil?.sucursal_id || sucursalesData[0]?.id || '')
       setCargando(false)
     }
-    void init()
-  }, [perfil])
-
-  const loadStock = useCallback(async (sid: string) => {
-    if (!sid) return
-    setRefrescando(true)
-    const [sb, se] = await Promise.all([obtenerStockBodega(sid), obtenerStockEnvases(sid)])
-    setStockBodega(sb)
-    setStockEnvases(se)
-    setRefrescando(false)
-  }, [])
+    void init().catch(() => {
+      if (vigente) {
+        setErrorCatalogo('No fue posible cargar los catálogos. Inténtalo de nuevo con Actualizar.')
+        setCargando(false)
+      }
+    })
+    return () => { vigente = false }
+  }, [perfil, version])
 
   useEffect(() => {
+    let vigente = true
     async function cargar() {
-      await loadStock(sucursalId)
+      if (!sucursalId) {
+        setStockBodega([])
+        setStockEnvases([])
+        setErrorStock(null)
+        setRefrescando(false)
+        return
+      }
+      setRefrescando(true)
+      setErrorStock(null)
+      try {
+        const [sb, se] = await Promise.all([
+          obtenerStockBodega(sucursalId), obtenerStockEnvases(sucursalId),
+        ])
+        if (vigente) {
+          setStockBodega(sb)
+          setStockEnvases(se)
+        }
+      } catch {
+        if (vigente) setErrorStock('No fue posible cargar el stock. Inténtalo de nuevo con Actualizar.')
+      } finally {
+        if (vigente) setRefrescando(false)
+      }
     }
     void cargar()
-  }, [sucursalId, loadStock])
+    return () => { vigente = false }
+  }, [sucursalId, version])
 
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 
@@ -150,7 +177,7 @@ export default function Stock() {
             type="button"
             className={btnPrimary}
             disabled={refrescando}
-            onClick={() => void loadStock(sucursalId)}
+            onClick={() => setVersion((actual) => actual + 1)}
           >
             {refrescando ? 'Actualizando...' : 'Actualizar'}
           </button>
@@ -162,7 +189,11 @@ export default function Stock() {
 
       <Tabs activa={tab} onChange={setTab} />
 
-      {tab === 'productos' ? (
+      {errorCatalogo || errorStock ? (
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorCatalogo ?? errorStock}</p>
+      ) : refrescando ? (
+        <p className="text-sm text-slate-500">Actualizando stock...</p>
+      ) : tab === 'productos' ? (
         <SeccionStock titulo="Productos en bodega">
           {filasProductos.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-slate-500">

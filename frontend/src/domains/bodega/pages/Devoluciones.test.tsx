@@ -137,5 +137,18 @@ describe('HU-13 · Devoluciones', () => {
       expect(screen.getByText(/Devolución de Ana López/i)).toBeInTheDocument()
     })
     expect(screen.getByText('Bidón POL')).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' })).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: `Cantidad de envases buenos de ${empaque.nombre}` })).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: `Cantidad de envases malos de ${empaque.nombre}` })).toBeInTheDocument()
   })
+})
+
+
+it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado vacío', async () => {
+  vi.mocked(api.obtenerDespachos).mockRejectedValue(new Error('Fallo de consulta'))
+  renderWithProviders(<Devoluciones />)
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar')
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([])
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
 })

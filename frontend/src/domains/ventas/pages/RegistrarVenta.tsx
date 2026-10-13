@@ -110,6 +110,7 @@ export default function RegistrarVenta() {
   const clientes = useClientesRuta()
   const productos = useProductosVenta()
   const carga = useCargaVendedor()
+  const errorLectura = clientes.error || productos.error || carga.error
   const registrar = useRegistrarVenta()
   const { toast, mostrar, cerrar } = useToast()
 
@@ -197,6 +198,10 @@ export default function RegistrarVenta() {
   }
 
   function onSubmit(values: RegistrarVentaForm) {
+    if (errorLectura) {
+      mostrar('No fue posible cargar los datos de la venta. Inténtalo de nuevo.', 'error')
+      return
+    }
     const limpio = {
       ...values,
       detalles: values.detalles.filter((d) => d.productoId && d.cantidad > 0),
@@ -247,6 +252,12 @@ export default function RegistrarVenta() {
             Cancelar
           </button>
         </div>
+
+        {errorLectura && (
+          <p role="alert" className={errorBlockCls}>
+            No fue posible cargar los datos de la venta. Revisa tu conexión e inténtalo de nuevo.
+          </p>
+        )}
 
         {/* 1. Cliente */}
         <section className={cardCls}>
@@ -379,6 +390,7 @@ export default function RegistrarVenta() {
                           name={`detalles.${index}.cantidad` as const}
                           render={({ field }) => (
                             <input
+                              aria-label={`Cantidad de ${productos.data?.find((p) => p.id === prodId)?.nombre ?? `producto ${index + 1}`}`}
                               type="text"
                               inputMode="numeric"
                               placeholder=""
@@ -414,6 +426,7 @@ export default function RegistrarVenta() {
                           name={`detalles.${index}.precioUnitario` as const}
                           render={({ field }) => (
                             <input
+                              aria-label={`Precio unitario de ${productos.data?.find((p) => p.id === prodId)?.nombre ?? `producto ${index + 1}`}`}
                               type="text"
                               inputMode="numeric"
                               placeholder=""
@@ -562,7 +575,7 @@ export default function RegistrarVenta() {
                     : 'No se pudo registrar la venta'}
                 </p>
               )}
-              <button type="submit" className={btnPrimary} disabled={registrar.isPending}>
+              <button type="submit" className={btnPrimary} disabled={registrar.isPending || !!errorLectura}>
                 <ShoppingCartIcon className="h-4 w-4" />
                 {registrar.isPending ? 'Registrando venta...' : 'Confirmar venta'}
               </button>

@@ -1,9 +1,13 @@
+import { lazy, Suspense } from 'react'
 import type { DomainModule } from '../../types/module'
 import { BarChartIcon, MapPinIcon, SettingsIcon, ShieldIcon } from '../../components/icons'
-import Reportes from './pages/Reportes'
-import Ubicaciones from './pages/Ubicaciones'
-import Administracion from './pages/Administracion'
-import Auditoria from './pages/Auditoria'
+
+const pages = {
+  Reportes: lazy(() => import('./pages/Reportes')),
+  Ubicaciones: lazy(() => import('./pages/Ubicaciones')),
+  Administracion: lazy(() => import('./pages/Administracion')),
+  Auditoria: lazy(() => import('./pages/Auditoria')),
+}
 
 const administracionModule: DomainModule = {
   name: 'administracion',
@@ -14,10 +18,10 @@ const administracionModule: DomainModule = {
     { path: '/auditoria', label: 'Auditoría', icon: ShieldIcon, roles: ['administrador'] },
   ],
   routes: [
-    { path: '/reportes', element: <Reportes /> },
-    { path: '/ubicaciones', element: <Ubicaciones /> },
-    { path: '/administracion', element: <Administracion /> },
-    { path: '/auditoria', element: <Auditoria /> },
+    { path: '/reportes', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Reportes /></Suspense> },
+    { path: '/ubicaciones', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Ubicaciones /></Suspense> },
+    { path: '/administracion', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Administracion /></Suspense> },
+    { path: '/auditoria', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Auditoria /></Suspense> },
   ],
 }
 

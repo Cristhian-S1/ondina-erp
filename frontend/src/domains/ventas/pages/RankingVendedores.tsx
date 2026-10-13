@@ -21,21 +21,23 @@ export default function RankingVendedores() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let vigente = true
     async function cargarRanking(): Promise<void> {
       try {
         setCargando(true)
         setError(null)
 
         const data = await obtenerRankingVendedores(mesSeleccionado)
-        setRanking(data)
+        if (vigente) setRanking(data)
       } catch {
-        setError('No fue posible cargar el ranking de vendedores.')
+        if (vigente) setError('No fue posible cargar el ranking de vendedores.')
       } finally {
-        setCargando(false)
+        if (vigente) setCargando(false)
       }
     }
 
     void cargarRanking()
+    return () => { vigente = false }
   }, [mesSeleccionado])
 
   const formatearMoneda = (valor: number): string =>
