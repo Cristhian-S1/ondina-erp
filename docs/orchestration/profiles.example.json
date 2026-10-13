@@ -12,25 +12,25 @@
   },
   "roles": {
     "frontend-ui": {
-      "client": "opencode",
+      "client": "codex",
       "model": null,
       "slots": 1,
       "activation": "as needed"
     },
     "frontend-data": {
-      "client": "opencode",
+      "client": "codex",
       "model": null,
       "slots": 1,
       "activation": "on demand"
     },
     "backend-schema": {
-      "client": "opencode",
+      "client": "codex",
       "model": null,
       "slots": 1,
       "activation": "as needed"
     },
     "backend-rpc": {
-      "client": "opencode",
+      "client": "codex",
       "model": null,
       "slots": 1,
       "activation": "on demand"
@@ -54,7 +54,7 @@
       "activation": "on demand"
     },
     "security": {
-      "client": "opencode",
+      "client": "codex",
       "model": null,
       "slots": 1,
       "activation": "on demand"

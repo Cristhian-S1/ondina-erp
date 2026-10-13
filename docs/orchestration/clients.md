@@ -1,6 +1,11 @@
-# Claude Code and OpenCode Clients
+# Claude Code, Codex and OpenCode Clients
 
-Orca owns workspaces, execution and the message/lifecycle protocol. Claude Code and OpenCode are agent clients; providers/models are configured for the client running each role. Claude can coordinate OpenCode without sharing its MCP, credentials or memory automatically.
+Orca owns workspaces, execution and the message/lifecycle protocol. Claude Code, Codex and OpenCode are agent clients; providers/models are configured for the client running each role. Claude can coordinate Codex and OpenCode without sharing their MCP, credentials or memory automatically.
+
+## Codex
+
+Codex runs as a TUI in an Orca terminal. The installed guide has no per-call model flags on `worktree create --agent codex`, so select the model at launch with `terminal create --command`, for example `codex --model gpt-6.1-sol`, then wait for `tui-idle` before sending the task. Use `-c model_reasoning_effort="..."` only when the chosen model supports that effort. Codex has its own credentials and configuration (`~/.codex/`, `.codex/` in the repo); verify its login separately from Claude and OpenCode.
+The repo has no Codex hooks (`.codex/hooks.json` was removed because `bd codex-hook` is unsupported by bd 1.0.4). Codex reads `AGENTS.md`, which tells it to run `bd prime` for Beads context. A new TUI can still stop at a "Hooks need review" prompt for global hooks; choose "Continue without trusting" or review them, or `terminal wait --for tui-idle` never settles.
 
 ## Instructions and tools
 

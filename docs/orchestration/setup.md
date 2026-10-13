@@ -30,6 +30,7 @@ orca-ide skills get orchestration --reference references/coordinator-loop.md --j
 
 For the documented OpenCode model override, prepare an existing worktree before dispatch and verify host/client support. Inspect existing terminals; remove only an unused shell confirmed to belong to this setup.
 Install dependencies and development-only environments per worker. Keep credentials out of Git and production out of fixtures.
+The repo's Orca setup hook must be `npm ci --prefix frontend`. The root has no `package.json`, so the former `pnpm install` setup fails with `ERR_PNPM_NO_PKG_MANIFEST`. Until that hook is updated in Orca's repo settings, create worktrees with `--setup skip` and run `npm ci --prefix frontend` inside each worker's worktree.
 
 ## Supervised loop
 
