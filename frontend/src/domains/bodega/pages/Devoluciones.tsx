@@ -14,7 +14,8 @@ import {
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
-import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { VendedorSucursal } from '../api'
 import type {
   CargaVendedor,
   Despacho,
@@ -70,7 +71,7 @@ export default function Devoluciones() {
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<Perfil[]>([])
+  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
   const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
@@ -336,35 +337,24 @@ export default function Devoluciones() {
     }
 
     setEnviando(true)
-    if (esCorreccion) {
-      const { error: err } = await corregirDevolucion({
-        despacho_id: seleccionado,
-        creado_por: perfil.id,
-        lineas_producto: lineasProducto,
-        lineas_envase: lineasEnvase,
-      })
-      if (err) {
-        setError(err)
-        setEnviando(false)
-        return
-      }
-    } else {
-      const payload = {
-        despacho_id: seleccionado,
-        creado_por: perfil.id,
-        lineas_producto: lineasProducto,
-        lineas_envase: lineasEnvase,
-      }
-      const contenido = JSON.stringify([sucursalId, payload])
-      if (intento.current?.contenido !== contenido) {
-        intento.current = { contenido, clave: crypto.randomUUID() }
-      }
-      const { error: err } = await registrarDevolucion({ ...payload, idempotency_key: intento.current.clave })
-      if (err) {
-        setError(err)
-        setEnviando(false)
-        return
-      }
+    const payload = {
+      despacho_id: seleccionado,
+      creado_por: perfil.id,
+      lineas_producto: lineasProducto,
+      lineas_envase: lineasEnvase,
+    }
+    // El tipo de operación forma parte del contenido: una devolución y una corrección con las mismas líneas no comparten clave.
+    const contenido = JSON.stringify([esCorreccion, sucursalId, payload])
+    if (intento.current?.contenido !== contenido) {
+      intento.current = { contenido, clave: crypto.randomUUID() }
+    }
+    const { error: err } = esCorreccion
+      ? await corregirDevolucion({ ...payload, idempotency_key: intento.current.clave })
+      : await registrarDevolucion({ ...payload, idempotency_key: intento.current.clave })
+    if (err) {
+      setError(err)
+      setEnviando(false)
+      return
     }
     intento.current = null
 

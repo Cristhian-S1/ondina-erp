@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
+import { mensajeErrorAutenticacion } from '../lib/errors'
 import logo from '../assets/logo.jpg'
 
 export default function Login() {
@@ -23,7 +24,7 @@ export default function Login() {
       await signIn(email, password)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
+      setError(mensajeErrorAutenticacion(err))
     } finally {
       setSubmitting(false)
     }

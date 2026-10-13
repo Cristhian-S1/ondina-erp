@@ -159,6 +159,7 @@ describe('Recorrido administración global · corrección de devolución con mot
 
     const motivo = `Corrección B5 ${ctx.fixtures.runId}`
     const { error: correccionError } = await corregirDevolucion({
+      idempotency_key: crypto.randomUUID(),
       despacho_id: despacho?.id as string,
       creado_por: admin.user.id,
       motivo,

@@ -135,3 +135,52 @@ warehouse-loss UI is introduced by B3.
 - Frontend types come from `supabase gen types typescript --local --schema public` run on the full local chain.
   Regenerate them after every migration that changes the public schema.
 - Auth settings and the remote dashboard checklist are in [auth.md](auth.md).
+
+## B6 backend review fixes — 2026-10-13
+
+Migration `20261013200000_b6_revision_fixes.sql` (OND-5gi.9; GitHub #29, #30, #31, #32, #33, #42) closes the
+actionable findings of the [backend review R1](../archive/audits/2026-10-13/workers/revision-backend-ola-b.md)
+(RB-1, RB-5, RB-9, RB-11, RB-15, RB-16). It is forward-only and rewrites no rows, balances or history. Local evidence
+and the remote gates are in [reconciliation](../../supabase/reconciliation.md#b6-revision-r1-delta).
+
+- **Dispatch cancellation (RB-1).** Outstanding stock is `dispatched − returned − active linked losses`. A loss
+  linked to a dispatch already left the seller's load, so it is not returned to the warehouse when the dispatch is
+  cancelled, and it stays recorded. Cancelling that loss after its dispatch was cancelled adds nothing. A linked
+  loss may not exceed the outstanding quantity of its dispatch (`La merma supera lo despachado pendiente de ese producto.`),
+  so the cancellation never computes a negative return. Container losses come from the plant pool and always
+  compensate.
+- **Sale lines (RB-9).** A line inserted into an annulled sale raises `La venta está anulada` (P0001).
+- **Correction retries (RB-11).** `corregir_devolucion` takes a trailing `p_idempotency_key uuid default null` and
+  uses the same `private.solicitudes_devolucion` ledger as `registrar_devolucion`. A replay of the same key returns
+  without a second annul/reinsert cycle or audit row. Calls without a key keep the previous behavior. The return type
+  stays `void`.
+- **Profiles (RB-15).** `perfiles` rows are visible only to their owner and to branch administration. Bodega no
+  longer reads seller `rut` or `telefono`; it lists active sellers of its branch through `vendedores_sucursal(p_sucursal_id)`,
+  which returns only `id`, `nombres` and `apellidos`. Column grants cannot express "own row only", so the restriction is
+  row-level. Policies that checked a seller as the caller now use `private.es_vendedor_activo(id, sucursal_id)`.
+- **Client sellers (RB-16).** A client INSERT requires the seller to be an active `vendedor` of the same branch.
+  The branch match was already enforced by `clientes_vendedor_id_sucursal_id_fkey`. The baseline grants no UPDATE on
+  `clientes` and defines no UPDATE policy, so the check guards INSERT; any future UPDATE policy must repeat it.
+- **Audit action check (RB-5).** `auditoria_accion_check` is `NOT VALID`; `VALIDATE` is a separate reviewed step in
+  [reconciliation](../../supabase/reconciliation.md#b6-revision-r1-delta).
+- **Frontend contract.** Every adapter that writes a retried operation requires its idempotency key
+  (`ventas/api.ts`, `bodega/api.ts`); the adapters no longer generate one. A correction uses the same key lifecycle as
+  the other flows.
+
+### Documented decisions (no code change)
+
+- **RB-3, custom unit price.** HU-01 allows unit prices other than the standard price
+  ([sales story](../product/stories/sales.md#hu-01)). The server keeps the finite and non-negative checks. Comparing
+  against `productos.precio_base` would contradict HU-01, so a price-deviation control needs a new story.
+- **RB-10, container returns without a cap.** Empty containers need not come from the same dispatch, so
+  `insertar_devolucion` does not cap them. Reconciling containers received in sales against containers returned is a
+  business-risk follow-up, not a database invariant.
+- **RB-19, ranking net of discount.** `v_ranking_vendedores.total_vendido` is `sum(ventas.total)`, which is net of the
+  header discount. This follows the commission decision D-COM-1, row "Comisión" in
+  [product context](../product/context.md). The B2 view summed gross line amounts; the B3 view sums net totals, and no
+  migration note records the change. Reports must label the column as net.
+- **RB-8, branch-level stock lock.** `bloquear_saldos` serializes stock writes per branch. Accepted at the current
+  scale. Measure contention with `supabase/tests/concurrency-b3.py` before considering per-row locks in a fixed order.
+- **RB-6, non-concurrent index creation.** The B1, B3 and B4 indexes use plain `CREATE INDEX`, which blocks writes
+  while it builds. Acceptable at the measured remote volume (38 sales and 16 dispatches on 2026-10-13). Larger volumes
+  need `CREATE INDEX CONCURRENTLY` outside a transaction, run as separate statements.

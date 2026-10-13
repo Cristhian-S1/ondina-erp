@@ -179,7 +179,7 @@ export async function crearGasto(
 
 // --- HU-01: RPC registrar_venta ---
 export async function registrarVenta(
-  args: RegistrarVentaArgs & { p_idempotency_key?: string },
+  args: RegistrarVentaArgs & { p_idempotency_key: string },
 ): Promise<{ id: string | null; error: string | null }> {
   try {
     const rpcArgs = {
@@ -189,7 +189,7 @@ export async function registrarVenta(
       p_detalles: args.p_detalles as unknown as Json,
       p_descuento: args.p_descuento,
       p_observaciones: args.p_observaciones,
-      p_idempotency_key: args.p_idempotency_key ?? crypto.randomUUID(),
+      p_idempotency_key: args.p_idempotency_key,
     }
     const { data, error } = await supabase.rpc('registrar_venta', rpcArgs)
 
@@ -239,9 +239,9 @@ export async function obtenerCantidadVentasJornada(
   vendedorId: string,
 ): Promise<number> {
   try {
-    const { data, error } = await supabase.rpc('contar_ventas_jornada' as never, {
+    const { data, error } = await supabase.rpc('contar_ventas_jornada', {
       p_vendedor_id: vendedorId,
-    } as never)
+    })
 
     if (error) {
       throw new Error('No fue posible obtener la cantidad de ventas')

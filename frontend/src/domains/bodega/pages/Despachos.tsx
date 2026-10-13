@@ -19,10 +19,11 @@ import {
   obtenerStockEnvases,
   obtenerVendedores,
 } from '../api'
+import type { VendedorSucursal } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
-import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
   Despacho,
@@ -104,7 +105,7 @@ export default function Despachos() {
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<Perfil[]>([])
+  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
   const [despachos, setDespachos] = useState<DespachoConTotal[]>([])

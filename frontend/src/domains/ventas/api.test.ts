@@ -116,10 +116,11 @@ describe('HU-01 · registrarVenta', () => {
       p_detalles: [{ producto_id: 'p-1', cantidad: 2, precio_unitario: 1000, envases_recibidos: 0 }],
       p_descuento: 0,
       p_observaciones: undefined,
+      p_idempotency_key: 'key-venta',
     })
     expect(res.id).toBe('venta-uuid')
     expect(res.error).toBeNull()
-    expect(mock.rpcSpy).toHaveBeenCalledWith('registrar_venta', expect.objectContaining({ p_cliente_id: 'cli-1' }))
+    expect(mock.rpcSpy).toHaveBeenCalledWith('registrar_venta', expect.objectContaining({ p_cliente_id: 'cli-1', p_idempotency_key: 'key-venta' }))
   })
 
   it('traduce el error de carga insuficiente al español', async () => {
@@ -130,6 +131,7 @@ describe('HU-01 · registrarVenta', () => {
       p_detalles: [{ producto_id: 'p-1', cantidad: 99, precio_unitario: 1000, envases_recibidos: 0 }],
       p_descuento: 0,
       p_observaciones: undefined,
+      p_idempotency_key: 'key-venta-insuficiente',
     })
     expect(res.id).toBeNull()
     expect(res.error).toBe('No tienes carga suficiente de uno de los productos.')

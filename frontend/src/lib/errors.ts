@@ -12,7 +12,6 @@ const mensajesPorCodigo = new Map<string, string>([
 
 const mensajesDeNegocio = new Map<string, string>([
   ['El despacho solo admite envases de uso interno.', 'El despacho solo admite envases de uso interno.'],
-  ['No tienes permisos para modificar este despacho.', 'No tienes permisos para modificar este despacho.'],
   ['La ventana de ajuste del despacho expiró.', 'La ventana de ajuste del despacho expiró.'],
   ['No tienes permisos para crear despachos en esta sucursal.', 'No tienes permisos para crear despachos en esta sucursal.'],
   ['El usuario de la operación no coincide con la sesión.', 'El usuario de la operación no coincide con la sesión.'],
@@ -31,6 +30,7 @@ const mensajesDeNegocio = new Map<string, string>([
   ['La clave de reintento pertenece a otra operación.', 'La clave de reintento pertenece a otra operación.'],
   ['El despacho está anulado o pertenece a otra sucursal.', 'El despacho está anulado o pertenece a otra sucursal.'],
   ['No se puede devolver más de lo despachado.', 'No se puede devolver más de lo despachado.'],
+  ['La merma supera lo despachado pendiente de ese producto.', 'La merma supera lo despachado pendiente de ese producto.'],
   ['Línea de producto inválida en la devolución.', 'Línea de producto inválida en la devolución.'],
   ['Línea de envase inválida en la devolución.', 'Línea de envase inválida en la devolución.'],
   ['No tienes permisos para registrar devoluciones.', 'No tienes permisos para registrar devoluciones.'],
@@ -117,4 +117,28 @@ export function mensajeErrorSupabase(error: unknown): string {
   return typeof message === 'string'
     ? mensajesPublicos.get(message) ?? mensajeGenerico
     : mensajeGenerico
+}
+
+const mensajeAutenticacionGenerico = 'No fue posible iniciar sesión. Inténtalo de nuevo.'
+const mensajeCredenciales = 'Correo o contraseña incorrectos.'
+const mensajeLimiteIntentos = 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+
+const mensajesAutenticacionPorCodigo = new Map<string, string>([
+  ['invalid_credentials', mensajeCredenciales],
+  ['over_request_rate_limit', mensajeLimiteIntentos],
+  ['over_email_send_rate_limit', mensajeLimiteIntentos],
+])
+
+// Los errores de Supabase Auth traen code/status estables; su texto en inglés nunca se muestra.
+export function mensajeErrorAutenticacion(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return mensajeAutenticacionGenerico
+
+  const { code, status, message } = error as { code?: unknown; status?: unknown; message?: unknown }
+  if (typeof code === 'string') {
+    const porCodigo = mensajesAutenticacionPorCodigo.get(code)
+    if (porCodigo) return porCodigo
+  }
+  if (status === 429) return mensajeLimiteIntentos
+  if (message === 'Invalid login credentials') return mensajeCredenciales
+  return mensajeAutenticacionGenerico
 }
