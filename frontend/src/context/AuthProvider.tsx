@@ -21,17 +21,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const identity = useRef<string | null | undefined>(undefined)
   const version = useRef(0)
+  const loadedIdentity = useRef<string | null>(null)
 
   useEffect(() => {
     let active = true
     let receivedAuthEvent = false
+    let pendingSession: number | undefined
 
     async function loadSession(userId: string | null) {
+      if (!active) return
       const request = ++version.current
       if (identity.current !== userId) {
         clearIdentityData(queryClient, identity.current)
         identity.current = userId
       }
+      loadedIdentity.current = null
       setPerfil(null)
       setError(null)
       setLoading(!!userId)
@@ -52,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (data.activo === false) {
           setError('Tu cuenta está inactiva. Contacta al administrador para recuperar el acceso.')
         } else {
+          loadedIdentity.current = userId
           setPerfil(data as Perfil)
         }
       } catch {
@@ -64,8 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return
       receivedAuthEvent = true
-      void loadSession(session?.user.id ?? null)
+      const request = ++version.current
+      window.clearTimeout(pendingSession)
+      const userId = session?.user.id ?? null
+      if (userId && identity.current === userId && loadedIdentity.current === userId) return
+      pendingSession = window.setTimeout(() => {
+        if (active && request === version.current) void loadSession(userId)
+      }, 0)
     })
 
     void supabase.auth.getSession().then(({ data, error: sessionError }) => {
@@ -84,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       active = false
+      window.clearTimeout(pendingSession)
       listener.subscription.unsubscribe()
     }
   }, [queryClient])
@@ -104,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ++version.current
     clearIdentityData(queryClient, identity.current)
     identity.current = null
+    loadedIdentity.current = null
     setPerfil(null)
     setLoading(false)
     setError(null)
