@@ -44,7 +44,7 @@ Never place service-role keys, private credentials or copied tokens in frontend 
 
 The baseline is not arbitrary: it is the build measured on 2026-10-13 from commit `059172a` (entry JS 95,970 B gzip; entry CSS 43,502 B gzip; largest JS chunk 301,916 B) plus 10% headroom. The margin catches regressions such as the 911 kB entry recorded in the 2026-10 audit while tolerating small dependency updates. Update the baseline deliberately in a PR: rebuild, record the new bytes/date/commit in the JSON and justify the change; do not raise the headroom to silence a regression.
 
-Mobile/tablet transfer and Core Web Vitals are deliberately outside CI: measure them manually with Lighthouse on a throttled connection against the preview or production URL, covering first load and the first navigation to each domain (#50).
+Mobile/tablet transfer and Core Web Vitals are deliberately outside CI: measure them manually with Lighthouse on a throttled connection against the preview or production URL, covering first load and the first navigation to each domain (#50); the latest measurement is recorded in [Mobile and tablet performance](performance.md).
 
 ## Health monitoring
 
