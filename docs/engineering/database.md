@@ -119,3 +119,19 @@ actor; authenticated application writes cannot spoof `auth.uid()`. Audit events
 roll back with failed business operations and remain unavailable for client
 mutation. No general correction, rule-administration, dispatch-adjustment or
 warehouse-loss UI is introduced by B3.
+
+## B4 indexes, Realtime and generated types — 2026-10-13
+
+- Migration `20261013193000_b4_indexes_realtime.sql` (OND-5gi.8; GitHub #47, #48, BD-12). It adds four measured
+  indexes, publishes `mermas` to `supabase_realtime` (`producciones` and `stock_envases` were already published by 0008),
+  and recreates the B3 incident insert policy with `(select auth.uid())`. Nothing else changes.
+- Each index is justified by a before/after `EXPLAIN (ANALYZE, BUFFERS)` plan change; the rejected candidates and
+  the unindexed foreign-key decision are in [supabase/perf-b4.md](../../supabase/perf-b4.md).
+- Plain `CREATE INDEX` blocks writes to the indexed table while it builds. Remote application requires the reviewed
+  maintenance window described in that migration's header.
+- Realtime must respect RLS for every subscriber; `supabase/tests/perf/realtime-rls-check.mjs` checks this on the
+  local stack. Realtime `DELETE` events are not filtered by branch without `REPLICA IDENTITY FULL`; the application
+  has no DELETE path, so this is not enabled.
+- Frontend types come from `supabase gen types typescript --local --schema public` run on the full local chain.
+  Regenerate them after every migration that changes the public schema.
+- Auth settings and the remote dashboard checklist are in [auth.md](auth.md).

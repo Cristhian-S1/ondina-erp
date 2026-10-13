@@ -4,7 +4,8 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 workspace_tmp=$(mktemp -d)
 trap 'rm -rf "$workspace_tmp"' EXIT
-local_db_container=supabase_db_ondina-erp
+# Override LOCAL_DB_CONTAINER when running against an isolated project_id (its container name differs).
+local_db_container=${LOCAL_DB_CONTAINER:-supabase_db_ondina-erp}
 psql_local() { docker exec -i "$local_db_container" psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 "$@"; }
 
 supabase db reset --local --version 20261013000000
