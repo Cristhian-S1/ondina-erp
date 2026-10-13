@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { registrarProduccion, registrarMerma, obtenerProducciones, obtenerHistorialProduccion, obtenerIndicadoresProduccion, obtenerMermas, obtenerEnvasesDisponibles } from './api'
+import { registrarIncidencia, obtenerIncidencias, registrarProduccion, registrarMerma, obtenerProducciones, obtenerHistorialProduccion, obtenerIndicadoresProduccion, obtenerMermas, obtenerEnvasesDisponibles } from './api'
 
 const mock = vi.hoisted(() => {
   let error: unknown = null
@@ -34,10 +34,12 @@ const casos = [
 
 const datos = { sucursal_id: 's-1', producto_id: 'p-1', cantidad: 2, creado_por: 'u-1' }
 const escrituras = [
+  ['registrarIncidencia', () => registrarIncidencia({ sucursal_id: 's-1', creado_por: 'u-1', produccion_id: null, descripcion: 'Observación' })],
   ['registrarProduccion', () => registrarProduccion({ ...datos, observaciones: null })],
   ['registrarMerma', () => registrarMerma({ ...datos, motivo: 'Daño', tipo_empaque_id: null, despacho_id: null })],
 ] as const
 const lecturas = [
+  ['incidencias', () => obtenerIncidencias('s-1')],
   ['producciones', () => obtenerProducciones('s-1')],
   ['historial', () => obtenerHistorialProduccion({ sucursalId: 's-1' })],
   ['indicadores', () => obtenerIndicadoresProduccion('s-1', '2026-10-01', '2026-10-13')],

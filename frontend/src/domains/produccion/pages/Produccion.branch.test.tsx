@@ -12,6 +12,8 @@ vi.mock('@/lib/catalog', () => ({
   obtenerSucursales: vi.fn().mockResolvedValue([{ id: 's1', nombre: 'Norte' }, { id: 's2', nombre: 'Sur' }]),
 }))
 vi.mock('../api', () => ({
+  registrarIncidencia: vi.fn().mockResolvedValue(null),
+  obtenerIncidencias: vi.fn().mockResolvedValue([]),
   obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]),
   obtenerProducciones: vi.fn().mockResolvedValue([]), registrarMerma: vi.fn().mockResolvedValue(null), registrarProduccion: vi.fn().mockResolvedValue(null),
   subscribeProduccion: vi.fn(() => vi.fn()),
@@ -94,4 +96,21 @@ describe('Producción operational branch', () => {
     expect(screen.queryByRole('combobox', { name: 'Sucursal' })).not.toBeInTheDocument()
     expect(api.obtenerProducciones).toHaveBeenCalledWith('s1')
   })
+})
+
+it('B3 · distinguishes descriptive incidents from quantified losses', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'produccion', sucursal_id: 's1' }) })
+  fireEvent.change(await screen.findByLabelText('Descripción de la incidencia'), { target: { value: '   Filtro detenido durante el turno   ' } })
+  expect(screen.getByRole('button', { name: 'Registrar merma' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar incidencia' }))
+  await screen.findByText('Incidencia registrada. Las existencias se mantienen.')
+  expect(api.registrarIncidencia).toHaveBeenCalledWith({ sucursal_id: 's1', produccion_id: null, descripcion: 'Filtro detenido durante el turno', creado_por: 'user-1' })
+  expect(api.registrarMerma).not.toHaveBeenCalled()
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Bidones dañados' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  await screen.findByText('Merma registrada correctamente. Las existencias fueron actualizadas.')
+  expect(api.registrarMerma).toHaveBeenCalledWith(expect.objectContaining({ cantidad: 2, producto_id: 'p1', motivo: 'Bidones dañados' }))
 })

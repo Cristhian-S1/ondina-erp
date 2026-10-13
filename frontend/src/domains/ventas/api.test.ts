@@ -27,6 +27,7 @@ const mock = vi.hoisted(() => {
       })),
       rpc: vi.fn((fn: string, args: unknown) => {
         rpcSpy(fn, args)
+        if (fn === 'contar_ventas_jornada') return Promise.resolve({ data: readResult.count, error: readResult.error })
         return Promise.resolve(rpcResult)
       }),
     },
@@ -161,4 +162,11 @@ describe('FE-05 · lecturas de ventas', () => {
     mock.setReadResult(true)
     await expect(obtenerCantidadVentasJornada(perfil.id)).rejects.toThrow('No fue posible')
   })
+})
+
+it('B3 · asks SQL for Santiago jornada without a browser-derived UTC range', async () => {
+  mock.reset()
+  const count = await obtenerCantidadVentasJornada('user-1')
+  expect(count).toBe(0)
+  expect(mock.rpcSpy).toHaveBeenCalledWith('contar_ventas_jornada', { p_vendedor_id: 'user-1' })
 })

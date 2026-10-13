@@ -4,6 +4,8 @@ import type { TipoEmpaque } from '../../types'
 import type { StockEnvases } from '../bodega/types'
 import type {
   EnvaseDisponible,
+  IncidenciaProduccion,
+  NuevaIncidenciaProduccion,
   MermaProduccion,
   NuevaMermaProduccion,
   NuevaProduccion,
@@ -149,4 +151,25 @@ export function subscribeProduccion(sucursalId: string, onChange: () => void): (
     .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
     .subscribe()
   return () => { void supabase.removeChannel(canal) }
+}
+
+export async function obtenerIncidencias(sucursalId: string): Promise<IncidenciaProduccion[]> {
+  try {
+    const { data, error } = await supabase.from('incidencias_produccion')
+      .select('*').eq('sucursal_id' as never, sucursalId)
+      .order('creado_en', { ascending: false }).limit(30).returns<IncidenciaProduccion[]>()
+    if (error) throw new Error(mensajeErrorSupabase(error))
+    return data ?? []
+  } catch (error: unknown) {
+    throw new Error(mensajeErrorSupabase(error), { cause: error })
+  }
+}
+
+export async function registrarIncidencia(datos: NuevaIncidenciaProduccion): Promise<string | null> {
+  try {
+    const { error } = await supabase.from('incidencias_produccion').insert([datos] as never[])
+    return error ? mensajeErrorSupabase(error) : null
+  } catch (error: unknown) {
+    return mensajeErrorSupabase(error)
+  }
 }

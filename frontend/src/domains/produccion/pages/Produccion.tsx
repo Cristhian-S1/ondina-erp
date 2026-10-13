@@ -7,6 +7,7 @@ import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } f
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import type { TipoEmpaque } from '../../../types'
 import {
+  registrarIncidencia,
   registrarMerma,
   registrarProduccion,
 } from '../api'
@@ -47,6 +48,7 @@ function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState<string | null>(null)
   
+  const [descripcionIncidencia, setDescripcionIncidencia] = useState('')
   const [productoMermaId, setProductoMermaId] = useState('')
   const [cantidadMerma, setCantidadMerma] = useState('')
   const [motivoMerma, setMotivoMerma] = useState('')
@@ -61,7 +63,7 @@ function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
   }, [seccion])
 
   const consulta = useDatosProduccion(perfil?.id ?? '', sucursalId)
-  const { productos = [], empaques = [], producciones = [], mermas = [], envases = [] } = consulta.data ?? {}
+  const { productos = [], empaques = [], producciones = [], mermas = [], incidencias = [], envases = [] } = consulta.data ?? {}
   const cargando = consulta.isLoading
   const errorLectura = consulta.error ? 'No fue posible cargar los datos de producción. Inténtalo de nuevo con Actualizar.' : null
   const versionDatos = consulta.dataUpdatedAt
@@ -89,6 +91,28 @@ function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
     setCantidad('')
     setObservaciones('')
     setExito('Producción registrada. Las existencias se actualizaron automáticamente.')
+    await cargarDatos()
+  }
+
+  async function guardarIncidencia(event: FormEvent) {
+    event.preventDefault()
+    if (!perfil || !sucursalId) return
+    const descripcion = descripcionIncidencia.trim()
+    if (!descripcion || descripcion.length > 1000) {
+      setError('Describe la incidencia en un máximo de 1000 caracteres.')
+      return
+    }
+    setGuardando(true)
+    setError(null)
+    setExito(null)
+    const mensaje = await registrarIncidencia({
+      sucursal_id: sucursalId, produccion_id: null, descripcion, creado_por: perfil.id,
+    })
+    if (!vigente.current) return
+    setGuardando(false)
+    if (mensaje) return setError(mensaje)
+    setDescripcionIncidencia('')
+    setExito('Incidencia registrada. Las existencias se mantienen.')
     await cargarDatos()
   }
 
@@ -182,6 +206,25 @@ function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
       )}
 
       {!cargando && seccion === 'incidencias' && (
+        <div className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(18rem,24rem)_1fr]">
+            <form className={`${cardCls} space-y-4 p-5`} onSubmit={(event) => void guardarIncidencia(event)}>
+              <h2 className="font-semibold text-slate-900">Incidencia descriptiva</h2>
+              <p className="text-sm text-slate-500">Registra una observación del turno. Esta incidencia no cambia las existencias; si hubo pérdida, registra una merma en la sección siguiente.</p>
+              <label className={labelCls}>Descripción de la incidencia
+                <textarea className={inputCls} rows={4} maxLength={1000} value={descripcionIncidencia} onChange={(event) => setDescripcionIncidencia(event.target.value)} />
+              </label>
+              <button disabled={guardando || !!errorLectura} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar incidencia'}</button>
+            </form>
+            {!errorLectura && <section className={cardCls}>
+              <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Incidencias recientes</h2>
+              {incidencias.length === 0 ? <EstadoVacio texto="No hay incidencias registradas." /> :
+                <ul className="divide-y divide-slate-100">{incidencias.map((item) => <li key={item.id} className="space-y-1 px-5 py-4">
+                  <p className="text-xs text-slate-500">{new Date(item.creado_en).toLocaleString('es-CL', { timeZone: 'America/Santiago' })}</p>
+                  <p className="whitespace-pre-wrap text-sm">{item.descripcion}</p>
+                </li>)}</ul>}
+            </section>}
+          </div>
         <div className="grid gap-6 xl:grid-cols-[minmax(18rem,24rem)_1fr]">
           <form
             className={`${cardCls} space-y-4 p-5`}
@@ -302,6 +345,7 @@ function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
               </div>
             )}
           </section>}
+        </div>
         </div>
       )}
 

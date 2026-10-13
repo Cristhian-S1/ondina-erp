@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import {
   corregirDevolucion,
@@ -10,8 +10,7 @@ import {
   obtenerEnvasesDespacho,
   obtenerStockEnvases,
   obtenerVendedores,
-  registrarDevolucionEnvases,
-  registrarDevolucionProductos,
+  registrarDevolucion,
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
@@ -92,6 +91,7 @@ export default function Devoluciones() {
     Record<string, { buenos: string; malos: string }>
   >({})
   const [enviando, setEnviando] = useState(false)
+  const intento = useRef<{ contenido: string; clave: string } | null>(null)
   const [versionLectura, setVersionLectura] = useState(0)
   const [errorLectura, setErrorLectura] = useState<string | null>(null)
   const [errorSucursales, setErrorSucursales] = useState<string | null>(null)
@@ -349,31 +349,24 @@ export default function Devoluciones() {
         return
       }
     } else {
-      if (lineasProducto.length > 0) {
-        const { error: err } = await registrarDevolucionProductos({
-          despacho_id: seleccionado,
-          creado_por: perfil.id,
-          lineas: lineasProducto,
-        })
-        if (err) {
-          setError(err)
-          setEnviando(false)
-          return
-        }
+      const payload = {
+        despacho_id: seleccionado,
+        creado_por: perfil.id,
+        lineas_producto: lineasProducto,
+        lineas_envase: lineasEnvase,
       }
-      if (lineasEnvase.length > 0) {
-        const { error: err } = await registrarDevolucionEnvases({
-          despacho_id: seleccionado,
-          creado_por: perfil.id,
-          lineas: lineasEnvase,
-        })
-        if (err) {
-          setError(err)
-          setEnviando(false)
-          return
-        }
+      const contenido = JSON.stringify([sucursalId, payload])
+      if (intento.current?.contenido !== contenido) {
+        intento.current = { contenido, clave: crypto.randomUUID() }
+      }
+      const { error: err } = await registrarDevolucion({ ...payload, idempotency_key: intento.current.clave })
+      if (err) {
+        setError(err)
+        setEnviando(false)
+        return
       }
     }
+    intento.current = null
 
     setEnviando(false)
     setProductoInputs({})

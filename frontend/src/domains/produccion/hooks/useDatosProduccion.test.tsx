@@ -7,6 +7,7 @@ import { subscribeProduccion } from '../api'
 
 vi.mock('../../../lib/catalog', () => ({ obtenerProductos: vi.fn().mockResolvedValue([]), obtenerTiposEmpaque: vi.fn().mockResolvedValue([]) }))
 vi.mock('../api', () => ({
+  obtenerIncidencias: vi.fn().mockResolvedValue([]),
   obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]), obtenerProducciones: vi.fn().mockResolvedValue([]),
   subscribeProduccion: vi.fn(() => vi.fn()),
 }))

@@ -1,18 +1,18 @@
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { obtenerProductos, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { obtenerEnvasesDisponibles, obtenerMermas, obtenerProducciones, subscribeProduccion } from '../api'
+import { obtenerEnvasesDisponibles, obtenerIncidencias, obtenerMermas, obtenerProducciones, subscribeProduccion } from '../api'
 
 export function useDatosProduccion(perfilId: string, sucursalId: string) {
   const queryClient = useQueryClient()
   const query = useQuery({
     queryKey: ['produccion', perfilId, sucursalId],
     queryFn: async () => {
-      const [productos, empaques, producciones, mermas] = await Promise.all([
-        obtenerProductos(true), obtenerTiposEmpaque(), obtenerProducciones(sucursalId), obtenerMermas(sucursalId),
+      const [productos, empaques, producciones, mermas, incidencias] = await Promise.all([
+        obtenerProductos(true), obtenerTiposEmpaque(), obtenerProducciones(sucursalId), obtenerMermas(sucursalId), obtenerIncidencias(sucursalId),
       ])
       const envases = await obtenerEnvasesDisponibles(sucursalId, empaques)
-      return { productos, empaques, producciones, mermas, envases }
+      return { productos, empaques, producciones, mermas, incidencias, envases }
     },
   })
   useEffect(() => {

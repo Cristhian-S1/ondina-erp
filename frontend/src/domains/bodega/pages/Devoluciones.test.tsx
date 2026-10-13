@@ -17,6 +17,7 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/domains/bodega/api')>()
   return {
     ...actual,
+    registrarDevolucion: vi.fn(),
     obtenerVendedores: vi.fn(),
     obtenerDespachos: vi.fn(),
     obtenerDetallesDespacho: vi.fn(),
@@ -157,4 +158,27 @@ it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado
   vi.mocked(api.obtenerDespachos).mockResolvedValue([])
   fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
   await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+})
+
+it('B3 · sends products and containers together and keeps the key after failure', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  vi.mocked(api.registrarDevolucion).mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.' }).mockResolvedValue({ error: null })
+  renderWithProviders(<Devoluciones />)
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/i }))
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad de envases buenos de Bandeja' }), { target: { value: '1' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  await waitFor(() => expect(api.registrarDevolucion).toHaveBeenCalledTimes(2))
+  const [first, second] = vi.mocked(api.registrarDevolucion).mock.calls.map(([args]) => args)
+  expect(first.lineas_producto).toEqual([{ producto_id: 'p-1', cantidad: 2 }])
+  expect(first.lineas_envase).toEqual([{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' }])
+  expect(second.idempotency_key).toBe(first.idempotency_key)
+  await waitFor(() => expect(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' })).toHaveValue(null))
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  await waitFor(() => expect(api.registrarDevolucion).toHaveBeenCalledTimes(3))
+  expect(vi.mocked(api.registrarDevolucion).mock.calls[2][0].idempotency_key).not.toBe(first.idempotency_key)
 })
