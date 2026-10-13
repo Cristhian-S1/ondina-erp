@@ -17,7 +17,7 @@ Dashboard paths can change between Supabase releases. Confirm them in the curren
 
 | Setting | Local value (`config.toml`) | Remote dashboard | Done |
 | --- | --- | --- | --- |
-| New sign-ups | Off (`[auth].enable_signup = false`, `[auth.email].enable_signup = false`) | Authentication → Sign In / Providers → Email: disable "Allow new users to sign up". Accounts are created by an administrator. | ☐ |
+| New sign-ups | Off (`[auth].enable_signup = false`; `[auth.email].enable_signup` stays `true` because locally it switches the whole email provider, including login) | Authentication → Sign In / Providers: disable "Allow new users to sign up" while keeping the Email provider enabled. Accounts are created by an administrator. | ☐ |
 | Email confirmation | On (`[auth.email].enable_confirmations = true`) | Authentication → Sign In / Providers → Email: "Confirm email" on. | ☐ |
 | Minimum password length | 10 (`minimum_password_length = 10`) | Authentication → Policies: minimum length 10. | ☐ |
 | Password requirements | `lower_upper_letters_digits` | Authentication → Policies: lowercase, uppercase, letters and digits. | ☐ |
