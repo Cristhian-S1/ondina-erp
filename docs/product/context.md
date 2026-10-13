@@ -45,7 +45,7 @@ Los detalles y permisos exigidos están en [requisitos](requirements.md) y [hist
 | Gastos | Comprobantes, patente y rendición por jornada; no mezclar ingresos de ventas con egresos. |
 | Pago y catálogo | Efectivo/transferencia frente a referencias a tarjeta; tipos de productos y envases inconsistentes en fuentes antiguas. |
 | Ajuste de despacho | RF-13 dice 10–15 minutos, el levantamiento 15–20 y RNF-15/HU-26 10–20. Mantener la ventana configurable y la suma sin edición; confirmar el valor acordado. |
-| Offline y cierre | RNF-01 pide operación sin conexión, pero HU-30 fue retirada; HU-18 de cierre también fue retirada. Ratificar la entrega sin reintroducirlas automáticamente. |
+| Offline y cierre | Decidido el 2026-10-13: RNF-01 se acota a conectividad intermitente y la captura offline completa queda fuera de alcance (ver [requisitos](requirements.md)); HU-18 (cierre diario) permanece retirada desde el 2026-08-01. No reintroducir ninguna de las dos sin una nueva historia. |
 | Supervisión | Confirmar si los encargados de área necesitan permisos/reportes adicionales a los cuatro roles. |
 
 Este documento consolida el problema, objetivos y asuntos útiles del levantamiento/plan inicial. Las decisiones no resueltas pertenecen a Beads (OND-4qp); eliminar un documento redundante no las convierte en requisitos aprobados.
