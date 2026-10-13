@@ -1,8 +1,12 @@
+import { lazy, Suspense } from 'react'
 import type { DomainModule } from '../../types/module'
 import { BoxIcon, RecycleIcon, TruckIcon } from '../../components/icons'
-import Despachos from './pages/Despachos'
-import Devoluciones from './pages/Devoluciones'
-import Stock from './pages/Stock'
+
+const pages = {
+  Despachos: lazy(() => import('./pages/Despachos')),
+  Devoluciones: lazy(() => import('./pages/Devoluciones')),
+  Stock: lazy(() => import('./pages/Stock')),
+}
 
 const bodegaModule: DomainModule = {
   name: 'bodega',
@@ -22,9 +26,9 @@ const bodegaModule: DomainModule = {
     { path: '/stock', label: 'Stock', icon: BoxIcon, roles: ['bodega', 'administrador'] },
   ],
   routes: [
-    { path: '/despachos', element: <Despachos /> },
-    { path: '/devoluciones', element: <Devoluciones /> },
-    { path: '/stock', element: <Stock /> },
+    { path: '/despachos', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Despachos /></Suspense> },
+    { path: '/devoluciones', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Devoluciones /></Suspense> },
+    { path: '/stock', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Stock /></Suspense> },
   ],
 }
 

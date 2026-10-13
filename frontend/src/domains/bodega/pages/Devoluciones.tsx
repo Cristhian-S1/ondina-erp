@@ -14,7 +14,7 @@ import {
   registrarDevolucionProductos,
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnPrimary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
@@ -92,6 +92,9 @@ export default function Devoluciones() {
     Record<string, { buenos: string; malos: string }>
   >({})
   const [enviando, setEnviando] = useState(false)
+  const [versionLectura, setVersionLectura] = useState(0)
+  const [errorLectura, setErrorLectura] = useState<string | null>(null)
+  const [errorSucursales, setErrorSucursales] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const tiposEmpaqueDevolvibles = useMemo(
@@ -102,55 +105,65 @@ export default function Devoluciones() {
   useEffect(() => {
     async function init() {
       const data = await obtenerSucursales()
+      setErrorSucursales(null)
       setSucursales(data)
-      setSucursalId(perfil?.sucursal_id ?? data[0]?.id ?? '')
+      setSucursalId((actual) => actual || perfil?.sucursal_id || data[0]?.id || '')
     }
-    void init()
-  }, [perfil])
+    void init().catch(() => {
+      setErrorSucursales('No fue posible cargar las sucursales. Inténtalo de nuevo.')
+      setCargando(false)
+    })
+  }, [perfil, versionLectura])
 
   const load = useCallback(async () => {
-    const [vendedoresData, productosData, empaquesData, despachosRaw, envasesStockRaw] =
-      await Promise.all([
-        obtenerVendedores(sucursalId),
-        obtenerProductos(true),
-        obtenerTiposEmpaque(),
-        obtenerDespachos(sucursalId),
-        obtenerStockEnvases(sucursalId),
+    try {
+      setErrorLectura(null)
+      const [vendedoresData, productosData, empaquesData, despachosRaw, envasesStockRaw] =
+        await Promise.all([
+          obtenerVendedores(sucursalId),
+          obtenerProductos(true),
+          obtenerTiposEmpaque(),
+          obtenerDespachos(sucursalId),
+          obtenerStockEnvases(sucursalId),
+        ])
+
+      const ids = despachosRaw.map((d) => d.id)
+      const [detalles, envases, dProd, dEnv, cargaRaw] = await Promise.all([
+        obtenerDetallesDespacho(ids),
+        obtenerEnvasesDespacho(ids),
+        obtenerDevolucionesProducto(ids),
+        obtenerDevolucionesEnvase(ids),
+        obtenerCargaVendedores(vendedoresData.map((v) => v.id)),
       ])
 
-    const ids = despachosRaw.map((d) => d.id)
-    const [detalles, envases, dProd, dEnv, cargaRaw] = await Promise.all([
-      obtenerDetallesDespacho(ids),
-      obtenerEnvasesDespacho(ids),
-      obtenerDevolucionesProducto(ids),
-      obtenerDevolucionesEnvase(ids),
-      obtenerCargaVendedores(vendedoresData.map((v) => v.id)),
-    ])
+      const nombreVendedor = (id: string) => {
+        const v = vendedoresData.find((x) => x.id === id)
+        return v ? `${v.nombres} ${v.apellidos}` : 'Desconocido'
+      }
 
-    const nombreVendedor = (id: string) => {
-      const v = vendedoresData.find((x) => x.id === id)
-      return v ? `${v.nombres} ${v.apellidos}` : 'Desconocido'
+      setProductos(productosData)
+      setTiposEmpaque(empaquesData)
+      setVendedores(vendedoresData)
+      setDespachos(
+        despachosRaw.map((d) => ({
+          ...d,
+          totalUnidades: detalles
+            .filter((x) => x.despacho_id === d.id)
+            .reduce((sum, x) => sum + x.cantidad, 0),
+          vendedorNombre: nombreVendedor(d.vendedor_id),
+        })),
+      )
+      setDespachoDetalles(detalles)
+      setDespachoEnvases(envases)
+      setDesvProducto(dProd)
+      setDesvEnvase(dEnv)
+      setStockEnvases(envasesStockRaw)
+      setCargaVendedor(cargaRaw)
+    } catch {
+      setErrorLectura('No fue posible cargar las devoluciones. Inténtalo de nuevo.')
+    } finally {
+      setCargando(false)
     }
-
-    setProductos(productosData)
-    setTiposEmpaque(empaquesData)
-    setVendedores(vendedoresData)
-    setDespachos(
-      despachosRaw.map((d) => ({
-        ...d,
-        totalUnidades: detalles
-          .filter((x) => x.despacho_id === d.id)
-          .reduce((sum, x) => sum + x.cantidad, 0),
-        vendedorNombre: nombreVendedor(d.vendedor_id),
-      })),
-    )
-    setDespachoDetalles(detalles)
-    setDespachoEnvases(envases)
-    setDesvProducto(dProd)
-    setDesvEnvase(dEnv)
-    setStockEnvases(envasesStockRaw)
-    setCargaVendedor(cargaRaw)
-    setCargando(false)
   }, [sucursalId])
 
   useEffect(() => {
@@ -158,7 +171,7 @@ export default function Devoluciones() {
       await load()
     }
     void cargar()
-  }, [load])
+  }, [load, versionLectura])
 
   const diaObjetivo = useMemo(() => {
     if (diaFiltro === 'fecha') return fechaSeleccionada
@@ -366,6 +379,15 @@ export default function Devoluciones() {
     setProductoInputs({})
     setEnvaseInputs({})
     await load()
+  }
+
+  if (errorSucursales || errorLectura) {
+    return (
+      <div className="space-y-3">
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorSucursales ?? errorLectura}</p>
+        <button type="button" className={btnSecondary} onClick={() => setVersionLectura((actual) => actual + 1)}>Reintentar</button>
+      </div>
+    )
   }
 
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
@@ -579,6 +601,7 @@ export default function Devoluciones() {
                                 <td className={`${tdCls} text-right`}>
                                   {editarProductos ? (
                                     <input
+                                      aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
                                       type="number"
                                       inputMode="numeric"
                                       min={0}
@@ -649,6 +672,7 @@ export default function Devoluciones() {
                               <td className={`${tdCls} text-right`}>
                                 {editarEnvases ? (
                                   <input
+                                    aria-label={`Cantidad de envases buenos de ${t.nombre}`}
                                     type="number"
                                     inputMode="numeric"
                                     min={0}
@@ -672,6 +696,7 @@ export default function Devoluciones() {
                               <td className={`${tdCls} text-right`}>
                                 {editarEnvases ? (
                                   <input
+                                    aria-label={`Cantidad de envases malos de ${t.nombre}`}
                                     type="number"
                                     inputMode="numeric"
                                     min={0}

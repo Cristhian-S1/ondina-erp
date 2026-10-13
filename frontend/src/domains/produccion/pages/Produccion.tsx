@@ -34,6 +34,7 @@ export default function Produccion() {
   const [observaciones, setObservaciones] = useState('')
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
+  const [errorLectura, setErrorLectura] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState<string | null>(null)
   const [versionDatos, setVersionDatos] = useState(0)
@@ -57,6 +58,7 @@ export default function Produccion() {
     setCargando(true)
     setError(null)
     try {
+      setErrorLectura(null)
       const [productosData, empaquesData, produccionesData, mermasData] = await Promise.all([
         obtenerProductos(true),
         obtenerTiposEmpaque(),
@@ -70,8 +72,8 @@ export default function Produccion() {
       setMermas(mermasData)
       setEnvases(envasesData)
       setVersionDatos((version) => version + 1)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No fue posible cargar producción.')
+    } catch {
+      setErrorLectura('No fue posible cargar los datos de producción. Inténtalo de nuevo con Actualizar.')
     } finally {
       setCargando(false)
     }
@@ -185,6 +187,7 @@ export default function Produccion() {
         <button type="button" className={btnSecondary} onClick={() => void cargarDatos()}>Actualizar</button>
       </header>
 
+      {errorLectura && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{errorLectura}</p>}
       {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {exito && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{exito}</p>}
       {cargando ? <p className="text-sm text-slate-500">Cargando información...</p> : null}
@@ -208,9 +211,9 @@ export default function Produccion() {
             </label>
             <label className={labelCls}>Cantidad<input className={inputCls} type="text" inputMode="numeric" placeholder="" value={cantidad} onChange={(event) => setCantidad(formatMilesInput(event.target.value))} /></label>
             <label className={labelCls}>Observaciones (opcional)<textarea className={inputCls} rows={3} maxLength={1000} value={observaciones} onChange={(event) => setObservaciones(event.target.value)} /></label>
-            <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
+            <button disabled={guardando || !!errorLectura} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
           </form>
-          <TablaProducciones registros={producciones} nombreProducto={nombreProducto} />
+          {!errorLectura && <TablaProducciones registros={producciones} nombreProducto={nombreProducto} />}
         </div>
       )}
 
@@ -278,14 +281,14 @@ export default function Produccion() {
             </label>
 
             <button
-              disabled={guardando}
+              disabled={guardando || !!errorLectura}
               className={btnPrimary}
             >
               {guardando ? 'Registrando...' : 'Registrar merma'}
             </button>
           </form>
 
-          <section className={cardCls}>
+          {!errorLectura && <section className={cardCls}>
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="font-semibold">
                 Mermas recientes
@@ -334,13 +337,13 @@ export default function Produccion() {
                 </table>
               </div>
             )}
-          </section>
+          </section>}
         </div>
       )}
 
-      {!cargando && seccion === 'envases' && <TablaEnvases envases={envases} empaques={empaques} />}
-      {!cargando && seccion === 'historial' && <HistorialProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
-      {!cargando && seccion === 'indicadores' && <IndicadoresProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
+      {!cargando && !errorLectura && seccion === 'envases' && <TablaEnvases envases={envases} empaques={empaques} />}
+      {!cargando && !errorLectura && seccion === 'historial' && <HistorialProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
+      {!cargando && !errorLectura && seccion === 'indicadores' && <IndicadoresProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
     </div>
   )
 }

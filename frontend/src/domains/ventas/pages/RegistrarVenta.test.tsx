@@ -176,3 +176,25 @@ describe('HU-01 · RegistrarVenta — Toast sin productos válidos', () => {
     })
   })
 })
+
+
+it('FE-10 · nombra los campos de cantidad y precio con su producto', async () => {
+  await renderForm()
+  expect(screen.getByRole('textbox', { name: 'Cantidad de Bidón POL' })).toBeInTheDocument()
+  expect(screen.getByRole('textbox', { name: 'Precio unitario de Bidón POL' })).toBeInTheDocument()
+})
+
+
+it.each(['obtenerClientesRuta', 'obtenerProductosVenta', 'obtenerCargaVendedor'] as const)(
+  'FE-05 · conserva el formulario y bloquea la venta si falla %s', async (servicio) => {
+    setup()
+    vi.mocked(api[servicio]).mockRejectedValue(new Error('Fallo de consulta'))
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los datos de la venta')
+    const cantidad = screen.getAllByRole('textbox', { name: /Cantidad de/ })[0]
+    fireEvent.change(cantidad, { target: { value: '7' } })
+    expect(cantidad).toHaveValue('7')
+    expect(screen.getByRole('button', { name: 'Confirmar venta' })).toBeDisabled()
+    expect(api.registrarVenta).not.toHaveBeenCalled()
+  },
+)

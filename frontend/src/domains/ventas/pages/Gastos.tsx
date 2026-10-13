@@ -19,7 +19,7 @@ function fmtMonto(n: number) {
 }
 
 export default function Gastos() {
-  const { data, isLoading } = useGastosHoy()
+  const { data, isLoading, error } = useGastosHoy()
   const crear = useCrearGasto()
   const { toast, mostrar, cerrar } = useToast()
 
@@ -134,11 +134,13 @@ export default function Gastos() {
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-base font-semibold text-slate-900">Gastos de hoy</h2>
           <span className="text-sm font-semibold text-slate-700">
-            Total: {fmtMonto(totalHoy)}
+            {error || isLoading ? 'Total: —' : `Total: ${fmtMonto(totalHoy)}`}
           </span>
         </div>
         {isLoading ? (
           <p className="px-5 py-8 text-center text-sm text-slate-500">Cargando...</p>
+        ) : error ? (
+          <p role="alert" className="px-5 py-8 text-center text-sm text-red-600">No fue posible cargar los gastos de hoy. Inténtalo de nuevo.</p>
         ) : !data || data.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-slate-500">
             No has registrado gastos hoy.

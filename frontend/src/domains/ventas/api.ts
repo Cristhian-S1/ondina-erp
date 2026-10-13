@@ -14,7 +14,7 @@ import type {
 
 // --- HU-04: clientes de la ruta ---
 export async function obtenerClientesRuta(perfil: Perfil): Promise<ClienteCartera[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('clientes')
     .select(
       'id, nombre, telefono, direccion, numero_local, tipo, activo, creado_en',
@@ -23,6 +23,7 @@ export async function obtenerClientesRuta(perfil: Perfil): Promise<ClienteCarter
     .eq('activo', true)
     .order('nombre', { ascending: true })
     .returns<ClienteCartera[]>()
+  if (error) throw new Error('No fue posible cargar los clientes de tu ruta. Inténtalo de nuevo.')
   return data ?? []
 }
 
@@ -60,7 +61,7 @@ export async function obtenerVendedoresSucursal(
   sucursalId?: string,
 ): Promise<Pick<Perfil, 'id' | 'nombres' | 'apellidos'>[]> {
   if (!sucursalId) return []
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('perfiles')
     .select('id, nombres, apellidos')
     .eq('sucursal_id', sucursalId)
@@ -68,12 +69,13 @@ export async function obtenerVendedoresSucursal(
     .eq('activo', true)
     .order('nombres')
     .returns<Pick<Perfil, 'id' | 'nombres' | 'apellidos'>[]>()
+  if (error) throw new Error('No fue posible cargar los vendedores. Inténtalo de nuevo.')
   return data ?? []
 }
 
 // --- HU-01: productos para el formulario de venta ---
 export async function obtenerProductosVenta(): Promise<ProductoVenta[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('productos')
     .select(
       'id, nombre, tipo, tipo_empaque_id, precio_base, activo, creado_en, tipos_empaque(id, nombre, categoria)',
@@ -81,18 +83,20 @@ export async function obtenerProductosVenta(): Promise<ProductoVenta[]> {
     .eq('activo', true)
     .order('nombre')
     .returns<ProductoVenta[]>()
+  if (error) throw new Error('No fue posible cargar los productos para la venta. Inténtalo de nuevo.')
   return data ?? []
 }
 
 // --- HU-03: carga del vendedor ---
 export async function obtenerCargaVendedor(perfil: Perfil): Promise<CargaVendedor[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('carga_vendedor')
     .select(
       'producto_id, vendedor_id, cantidad, modificado_en, producto:productos(id, nombre, tipo, precio_base)',
     )
     .eq('vendedor_id', perfil.id)
     .returns<CargaVendedor[]>()
+  if (error) throw new Error('No fue posible cargar tu carga. Inténtalo de nuevo.')
   return data ?? []
 }
 
@@ -103,7 +107,7 @@ export async function obtenerGastosHoy(perfil: Perfil): Promise<GastoExtra[]> {
   const fin = new Date(inicio)
   fin.setDate(fin.getDate() + 1)
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('gastos_extras')
     .select('id, tipo, monto, motivo, creado_en, anulado, vendedor_id, sucursal_id')
     .eq('vendedor_id', perfil.id)
@@ -111,6 +115,7 @@ export async function obtenerGastosHoy(perfil: Perfil): Promise<GastoExtra[]> {
     .lt('creado_en', fin.toISOString())
     .order('creado_en', { ascending: false })
     .returns<GastoExtra[]>()
+  if (error) throw new Error('No fue posible cargar los gastos de hoy. Inténtalo de nuevo.')
   return data ?? []
 }
 

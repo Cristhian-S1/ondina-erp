@@ -2,6 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock del cliente Supabase compartido para los servicios del dominio.
 const mock = vi.hoisted(() => {
+  let readResult: { data: unknown[] | null; error: { message: string } | null; count: number | null } = { data: [], error: null, count: 0 }
+  const query = {
+    select: vi.fn(() => query), eq: vi.fn(() => query), order: vi.fn(() => query),
+    gte: vi.fn(() => query), lt: vi.fn(() => query),
+    returns: () => Promise.resolve(readResult),
+    then: (resolve: (value: typeof readResult) => unknown) => Promise.resolve(readResult).then(resolve),
+  }
   let insertResult: { error: { message: string } | null } = { error: null }
   let rpcResult: { data: unknown; error: { message: string } | null } = {
     data: 'venta-uuid',
@@ -12,6 +19,7 @@ const mock = vi.hoisted(() => {
   return {
     supabase: {
       from: vi.fn(() => ({
+        ...query,
         insert: (payload: unknown) => {
           insertSpy(payload)
           return Promise.resolve(insertResult)
@@ -24,7 +32,9 @@ const mock = vi.hoisted(() => {
     },
     insertSpy,
     rpcSpy,
+    setReadResult: (error: boolean) => { readResult = { data: null, error: error ? { message: 'private SQL detail' } : null, count: null } },
     reset: () => {
+      readResult = { data: [], error: null, count: 0 }
       insertResult = { error: null }
       rpcResult = { data: 'venta-uuid', error: null }
       insertSpy.mockClear()
@@ -41,7 +51,7 @@ const mock = vi.hoisted(() => {
 
 vi.mock('@/lib/supabase', () => ({ supabase: mock.supabase }))
 
-import { crearCliente, crearGasto, registrarVenta } from './api'
+import { crearCliente, crearGasto, registrarVenta, obtenerClientesRuta, obtenerVendedoresSucursal, obtenerProductosVenta, obtenerCargaVendedor, obtenerGastosHoy, obtenerMiComision, obtenerCantidadVentasJornada, obtenerRankingVendedores } from './api'
 import type { Perfil } from '@/types'
 
 const perfil: Perfil = {
@@ -122,5 +132,33 @@ describe('HU-01 · registrarVenta', () => {
     })
     expect(res.id).toBeNull()
     expect(res.error).toBe('No tienes carga suficiente de uno de los productos.')
+  })
+})
+
+describe('FE-05 · lecturas de ventas', () => {
+  const lecturas = [
+    ['clientes', () => obtenerClientesRuta(perfil)],
+    ['vendedores', () => obtenerVendedoresSucursal('suc-1')],
+    ['productos', () => obtenerProductosVenta()],
+    ['carga', () => obtenerCargaVendedor(perfil)],
+    ['gastos', () => obtenerGastosHoy(perfil)],
+    ['comisión', () => obtenerMiComision(perfil.id)],
+    ['ranking', () => obtenerRankingVendedores('2026-01')],
+  ] as const
+
+  it.each(lecturas)('propaga un mensaje seguro si falla %s', async (_nombre, leer) => {
+    mock.setReadResult(true)
+    await expect(leer()).rejects.toThrow(/^No fue posible/)
+    await expect(leer()).rejects.not.toThrow('private SQL detail')
+  })
+
+  it.each(lecturas)('retorna [] para una lectura vacía real de %s', async (_nombre, leer) => {
+    mock.setReadResult(false)
+    await expect(leer()).resolves.toEqual([])
+  })
+
+  it('propaga el error de conteo en lugar de mostrar cero ventas', async () => {
+    mock.setReadResult(true)
+    await expect(obtenerCantidadVentasJornada(perfil.id)).rejects.toThrow('No fue posible')
   })
 })

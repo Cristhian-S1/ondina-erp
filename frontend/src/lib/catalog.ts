@@ -6,26 +6,29 @@ export async function obtenerProductos(
 ): Promise<Producto[]> {
   let query = supabase.from('productos').select('*')
   if (!incluirInactivos) query = query.eq('activo', true)
-  const { data } = await query.order('nombre').returns<Producto[]>()
+  const { data, error } = await query.order('nombre').returns<Producto[]>()
+  if (error) throw new Error('No fue posible cargar los productos. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerTiposEmpaque(): Promise<TipoEmpaque[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('tipos_empaque')
     .select('*')
     .eq('activo', true)
     .order('nombre')
     .returns<TipoEmpaque[]>()
+  if (error) throw new Error('No fue posible cargar los tipos de empaque. Inténtalo de nuevo.')
   return data ?? []
 }
 
 export async function obtenerSucursales(): Promise<Sucursal[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('sucursales')
     .select('*')
     .eq('activa', true)
     .order('nombre')
     .returns<Sucursal[]>()
+  if (error) throw new Error('No fue posible cargar las sucursales. Inténtalo de nuevo.')
   return data ?? []
 }
