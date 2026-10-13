@@ -1,61 +1,37 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerCantidadVentasJornada, obtenerMiComision } from '../api'
-
-//h
-interface ComisionVendedor {
-  vendedor_id: string
-  jornada: string
-  tipo: 'agua' | 'hielo'
-  base_comision: number
-  porcentaje: number | null
-  monto_fijo: number | null
-  ventas_del_tipo: number
-  comision: number
-}
 
 export default function MiComision() {
   const { perfil } = useAuth()
 
-  const [comisiones, setComisiones] = useState<ComisionVendedor[]>([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [totalVentas, setTotalVentas] = useState(0)
-
-  useEffect(() => {
-    async function cargarComision(): Promise<void> {
-      if (!perfil) {
-        setCargando(false)
-        return
-      }
-
-      try {
-        setCargando(true)
-        setError(null)
-
-        const [data, cantidadVentas] = await Promise.all([
-          obtenerMiComision(perfil.id),
-          obtenerCantidadVentasJornada(perfil.id),
-        ])
-
-        setComisiones(data)
-        setTotalVentas(cantidadVentas)
-      } catch {
-        setError('No fue posible cargar tu comisión.')
-      } finally {
-        setCargando(false)
-      }
-    }
-
-    void cargarComision()
-  }, [perfil])
+  const query = useQuery({
+    queryKey: ['mi-comision', perfil?.id, perfil?.sucursal_id],
+    queryFn: async () => {
+      const [comisiones, totalVentas] = await Promise.all([
+        obtenerMiComision(perfil!.id), obtenerCantidadVentasJornada(perfil!.id),
+      ])
+      return { comisiones, totalVentas }
+    },
+    enabled: !!perfil,
+    // FE-07: refresh on return after sales recorded in other screens or sessions.
+    staleTime: 30_000,
+    refetchOnWindowFocus: 'always',
+  })
+  const comisiones = query.data?.comisiones ?? []
+  const totalVentas = query.data?.totalVentas ?? 0
+  const cargando = query.isLoading
+  const error = query.isError ? 'No fue posible cargar tu comisión.' : null
 
   if (cargando) {
     return <p className="text-sm text-slate-500">Cargando comisión...</p>
   }
 
   if (error) {
-    return <p className="text-sm text-red-600">{error}</p>
+    return <div role="alert" className="text-sm text-red-600">
+      <p>{error}</p>
+      <button type="button" className="mt-2 min-h-11 min-w-11 rounded-lg border px-4" onClick={() => void query.refetch()}>Reintentar</button>
+    </div>
   }
 
   const jornadaActual = new Intl.DateTimeFormat('en-CA', {

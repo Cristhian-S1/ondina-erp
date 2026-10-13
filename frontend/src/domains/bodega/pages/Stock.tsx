@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerStockBodega, obtenerStockEnvases } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
 import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
-import type { StockBodega, StockEnvases } from '../types'
 
 type Tab = 'productos' | 'envases'
 
@@ -55,14 +55,31 @@ export default function Stock() {
   const [sucursalId, setSucursalId] = useState('')
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
-  const [stockBodega, setStockBodega] = useState<StockBodega[]>([])
-  const [stockEnvases, setStockEnvases] = useState<StockEnvases[]>([])
   const [cargando, setCargando] = useState(true)
-  const [refrescando, setRefrescando] = useState(false)
 
-  const [version, setVersion] = useState(0)
+  const [version, updateVersion] = useState(0)
   const [errorCatalogo, setErrorCatalogo] = useState<string | null>(null)
-  const [errorStock, setErrorStock] = useState<string | null>(null)
+  const stockQuery = useQuery({
+    queryKey: ['stock', perfil?.id, sucursalId],
+    queryFn: async () => {
+      const [stockBodega, stockEnvases] = await Promise.all([
+        obtenerStockBodega(sucursalId), obtenerStockEnvases(sucursalId),
+      ])
+      return { stockBodega, stockEnvases }
+    },
+    enabled: !!perfil && !!sucursalId,
+    // FE-07: refresh on return after stock movements made in other screens or sessions.
+    staleTime: 30_000,
+    refetchOnWindowFocus: 'always',
+  })
+  const stockBodega = stockQuery.data?.stockBodega ?? []
+  const stockEnvases = stockQuery.data?.stockEnvases ?? []
+  const refrescando = stockQuery.isFetching
+  const errorStock = stockQuery.isError ? 'No fue posible cargar el stock. Inténtalo de nuevo con Actualizar.' : null
+  const setVersion: typeof updateVersion = (next) => {
+    updateVersion(next)
+    if (perfil && sucursalId) void stockQuery.refetch()
+  }
 
   useEffect(() => {
     let vigente = true
@@ -88,36 +105,6 @@ export default function Stock() {
     })
     return () => { vigente = false }
   }, [perfil, version])
-
-  useEffect(() => {
-    let vigente = true
-    async function cargar() {
-      if (!sucursalId) {
-        setStockBodega([])
-        setStockEnvases([])
-        setErrorStock(null)
-        setRefrescando(false)
-        return
-      }
-      setRefrescando(true)
-      setErrorStock(null)
-      try {
-        const [sb, se] = await Promise.all([
-          obtenerStockBodega(sucursalId), obtenerStockEnvases(sucursalId),
-        ])
-        if (vigente) {
-          setStockBodega(sb)
-          setStockEnvases(se)
-        }
-      } catch {
-        if (vigente) setErrorStock('No fue posible cargar el stock. Inténtalo de nuevo con Actualizar.')
-      } finally {
-        if (vigente) setRefrescando(false)
-      }
-    }
-    void cargar()
-    return () => { vigente = false }
-  }, [sucursalId, version])
 
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 

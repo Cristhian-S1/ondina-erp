@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import Stock from './Stock'
+import { focusManager } from '@tanstack/react-query'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('@/lib/catalog', async (importOriginal) => {
@@ -68,9 +69,18 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  focusManager.setFocused(undefined)
 })
 
 describe('HU-13 · Stock', () => {
+  it('FE-07 · refreshes stock when the app regains focus, even within staleTime', async () => {
+    vi.mocked(api.obtenerStockBodega).mockResolvedValueOnce(stockProductos)
+      .mockResolvedValue([{ ...stockProductos[0], cantidad: 45 }])
+    renderWithProviders(<Stock />)
+    expect(await screen.findByText('30')).toBeInTheDocument()
+    await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+    expect(await screen.findByText('45')).toBeInTheDocument()
+  })
   it('muestra el estado vacío cuando no hay stock de productos', async () => {
     renderWithProviders(<Stock />)
     await waitFor(() => {
@@ -151,4 +161,7 @@ it('FE-06 · descarta la respuesta pendiente al quitar la sucursal y libera Actu
   await act(async () => { resolver(stockProductos) })
   expect(screen.getByRole('button', { name: 'Actualizar' })).toBeEnabled()
   expect(screen.queryByText('30')).not.toBeInTheDocument()
+  vi.mocked(api.obtenerStockBodega).mockClear()
+  fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
+  expect(api.obtenerStockBodega).not.toHaveBeenCalled()
 })

@@ -5,6 +5,7 @@
 // que no se mezcle con el menú del vendedor de ventas.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Dialog from '../../../components/Dialog'
 import { useAuth } from '../../../context/auth-context'
 import {
   crearDespacho,
@@ -745,21 +746,7 @@ export default function Despachos() {
         </aside>
       </div>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
-          <div className="max-h-full w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Nuevo despacho</h2>
-              <button
-                type="button"
-                className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                onClick={() => setModalOpen(false)}
-                aria-label="Cerrar"
-              >
-                ✕
-              </button>
-            </div>
-
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo despacho">
             <label className={labelCls}>
               Vendedor
               <select
@@ -930,9 +917,7 @@ export default function Despachos() {
                 {enviando ? 'Registrando...' : 'Registrar despacho'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   )
 }

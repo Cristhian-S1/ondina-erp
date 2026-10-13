@@ -11,6 +11,7 @@ import '@mantine/dates/styles.css'
 
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthProvider.tsx'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,16 +23,21 @@ const queryClient = new QueryClient({
   },
 })
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root')!, {
+  // The boundary logs only the correlation ID and name; suppress React's raw caught-error log.
+  onCaughtError: () => {},
+}).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <MantineProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </BrowserRouter>
-      </MantineProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <MantineProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+        </MantineProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )
