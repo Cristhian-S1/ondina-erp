@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { useAuth } from '../../../context/auth-context'
+import SucursalSelector from '../../../components/SucursalSelector'
+import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
 import { useClientesRuta } from '../hooks/useClientesRuta'
-import { btnPrimary, cardCls, fmtFecha, tdCls, thCls } from '../../../lib/ui'
+import { btnPrimary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import { PlusCircleIcon, UsersIcon } from '../../../components/icons'
 import RegistrarCliente from './RegistrarCliente'
 
@@ -17,7 +20,18 @@ const TIPO_CLASE: Record<string, string> = {
 }
 
 export default function Clientes() {
-  const { data, isLoading, error } = useClientesRuta()
+  const { perfil } = useAuth()
+  return <ClientesCartera key={`${perfil?.id}:${perfil?.rol}`} />
+}
+
+function ClientesCartera() {
+  const { perfil } = useAuth()
+  const esAdmin = perfil?.rol === 'administrador'
+  const [sucursalId, setSucursalId] = useState('')
+  const [vendedorId, setVendedorId] = useState('')
+  const vendedores = useVendedoresSucursal(sucursalId)
+  const { data, isLoading, error, refetch } = useClientesRuta(sucursalId, vendedorId)
+  const faltaSeleccion = esAdmin && (!sucursalId || !vendedorId)
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
@@ -27,15 +41,33 @@ export default function Clientes() {
           <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
           <p className="mt-1 text-sm text-slate-500">Cartera de clientes de tu ruta.</p>
         </div>
-        <button type="button" className={btnPrimary} onClick={() => setModalOpen(true)}>
+        <button type="button" className={btnPrimary} disabled={faltaSeleccion || (esAdmin && (!!vendedores.error || vendedores.isLoading))} onClick={() => setModalOpen(true)}>
           <PlusCircleIcon className="h-4 w-4" />
           Nuevo cliente
         </button>
       </div>
 
-      {error ? (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+      {esAdmin && <div className="grid gap-4 sm:grid-cols-2">
+        <SucursalSelector value={sucursalId} onChange={(id) => { setSucursalId(id); setVendedorId(''); setModalOpen(false) }} />
+        <div className="space-y-2">
+          <label className={labelCls}>Vendedor responsable
+            <select className={inputCls} value={vendedorId} disabled={!sucursalId || vendedores.isLoading || !!vendedores.error}
+              onChange={(event) => { setVendedorId(event.target.value); setModalOpen(false) }}>
+              <option value="">Selecciona un vendedor...</option>
+              {vendedores.data?.map((v) => <option key={v.id} value={v.id}>{v.nombres} {v.apellidos}</option>)}
+            </select>
+          </label>
+          {vendedores.isLoading && <p className="text-sm text-slate-500">Cargando vendedores...</p>}
+          {vendedores.error ? <div role="alert" className="text-sm text-red-600">No fue posible cargar los vendedores.
+            <button type="button" className={btnPrimary} onClick={() => void vendedores.refetch()}>Reintentar vendedores</button>
+          </div> : sucursalId && vendedores.isSuccess && vendedores.data.length === 0 && <p className="text-sm text-slate-500">No hay vendedores activos en esta sucursal.</p>}
+        </div>
+      </div>}
+
+      {faltaSeleccion ? <p className="text-sm text-slate-500">Selecciona una sucursal y un vendedor para consultar su cartera.</p> : error ? (
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
           No se pudo cargar tu cartera. Revisa tu conexión e inténtalo de nuevo.
+          <button type="button" className={btnPrimary} onClick={() => void refetch()}>Reintentar cartera</button>
         </p>
       ) : isLoading ? (
         <p className="text-sm text-slate-500">Cargando...</p>
@@ -135,7 +167,7 @@ export default function Clientes() {
         </>
       )}
 
-      <RegistrarCliente open={modalOpen} onClose={() => setModalOpen(false)} />
+      <RegistrarCliente key={`${sucursalId}:${vendedorId}`} open={modalOpen} onClose={() => setModalOpen(false)} sucursalId={sucursalId} vendedorId={vendedorId} onCreated={setVendedorId} />
     </div>
   )
 }

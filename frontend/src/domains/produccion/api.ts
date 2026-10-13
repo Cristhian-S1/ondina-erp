@@ -140,3 +140,13 @@ export async function registrarMerma(
     return mensajeErrorSupabase(error)
   }
 }
+
+export function subscribeProduccion(sucursalId: string, onChange: () => void): () => void {
+  const canal = supabase.channel(`produccion-${sucursalId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
+    // BD-12: mermas is not in the remote supabase_realtime publication yet; backend task B4 adds it.
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mermas', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
+    .subscribe()
+  return () => { void supabase.removeChannel(canal) }
+}
