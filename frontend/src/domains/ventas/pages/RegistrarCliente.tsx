@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import Dialog from '../../../components/Dialog'
 import SucursalSelector from '../../../components/SucursalSelector'
 import { useCrearCliente } from '../hooks/useCrearCliente'
 import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
@@ -91,24 +92,12 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+    <Dialog open={open} onClose={onClose} title="Nuevo cliente">
       <form
         onSubmit={(event) => void handleSubmit(onSubmit)(event)}
-        className="max-h-full w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-5 shadow-xl sm:p-6"
+        className="space-y-4"
         noValidate
       >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Nuevo cliente</h2>
-          <button
-            type="button"
-            className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
-            ✕
-          </button>
-        </div>
-
         {esAdmin && sucursalExterna === undefined && <SucursalSelector value={sucursalId} onChange={(id) => { setSucursalLocal(id); setValue('vendedor_id', '') }} disabled={crear.isPending} />}
         {esAdmin && !sucursalId && <p className="text-sm text-slate-500">Selecciona una sucursal y un vendedor para registrar el cliente.</p>}
         {esAdmin && (
@@ -210,6 +199,6 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         </div>
       </form>
       <Toast toast={toast} onClose={cerrar} />
-    </div>
+    </Dialog>
   )
 }

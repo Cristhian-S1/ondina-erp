@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { makePerfil, renderWithProviders } from '@/test/render'
 import Clientes from './Clientes'
 import * as api from '../api'
@@ -25,6 +25,26 @@ async function selectScope() {
 }
 
 describe('Administrator customer scope', () => {
+  it('keeps the selected seller in the dialog and restores focus after Escape', async () => {
+    renderWithProviders(<Clientes />, { perfil: admin })
+    await selectScope()
+    await screen.findByText('No tienes clientes en tu ruta.')
+    const opener = screen.getByRole('button', { name: 'Nuevo cliente' })
+    opener.focus()
+    fireEvent.click(opener)
+
+    const dialog = screen.getByRole('dialog', { name: 'Nuevo cliente' })
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    expect(within(dialog).getByRole('combobox', { name: 'Vendedor responsable' })).toHaveValue('v1')
+    expect(within(dialog).queryByRole('combobox', { name: 'Sucursal' })).not.toBeInTheDocument()
+    fireEvent(dialog, new Event('cancel', { cancelable: true }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
+    expect(screen.getByRole('combobox', { name: 'Sucursal' })).toHaveValue('s1')
+    expect(screen.getByRole('combobox', { name: 'Vendedor responsable' })).toHaveValue('v1')
+  })
+
   it('requires sucursal and vendedor before querying, even with an assigned branch', async () => {
     renderWithProviders(<Clientes />, { perfil: makePerfil({ rol: 'administrador' }) })
     expect(screen.getByText(/Selecciona una sucursal y un vendedor para consultar/)).toBeInTheDocument()
