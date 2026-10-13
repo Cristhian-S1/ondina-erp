@@ -21,13 +21,17 @@ values ('70000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-00000000
 SQL
 
 # Compare every public row and auth fixture, including balances, FK IDs and timestamps.
-cat > "$workspace_tmp/fingerprint.sql" <<'SQL'
-select format('select %L as relation, count(*) as rows, md5(coalesce(string_agg(to_jsonb(t)::text, %L order by to_jsonb(t)::text), %L)) as digest from %I.%I t;',
- n.nspname || '.' || c.relname, '', '', n.nspname, c.relname)
+# Freeze baseline column names, so new nullable/default columns do not hide or
+# falsely report changes to any existing field. New private metadata is tested
+# separately; no public business table is added by B3.
+psql_local -qAt <<'SQL' > "$workspace_tmp/fingerprint.sql"
+select format('select %L as relation, count(*) as rows, md5(coalesce(string_agg((select jsonb_object_agg(k,v) from jsonb_each(to_jsonb(t)) j(k,v) where k=any(%L::text[]))::text, %L order by to_jsonb(t)::text), %L)) as digest from %I.%I t;',
+ n.nspname||'.'||c.relname,
+ array(select a.attname from pg_attribute a where a.attrelid=c.oid and a.attnum>0 and not a.attisdropped)::text,
+ '', '', n.nspname,c.relname)
 from pg_class c join pg_namespace n on n.oid=c.relnamespace
 where (n.nspname='public' and c.relkind='r') or (n.nspname='auth' and c.relname='users')
-order by n.nspname,c.relname
-\gexec
+order by n.nspname,c.relname;
 SQL
 psql_local -qAt < "$workspace_tmp/fingerprint.sql" > "$workspace_tmp/before"
 psql_local < supabase/migrations/20261013000100_align_repo_design.sql
@@ -53,6 +57,17 @@ SQL
 for forward_migration in supabase/migrations/*.sql; do
   if [[ "$(basename "$forward_migration")" > "20261013000100_align_repo_design.sql" ]]; then
     psql_local < "$forward_migration"
+    if [[ "$(basename "$forward_migration")" == *b3_data_integrity.sql ]]; then
+      psql_local <<'SQL'
+do $$ begin
+ if exists(select 1 from public.ventas where not envases_en_planta or idempotency_key is not null)
+ or exists(select 1 from public.despachos where idempotency_key is not null)
+ or exists(select 1 from private.solicitudes_devolucion) then
+  raise exception 'B3 upgrade changed legacy movement provenance or created retry data';
+ end if;
+end $$;
+SQL
+    fi
     psql_local -qAt < "$workspace_tmp/fingerprint.sql" > "$workspace_tmp/forward"
     diff -u "$workspace_tmp/reapplied" "$workspace_tmp/forward"
     echo "PASS: $(basename "$forward_migration") preserved all row counts and content hashes."

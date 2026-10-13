@@ -74,13 +74,12 @@ select is((select count(*) from pg_class c where c.relnamespace='public'::regnam
 select ok(not exists(select 1 from pg_proc p where p.pronamespace in ('public'::regnamespace,'private'::regnamespace) and p.prorettype in ('trigger'::regtype,'event_trigger'::regtype) and has_function_privilege('authenticated',p.oid,'EXECUTE')), 'All public/private trigger helpers deny authenticated execution');
 select ok(not exists(select 1 from pg_proc p where p.pronamespace='public'::regnamespace
  and has_function_privilege('authenticated',p.oid,'EXECUTE')
- and p.proname not in ('registrar_venta','crear_despacho','corregir_devolucion')), 'Authenticated RPC allow-list has exactly the frontend endpoints');
+ and p.proname not in ('registrar_venta','crear_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada')), 'Authenticated RPC allow-list has exactly the frontend endpoints');
 select ok(not exists(select 1 from pg_proc p where p.pronamespace in ('public'::regnamespace,'private'::regnamespace)
  and p.prosecdef and not coalesce(p.proconfig @> array['search_path=""'],false)), 'Every definer has empty search_path');
 select is((select count(*) from pg_constraint where conname like '%_finito_b2' and not convalidated),8::bigint,'All eight finite-money checks remain NOT VALID for remote review');
 select ok(not has_table_privilege('authenticated','public.auditoria','SELECT')
- and not has_table_privilege('authenticated','public.configuracion','SELECT')
- and not has_table_privilege('authenticated','public.incidencias_produccion','SELECT'), 'Unused frontend tables have no API grants');
+ and not has_table_privilege('authenticated','public.configuracion','SELECT'), 'Unused frontend tables have no API grants');
 select ok(not has_table_privilege('authenticated','public.stock_bodega','UPDATE')
  and not has_table_privilege('authenticated','public.stock_envases','INSERT')
  and not has_table_privilege('authenticated','public.carga_vendedor','DELETE'), 'Balances are database-owned');
@@ -426,7 +425,8 @@ set local role authenticated;
 select lives_ok($sql$insert into public.despachos(id,sucursal_id,vendedor_id,despachador_id,creado_por,creado_en) values ('61000000-0000-0000-0000-000000000099','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0001-000000000004','20000000-0000-0000-0001-000000000002','20000000-0000-0000-0001-000000000002',clock_timestamp()+interval '1 day')$sql$, 'Dispatch accepts normal fields but stamps its own creation time');
 select ok((select creado_en < clock_timestamp()+interval '1 second' from public.despachos where id='61000000-0000-0000-0000-000000000099'),'Caller cannot extend the window with a future timestamp');
 reset role;
-delete from public.despachos where id='61000000-0000-0000-0000-000000000099';
+-- B3 retains history; this empty fixture can be annulled.
+update public.despachos set anulado=true where id='61000000-0000-0000-0000-000000000099';
 reset role;
 select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002',true);
 select set_config('request.jwt.claims',jsonb_build_object('sub','20000000-0000-0000-0001-000000000002','role','authenticated')::text,true);
@@ -480,9 +480,9 @@ set local role authenticated;
 select lives_ok($sql$insert into public.clientes(sucursal_id,vendedor_id,nombre,direccion,creado_por) values ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0001-000000000004','Admin authorized','Synthetic','20000000-0000-0000-0001-000000000001')$sql$, 'Scoped admin can create seller client in own branch');
 select lives_ok($sql$insert into public.gastos_extras(sucursal_id,vendedor_id,monto,motivo,creado_por) values ('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0001-000000000004',100,'Admin authorized','20000000-0000-0000-0001-000000000001')$sql$, 'Scoped admin can register expense in own branch');
 reset role;
-select ok(has_function_privilege('authenticated','public.registrar_venta(uuid,text,jsonb,numeric,text)','EXECUTE'),'Frontend endpoint remains callable: registrar_venta(uuid,text,jsonb,numeric,text)');
-select ok(has_function_privilege('authenticated','public.crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb)','EXECUTE'),'Frontend endpoint remains callable: crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb)');
-select ok(has_function_privilege('authenticated','public.corregir_devolucion(uuid,uuid,jsonb,jsonb)','EXECUTE'),'Frontend endpoint remains callable: corregir_devolucion(uuid,uuid,jsonb,jsonb)');
+select ok(has_function_privilege('authenticated','public.registrar_venta(uuid,text,jsonb,numeric,text,uuid)','EXECUTE'),'Frontend endpoint remains callable: registrar_venta(uuid,text,jsonb,numeric,text)');
+select ok(has_function_privilege('authenticated','public.crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb,uuid)','EXECUTE'),'Frontend endpoint remains callable: crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb)');
+select ok(has_function_privilege('authenticated','public.corregir_devolucion(uuid,uuid,jsonb,jsonb,text)','EXECUTE'),'Frontend endpoint remains callable: corregir_devolucion(uuid,uuid,jsonb,jsonb)');
 create function public.b2_default_acl_probe() returns integer language sql as 'select 1';
 create table public.b2_default_acl_probe(id integer);
 select ok(not has_function_privilege('anon','public.b2_default_acl_probe()','EXECUTE') and not has_function_privilege('authenticated','public.b2_default_acl_probe()','EXECUTE'),'Future postgres functions have no implicit API execution');
@@ -511,6 +511,11 @@ select throws_ok($sql$select public.registrar_venta('50000000-0000-0000-0000-000
 select throws_ok($sql$select public.registrar_venta('50000000-0000-0000-0000-000000000001','efectivo','[{"producto_id":"40000000-0000-0000-0000-000000000001","cantidad":1,"precio_unitario":1000},{"producto_id":"40000000-0000-0000-0000-000000000001","cantidad":1,"precio_unitario":"-Infinity"}]'::jsonb,0)$sql$, 'P0001', 'El precio unitario debe ser un número finito.', 'RPC rejects -Infinity price with rollback');
 select throws_ok($sql$select public.registrar_venta('50000000-0000-0000-0000-000000000001','efectivo','[{"producto_id":"40000000-0000-0000-0000-000000000001","cantidad":1,"precio_unitario":1000}]'::jsonb,'-Infinity'::numeric)$sql$, 'P0001', 'El descuento debe ser un número finito.', 'RPC rejects -Infinity discount with rollback');
 reset role;
+-- B2 constraint probes intentionally bypass B3's earlier history guard.
+-- B3 separately verifies immutability. All constraint rejection probes must
+-- leave rows unchanged; successful rate boundary probes below are audited.
+alter table public.venta_detalles disable trigger proteger_movimiento_b3;
+alter table public.reglas_comision disable trigger regla_historica_b3;
 select throws_ok($sql$update public.ventas set total='NaN'::numeric where cliente_id='50000000-0000-0000-0000-000000000001'$sql$, '23514', null, 'ventas.total constraint/type rejects NaN');
 select throws_ok($sql$update public.ventas set total='Infinity'::numeric where cliente_id='50000000-0000-0000-0000-000000000001'$sql$, '22003', null, 'ventas.total constraint/type rejects Infinity');
 select throws_ok($sql$update public.ventas set total='-Infinity'::numeric where cliente_id='50000000-0000-0000-0000-000000000001'$sql$, '22003', null, 'ventas.total constraint/type rejects -Infinity');
@@ -540,14 +545,16 @@ select throws_ok($sql$update public.productos set precio_base='Infinity'::numeri
 select throws_ok($sql$update public.productos set precio_base='-Infinity'::numeric where true$sql$, '22003', null, 'productos.precio_base constraint/type rejects -Infinity');
 select ok(exists(select 1 from pg_constraint where conname='venta_detalles_subtotal_finito_b2'),'Generated subtotal is independently protected');
 select throws_ok($sql$update public.reglas_comision set porcentaje=100.01$sql$, '23514', null, 'Commission rejects >100');
-savepoint subtotal_check;
 alter table public.venta_detalles drop constraint venta_detalles_precio_unitario_finito_b2;
 select throws_ok($sql$update public.venta_detalles set precio_unitario='NaN'::numeric$sql$, '23514', 'new row for relation "venta_detalles" violates check constraint "venta_detalles_subtotal_finito_b2"', 'Generated subtotal rejects NaN independently');
-rollback to savepoint subtotal_check; release savepoint subtotal_check;
+alter table public.venta_detalles add constraint venta_detalles_precio_unitario_finito_b2 check(precio_unitario <> 'NaN'::numeric and precio_unitario <> 'Infinity'::numeric and precio_unitario <> '-Infinity'::numeric) not valid;
+select is(pg_temp.fingerprint(),(select digest from before_rejections),'All rejected monetary writes leave every public row unchanged');
 select lives_ok($sql$update public.reglas_comision set porcentaje=100$sql$, 'Commission allows 100 percent');
 select lives_ok($sql$update public.reglas_comision set porcentaje=0$sql$, 'Commission allows 0 percent');
 update public.reglas_comision set porcentaje=5;
-select is(pg_temp.fingerprint(),(select digest from before_rejections),'All rejected monetary writes leave every public row unchanged');
+alter table public.venta_detalles enable trigger proteger_movimiento_b3;
+alter table public.reglas_comision enable trigger regla_historica_b3;
+
 reset role;
 select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002',true);
 select set_config('request.jwt.claims',jsonb_build_object('sub','20000000-0000-0000-0001-000000000002','role','authenticated')::text,true);
@@ -558,7 +565,10 @@ select throws_ok($sql$update public.stock_bodega set cantidad=999 where sucursal
 select throws_ok($sql$update public.stock_envases set cantidad=999 where sucursal_id='10000000-0000-0000-0000-000000000001'$sql$, '42501', null, 'Warehouse cannot tamper with stock_envases');
 select throws_ok($sql$update public.carga_vendedor set cantidad=999 where vendedor_id='20000000-0000-0000-0001-000000000004'$sql$, '42501', null, 'Warehouse cannot tamper with seller load');
 reset role;
+-- Fixture aging only; API callers have no UPDATE grant.
+alter table public.despachos disable trigger proteger_movimiento_b3;
 update public.despachos set creado_en=clock_timestamp()-interval '1 hour' where id='61000000-0000-0000-0000-000000000001';
+alter table public.despachos enable trigger proteger_movimiento_b3;
 create temp table before_window as select pg_temp.fingerprint() as digest;
 reset role;
 select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002',true);

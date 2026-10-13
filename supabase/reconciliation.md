@@ -4,16 +4,18 @@
 
 This is B1 / OND-5gi.5, GitHub #28 and the SQL-execution foundation of #40, addressing BD-01..BD-03 and BACK-N8/N14. The coordinator supplied a read-only production dump and its migration ledger; this work never connected to that project. Production is also used by develop, so a branch name is not an isolation boundary.
 
-The active imperative chain has three versions:
+The active imperative chain has four versions:
 
 1. `20261013000000_remote_baseline.sql`: the supplied remote schema, including its `private` helpers, extensions, owners, RLS and grants. It already replays against a fresh CLI-created Supabase database. No SQL statements were removed; LF normalization, provenance comments and one explicit anon ACL reset were added. The reset removes CLI bootstrap default view privileges from `v_indicadores_produccion_diarios` to reproduce the supplied snapshot, which grants that view only to authenticated/service_role. No existing remote ACL is hardened by this baseline-only replay correction. Supabase creates Auth, Storage, platform roles and the `supabase_realtime` publication before application migrations. The baseline contains no production rows or credentials.
 2. `20261013000100_align_repo_design.sql`: missing historical objects and four production-policy replacements, with no DML/backfill. Existing installations skip the baseline through explicit ledger repair and execute only this delta and later reviewed migrations.
 
 3. `20261013181647_harden_database_security.sql`: B2 / OND-5gi.6, GitHub #27/#29/#30/#71. Hardens all public view security, application ACLs/defaults, active-profile/branch RLS, existing RPC authorization, dispatch deadlines and finite-money checks. No historical data is changed; RPC signatures and view columns stay stable. See the B2 section below and [B2 validation](validation-b2.md).
 
+4. `20261013184049_b3_data_integrity.sql`: B3 / OND-5gi.7, GitHub #31/#32/#33/#34/#35/#42/#70. Adds coherent OLD-value stock reversal, complete business/balance audit bindings, atomic aggregated returns and correction reasons, optional retry keys, historical nonoverlapping commission rules and Santiago business dates. Enables descriptive incidents under the existing role/branch model with explicit branch metadata for new rows. See [B3 validation](validation-b3.md) and [business decisions](../docs/engineering/database.md#b3-business-decisions--2026-10-13).
+
 The five production ledger versions supplied by the coordinator are `20260806024044`, `20260806024400`, `20260806232318`, `20260806232340`, `20260817034401`. None is the repository's old 0001..0010 sequence. Those ten files are archived unchanged in [legacy-migrations](legacy-migrations/README.md); they must never run as an installation or update chain.
 
-The accompanying role dump contains only platform-role settings/grants (timeouts and a logging parameter grant). It is evidence, not an application migration; local platform roles remain CLI-owned. No Storage buckets or Realtime tables were present in the supplied remote inventory. Remote security vulnerabilities are faithfully represented in the baseline and are hardened only by the B2 forward migration; cancellation and other monetary integrity defects remain separate follow-up work.
+The accompanying role dump contains only platform-role settings/grants (timeouts and a logging parameter grant). It is evidence, not an application migration; local platform roles remain CLI-owned. No Storage buckets or Realtime tables were present in the supplied remote inventory. Remote security vulnerabilities are faithfully represented in the baseline and hardened by B2; B3 addresses the stock, return, commission and calendar defects described below. Historical-data reconciliation and authorized remote application remain pending.
 
 ## B1 object decisions
 
@@ -375,4 +377,39 @@ References: [database guide](../docs/engineering/database.md), [backend audit](.
 
 ## Validation evidence
 
-See [B2 validation report](validation-b2.md) for the hardened-chain evidence and remaining release limits; see [B1 validation report](validation-b1.md) for exact local outputs, semantic dump comparison and limitations. The supplied dump SHA-256 is `dec1d59d22d89390ef4309fa9c6878c2df713a7025ac071c22c76ed32177a4dd`.
+See [B3 validation report](validation-b3.md) for the integrity-chain evidence, [B2 validation report](validation-b2.md) for the security-hardening evidence and remaining release limits; see [B1 validation report](validation-b1.md) for exact local outputs, semantic dump comparison and limitations. The supplied dump SHA-256 is `dec1d59d22d89390ef4309fa9c6878c2df713a7025ac071c22c76ed32177a4dd`.
+
+## B3 remote gates and frontend sequencing
+
+B3 has only been verified locally. Do not execute its baseline or seed remotely,
+repair a ledger, link this checkout or push any SQL without the separately
+approved deployment procedure above. Apply the SQL commit before releasing the
+separate frontend commit: the client requires `registrar_devolucion`,
+`contar_ventas_jornada`, the trailing retry arguments and incident branch column.
+The old argument sets remain callable through trailing defaults; B3 removes old
+function definitions before creating extended signatures to avoid ambiguous
+PostgREST overloads. Recheck dependencies and refresh the API schema cache.
+
+Before applying the exclusion constraint, inspect all commission intervals for
+overlaps, invalid ranges and nonfinite values. PostgreSQL must validate the
+exclusion constraint immediately; B3 intentionally aborts on overlapping legacy
+rules rather than choosing winners, deleting history or rewriting commissions.
+Resolve any conflict with a reviewed business decision and isolated rehearsal.
+B2's eight NOT VALID monetary constraints retain their separate review gate.
+Inspect historical cancellations, returned-above-dispatched totals, absent or
+insufficient balances and product/packaging catalog history before enabling
+corrections. B3 introduces stricter invariants; it does not silently make
+inconsistent historical data pass. Existing historical container double credits
+remain an explicit reconciliation concern, without any blanket stock backfill.
+
+The upgrade rehearsal compares every original public/auth field using frozen
+baseline column projections, retaining exact row counts and content hashes while
+allowing additive metadata columns. B3 adds no public business table; its private
+retry ledger begins empty. Existing sales receive the metadata default marking
+the baseline's plant-container-credit semantics without updating their stored
+balances. New retry keys, reasons, production packaging snapshots and incident
+branches do not rewrite old rows. Audit actor requirements apply to authenticated
+business operations; seed/maintenance events without a JWT can retain null actor.
+Legacy incidents are preserved with author-based RLS but need an authorized
+branch review for the new explicitly filtered UI list; no reclassification of
+old losses or silent conversion is performed.
