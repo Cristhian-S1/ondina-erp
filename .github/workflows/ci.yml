@@ -47,9 +47,9 @@ jobs:
         run: npm run test:coverage -- --reporter=dot
 
   migrations-check:
-    name: Validar migraciones Supabase (sintaxis, no aplica)
+    name: Validar migraciones Supabase
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     concurrency:
       group: ci-migrations-check-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
@@ -57,24 +57,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Validar sintaxis SQL de migraciones
-        working-directory: supabase/migrations
-        run: |
-          set -e
-          if ! ls *.sql 1>/dev/null 2>&1; then
-            echo "No hay archivos SQL en supabase/migrations/"
-            exit 0
-          fi
-          for f in *.sql; do
-            if [ -f "$f" ]; then
-              echo "Validando $f"
-              if ! grep -q ";" "$f"; then
-                echo "::error::$f no contiene sentencias terminadas en ';'"
-                exit 1
-              fi
-            fi
-          done
-          echo "Sintaxis SQL basica OK"
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: 2.111.0
+
+      - name: Start isolated database
+        run: supabase db start
+
+      - name: Rebuild migrations and synthetic seed
+        run: supabase db reset --local
+
+      - name: Run pgTAP database tests
+        run: supabase test db --local
+
+      - name: Database logs on failure
+        if: failure()
+        run: docker logs supabase_db_ondina-erp --tail 150
+
+      - name: Stop isolated database
+        if: always()
+        run: supabase stop --no-backup
 
   # Deploy automático de develop. Vive aquí (y no en deploy-develop.yml con
   # workflow_run) porque workflow_run y workflow_dispatch solo se activan

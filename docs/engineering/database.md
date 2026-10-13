@@ -2,8 +2,8 @@
 
 ## Sources and deployment gate
 
-`bd/` contains SQL design/business objects; `supabase/migrations/` contains versioned changes. The remote schema and migration history are a third state requiring verification.
-The [2026-10-09 audit](../archive/audits/2026-10-09/auditoria-integral-2026-10-09.md) found divergence. Do not run production `supabase db push` until isolated reconciliation and verification are complete.
+`bd/` contains historical SQL design/business objects. `supabase/migrations/` is the active production-snapshot baseline plus forward-only deltas; the former 0001..0010 files are archived under `supabase/legacy-migrations/` and must not be executed.
+Read [schema reconciliation](../../supabase/reconciliation.md) for the object inventory, synthetic upgrade rehearsal, known security/integrity limits and later authorized migration-ledger repair procedure. The supplied 2026-10-13 snapshot was verified locally; this is not a current production guarantee or authorization to deploy. Do not run production `supabase db push` until fresh schema/history reconciliation, isolated verification and the separate security/integrity release gates are complete.
 
 ## Required invariants
 
@@ -21,6 +21,7 @@ These are required behavior and retained design decisions, not a claim that the 
 ## Change workflow
 
 Read the `supabase` and `supabase-postgres-best-practices` skills. Confirm the exact local/staging project before writes; a linked remote does not authorize an ad hoc change.
-Rebuild and test real SQL in isolation: roles, anonymous access, another sucursal, RPC grants, concurrency, stock and cancellation. Existing semicolon CI checks cannot establish this.
+Rebuild with pinned Supabase CLI 2.111.0 and Docker: `supabase start`, `supabase db reset --local`, `supabase test db --local`; stop this project's containers with `supabase stop --no-backup` when finished. `supabase/tests/rehearse-upgrade.sh` exercises the baseline-to-delta upgrade using synthetic rows and exact data fingerprints. The SQL CI job executes reset and pgTAP against a local database, without production credentials.
+The current SQL suite is a reconstruction/stock smoke gate. Extend it for roles, anonymous access, inactive profiles, another sucursal, RPC grants, concurrency, stock and cancellation as the security/integrity tasks land; passing smoke tests do not establish production authorization safety.
 Discover commands through the installed CLI's `--help`, review generated migrations and preserve applied history. Serialize migration integration and never run two writers against the same database environment.
 See [deployment](deployment.md) for release coordination. Track unresolved reconstruction, security and integrity findings in Beads/GitHub.
