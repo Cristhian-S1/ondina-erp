@@ -40,7 +40,7 @@ Las historias detallan actores y aceptación; el estado de implementación se co
 
 | ID | Requisito | Descripción | Categoría |
 | --- | --- | --- | --- |
-| RNF-01 | Operación sin conexión | El sistema deberá permitir registrar ventas y movimientos desde las tablets cuando no exista conexión a internet.  La información registrada sin conexión deberá sincronizarse automáticamente cuando el dispositivo recupere internet. | Conectividad |
+| RNF-01 | Operación sin conexión | El sistema deberá tolerar conectividad intermitente en las tablets: los formularios de venta no enviados se conservan localmente por usuario, se avisa claramente cuando una operación no fue guardada y nada se registra dos veces. La captura completa sin conexión con sincronización automática queda aplazada y requeriría una nueva historia. | Conectividad |
 | RNF-03 | Actualización en tiempo real | Las ventas, despachos y registros de producción deberán reflejarse inmediatamente para los usuarios autorizados. | Rendimiento |
 | RNF-05 | Acceso múltiples dispositivo | El administrador deberá poder acceder al sistema desde computadores, tablets o teléfonos con conexión a internet. | Compatibilidad |
 | RNF-06 | Sistema en la nube | El sistema deberá estar alojado en una infraestructura en la nube que permite el acceso remoto. | Infraestructura |
@@ -67,5 +67,7 @@ Las historias detallan actores y aceptación; el estado de implementación se co
 | RNF-28 | Digitalización documental | El sistema deberá reducir el uso de planillas físicas y respaldar la digitalización de los procesos internos. | Cumplimiento |
 | RNF-29 | Base de datos centralizada | Toda la información deberá almacenarse en una base de datos centralizada. | Infraestructura |
 | RNF-30 | Construcción de infraestructura | El proyecto deberá incluir la implementación del hosting, backend, base de datos y servicios necesarios para operar. | Infraestructura |
+
+Nota RNF-01 (2026-10-13): RNF-01 se acota, no se elimina, para reconciliarlo con la retirada de HU-30 (operación sin conexión, 2026-08-01); la captura offline completa con sincronización automática queda fuera del alcance vigente.
 
 Ver [historias por dominio](stories/README.md) y [estado técnico](../status/user-stories.md). Eliminar tablas repetidas no cambia estos requisitos ni acredita su cumplimiento.
