@@ -19,6 +19,9 @@ cp .env.example .env
 npm run dev
 ```
 
+Only public values belong in `VITE_*`: `VITE_SUPABASE_URL` and the anon/publishable key. Never set a `service_role` key there; CI fails if the built `dist/` references it.
+When `supabase/config.toml` exists in the repository, `supabase start` brings up an isolated local Supabase stack; never copy real data or credentials into it.
+
 Quality checks, from `frontend/`:
 
 ```bash
@@ -43,5 +46,6 @@ The frontend uses Tailwind/Mantine, TanStack Query, React Hook Form and Zod. Sup
 ## Contributing
 
 `develop` is the integration base; `main` is the production release branch. Use the [development workflow](docs/engineering/development.md) and [agent instructions](AGENTS.md).
-Track durable work in Beads. Start with `bash scripts/bootstrap-beads.sh` when restoring its local database; see [.beads/README.md](.beads/README.md).
+Track durable work in Beads: run `bd prime` to recover context and keep status current, and start with `bash scripts/bootstrap-beads.sh` when restoring its local database; see [.beads/README.md](.beads/README.md).
+When `.codegraph/` exists in the repository, use CodeGraph to locate and understand code before falling back to ordinary search tools.
 Write agent instructions, skills and engineering documentation in English. Keep Spanish user-facing copy and business references. Load only the documents needed for the current task.

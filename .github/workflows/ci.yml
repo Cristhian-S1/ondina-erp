@@ -43,6 +43,17 @@ jobs:
       - name: typecheck + build
         run: npm run build
 
+      - name: Verificar que dist/ no contiene claves privilegiadas
+        run: |
+          if grep -R -l -E "service_role|SUPABASE_SERVICE" dist/; then
+            echo "::error::frontend/dist contiene referencias a service_role o SUPABASE_SERVICE"
+            exit 1
+          fi
+          echo "OK: frontend/dist no referencia claves privilegiadas"
+
+      - name: Presupuesto de tamaño del bundle
+        run: npm run size
+
       - name: Unit/Integration tests + cobertura
         run: npm run test:coverage -- --reporter=dot
 
