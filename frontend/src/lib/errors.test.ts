@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mensajeErrorSupabase } from './errors'
+import { mensajeErrorAutenticacion, mensajeErrorSupabase } from './errors'
 
 const generico = 'No fue posible completar la operación. Inténtalo de nuevo.'
 
@@ -46,6 +46,8 @@ describe('REV-4 · catálogo de errores públicos', () => {
     ['No se puede devolver más de lo despachado del producto private-id', 'No se puede devolver más de lo despachado de un producto.'],
     ['El producto no existe o está desactivado', 'El producto no existe o está desactivado.'],
     ['Stock insuficiente', 'No hay stock suficiente.'],
+    ['La venta está anulada', 'La venta está anulada.'],
+    ['La merma supera lo despachado pendiente de ese producto.', 'La merma supera lo despachado pendiente de ese producto.'],
   ])('traduce P0001: %s', (message, esperado) => {
     expect(mensajeErrorSupabase({ code: 'P0001', message })).toBe(esperado)
     expect(mensajeErrorSupabase(new Error(esperado))).toBe(esperado)
@@ -79,8 +81,27 @@ describe('B2/B3 · safe business rejections', () => {
     'Línea de producto inválida en la devolución.',
     'Línea de envase inválida en la devolución.',
     'Selecciona una sucursal para registrar la incidencia.',
+    'La merma supera lo despachado pendiente de ese producto.',
   ])('allows the exact reviewed Spanish rejection: %s', message => {
     expect(mensajeErrorSupabase({ code: 'P0001', message })).toBe(message)
     expect(mensajeErrorSupabase({ code: 'P0001', message: message + ' private SQL detail' })).toBe(generico)
+  })
+})
+
+describe('B6 · errores de autenticación', () => {
+  it.each([
+    [{ code: 'invalid_credentials', status: 400, message: 'Invalid login credentials' }, 'Correo o contraseña incorrectos.'],
+    [{ message: 'Invalid login credentials' }, 'Correo o contraseña incorrectos.'],
+    [{ code: 'over_request_rate_limit', status: 429, message: 'Request rate limit reached' }, 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'],
+    [{ code: 'over_email_send_rate_limit', status: 429, message: 'Email rate limit exceeded' }, 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'],
+    [{ status: 429, message: 'Too many requests' }, 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'],
+  ])('traduce %j a un texto fijo en español', (error, esperado) => {
+    expect(mensajeErrorAutenticacion(error)).toBe(esperado)
+  })
+
+  it.each([
+    null, 'Email not confirmed', new TypeError('Failed to fetch'), { code: 'unexpected_failure', status: 500, message: 'Database error' },
+  ])('oculta cualquier otro error de autenticación: %j', (error) => {
+    expect(mensajeErrorAutenticacion(error)).toBe('No fue posible iniciar sesión. Inténtalo de nuevo.')
   })
 })

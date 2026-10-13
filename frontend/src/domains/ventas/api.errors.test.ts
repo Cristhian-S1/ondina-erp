@@ -37,7 +37,7 @@ const cliente = { nombre: 'Cliente', direccion: 'Calle', telefono: null, numero_
 const escrituras = [
   ['crearCliente', () => crearCliente(cliente)],
   ['crearGasto', () => crearGasto({ tipo: 'combustible', monto: 5000, motivo: 'Bencina', vendedor_id: 'u-1', sucursal_id: 's-1', creado_por: 'u-1' })],
-  ['registrarVenta', () => registrarVenta({ p_cliente_id: 'c-1', p_metodo_pago: 'efectivo', p_detalles: [], p_descuento: 0, p_observaciones: undefined })],
+  ['registrarVenta', () => registrarVenta({ p_cliente_id: 'c-1', p_metodo_pago: 'efectivo', p_detalles: [], p_descuento: 0, p_observaciones: undefined, p_idempotency_key: 'key-venta' })],
 ] as const
 
 describe.each(escrituras)('REV-4 · %s', (_nombre, escribir) => {

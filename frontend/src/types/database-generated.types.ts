@@ -1760,6 +1760,7 @@ export type Database = {
           p_creado_por: string
           p_despacho_id: string
           p_envases: Json
+          p_idempotency_key?: string
           p_motivo?: string
           p_productos: Json
         }
@@ -1798,6 +1799,14 @@ export type Database = {
           p_observaciones?: string
         }
         Returns: string
+      }
+      vendedores_sucursal: {
+        Args: { p_sucursal_id: string }
+        Returns: {
+          apellidos: string
+          id: string
+          nombres: string
+        }[]
       }
     }
     Enums: {

@@ -44,6 +44,7 @@ describe('Controles negativos · perfil inactivo', () => {
     expect(gasto.error).toBe('No tienes permisos para realizar esta acción.')
 
     const venta = await registrarVenta({
+      p_idempotency_key: crypto.randomUUID(),
       p_cliente_id: '50000000-0000-0000-0000-000000000001',
       p_metodo_pago: 'efectivo',
       p_detalles: [
@@ -121,6 +122,7 @@ describe('Controles negativos · vendedor llamando RPC de bodega', () => {
     expect(devolucion.error).toBe('No tienes permisos para registrar devoluciones.')
 
     const correccion = await corregirDevolucion({
+      idempotency_key: crypto.randomUUID(),
       despacho_id: crypto.randomUUID(),
       creado_por: seller.user.id,
       motivo: 'Intento de vendedor',
@@ -178,6 +180,7 @@ describe('Controles negativos · vendedor llamando RPC de bodega', () => {
       .select('id, anulado, cantidad')
       .eq('despacho_id', despacho?.id)
     const corregir = await corregirDevolucion({
+      idempotency_key: crypto.randomUUID(),
       despacho_id: despacho?.id as string,
       creado_por: adminB.user.id,
       motivo: 'Corrección ajena',

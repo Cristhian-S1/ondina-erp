@@ -4,6 +4,7 @@ import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { mensajeErrorSupabase } from '../../../lib/errors'
 import { useAuth } from '../../../context/auth-context'
 import { useClientesRuta } from '../hooks/useClientesRuta'
 import { useProductosVenta } from '../hooks/useProductosVenta'
@@ -250,7 +251,7 @@ function FormularioVenta() {
         }
       },
       onError: (err) => {
-        mostrar(err instanceof Error ? err.message : 'No se pudo registrar la venta', 'error')
+        mostrar(mensajeErrorSupabase(err), 'error')
       },
     })
   }
@@ -589,9 +590,7 @@ function FormularioVenta() {
               )}
               {registrar.error && (
                 <p className={errorBlockCls}>
-                  {registrar.error instanceof Error
-                    ? registrar.error.message
-                    : 'No se pudo registrar la venta'}
+                  {mensajeErrorSupabase(registrar.error)}
                 </p>
               )}
               <button type="submit" className={btnPrimary} disabled={registrar.isPending || !!errorLectura}>

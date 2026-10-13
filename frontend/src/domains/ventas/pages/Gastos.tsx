@@ -7,6 +7,7 @@ import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import { btnPrimary, cardCls, errorTextCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { mensajeErrorSupabase } from '../../../lib/errors'
 
 const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
   { value: 'combustible', label: 'Combustible' },
@@ -45,7 +46,7 @@ export default function Gastos() {
         mostrar('Gasto registrado.', 'exito')
       },
       onError: (err) => {
-        mostrar(err instanceof Error ? err.message : 'No se pudo registrar el gasto', 'error')
+        mostrar(mensajeErrorSupabase(err), 'error')
       },
     })
   }

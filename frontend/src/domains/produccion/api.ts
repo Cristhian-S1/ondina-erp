@@ -156,7 +156,7 @@ export function subscribeProduccion(sucursalId: string, onChange: () => void): (
 export async function obtenerIncidencias(sucursalId: string): Promise<IncidenciaProduccion[]> {
   try {
     const { data, error } = await supabase.from('incidencias_produccion')
-      .select('*').eq('sucursal_id' as never, sucursalId)
+      .select('*').eq('sucursal_id', sucursalId)
       .order('creado_en', { ascending: false }).limit(30).returns<IncidenciaProduccion[]>()
     if (error) throw new Error(mensajeErrorSupabase(error))
     return data ?? []
@@ -167,7 +167,7 @@ export async function obtenerIncidencias(sucursalId: string): Promise<Incidencia
 
 export async function registrarIncidencia(datos: NuevaIncidenciaProduccion): Promise<string | null> {
   try {
-    const { error } = await supabase.from('incidencias_produccion').insert([datos] as never[])
+    const { error } = await supabase.from('incidencias_produccion').insert(datos)
     return error ? mensajeErrorSupabase(error) : null
   } catch (error: unknown) {
     return mensajeErrorSupabase(error)
