@@ -68,7 +68,8 @@ const producto: Producto = {
 
 const empaque: TipoEmpaque = { id: 'te-1', nombre: 'Bandeja', categoria: 'uso_interno', activo: true }
 
-const despachoHoy: Despacho = {
+// Fixture "de hoy": se construye con el reloj fijo activado en beforeEach (TEST-02)
+const makeDespachoHoy = (): Despacho => ({
   id: 'd-1',
   sucursal_id: 'suc-1',
   vendedor_id: 'user-1',
@@ -78,7 +79,7 @@ const despachoHoy: Despacho = {
   creado_en: new Date().toISOString(),
   modificado_por: null,
   modificado_en: null,
-}
+})
 
 const detalle: DespachoDetalle = {
   id: 'dd-1',
@@ -90,6 +91,10 @@ const detalle: DespachoDetalle = {
 }
 
 beforeEach(() => {
+  // Reloj fijo: el filtro "Hoy" y los fixtures no deben depender de la medianoche local (TEST-02)
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-13T12:00:00'))
+
   vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal])
   vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto])
   vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([empaque])
@@ -104,6 +109,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.clearAllMocks()
 })
 
@@ -116,7 +122,7 @@ describe('HU-13 · Devoluciones', () => {
   })
 
   it('lista los despachos del día con el estado pendiente', async () => {
-    vi.mocked(api.obtenerDespachos).mockResolvedValue([despachoHoy])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
     vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
     renderWithProviders(<Devoluciones />)
     await waitFor(() => {
@@ -126,7 +132,7 @@ describe('HU-13 · Devoluciones', () => {
   })
 
   it('al seleccionar un despacho muestra la tabla de productos a devolver', async () => {
-    vi.mocked(api.obtenerDespachos).mockResolvedValue([despachoHoy])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
     vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
     renderWithProviders(<Devoluciones />)
     await waitFor(() => {
