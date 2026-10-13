@@ -4,16 +4,20 @@
 
 This is B1 / OND-5gi.5, GitHub #28 and the SQL-execution foundation of #40, addressing BD-01..BD-03 and BACK-N8/N14. The coordinator supplied a read-only production dump and its migration ledger; this work never connected to that project. Production is also used by develop, so a branch name is not an isolation boundary.
 
-The active imperative chain has two versions:
+The active imperative chain has three versions:
 
 1. `20261013000000_remote_baseline.sql`: the supplied remote schema, including its `private` helpers, extensions, owners, RLS and grants. It already replays against a fresh CLI-created Supabase database. No SQL statements were removed; LF normalization, provenance comments and one explicit anon ACL reset were added. The reset removes CLI bootstrap default view privileges from `v_indicadores_produccion_diarios` to reproduce the supplied snapshot, which grants that view only to authenticated/service_role. No existing remote ACL is hardened by this baseline-only replay correction. Supabase creates Auth, Storage, platform roles and the `supabase_realtime` publication before application migrations. The baseline contains no production rows or credentials.
 2. `20261013000100_align_repo_design.sql`: missing historical objects and four production-policy replacements, with no DML/backfill. Existing installations skip the baseline through explicit ledger repair and execute only this delta and later reviewed migrations.
 
+3. `20261013181647_harden_database_security.sql`: B2 / OND-5gi.6, GitHub #27/#29/#30/#71. Hardens all public view security, application ACLs/defaults, active-profile/branch RLS, existing RPC authorization, dispatch deadlines and finite-money checks. No historical data is changed; RPC signatures and view columns stay stable. See the B2 section below and [B2 validation](validation-b2.md).
+
 The five production ledger versions supplied by the coordinator are `20260806024044`, `20260806024400`, `20260806232318`, `20260806232340`, `20260817034401`. None is the repository's old 0001..0010 sequence. Those ten files are archived unchanged in [legacy-migrations](legacy-migrations/README.md); they must never run as an installation or update chain.
 
-The accompanying role dump contains only platform-role settings/grants (timeouts and a logging parameter grant). It is evidence, not an application migration; local platform roles remain CLI-owned. No Storage buckets or Realtime tables were present in the supplied remote inventory. Remote security vulnerabilities are faithfully represented in the baseline and remain open for B2; cancellation and monetary integrity defects remain separate follow-up work.
+The accompanying role dump contains only platform-role settings/grants (timeouts and a logging parameter grant). It is evidence, not an application migration; local platform roles remain CLI-owned. No Storage buckets or Realtime tables were present in the supplied remote inventory. Remote security vulnerabilities are faithfully represented in the baseline and are hardened only by the B2 forward migration; cancellation and other monetary integrity defects remain separate follow-up work.
 
-## Object decisions
+## B1 object decisions
+
+This dated matrix describes the baseline-to-B1 delta only. The B2 section supersedes its security/grant decisions; table/column names, signatures and historical data remain preserved.
 
 “Kept” means the supplied baseline definition wins, including its constraints, column types, owner and ACL, even when legacy differs. “Added” includes replacing a named policy to restore the legacy intent. Every other existing object remains unchanged. New views are security invoker, anonymous access is revoked, and authenticated access is SELECT-only; new trigger helpers use an empty search path and have PUBLIC/anon/authenticated execution revoked. These are protections for newly introduced objects, not B2-wide hardening.
 
@@ -262,6 +266,61 @@ The snapshot has 33 indexes: 31 supporting existing PK/unique constraints and tw
 | Storage buckets / receipt objects | No buckets | Deferred HU-07 / future features | Intentionally not ported |
 | Platform role timeout/logging settings | Supplied roles dump | No application design counterpart | Intentionally not ported; CLI owns local roles |
 
+## B2 security delta and application contract
+
+All ten public views use `security_invoker=true`; only the three current frontend views retain authenticated SELECT (`v_comision_vendedor`, `v_ranking_vendedores`, `v_indicadores_produccion_diarios`). RLS on the underlying tables limits seller commissions/ranking to their own rows. Ranking additionally excludes non-sales roles, because warehouse staff can legitimately read seller profiles but must not obtain a ranking through that join. No anon/PUBLIC table, sequence, schema or function access remains in `public`/`private`. Only current frontend RPCs retain authenticated EXECUTE in public; trigger functions, event-trigger helpers and public role/branch wrappers have none. Private helpers are callable only as necessary for RLS and the invoker dispatch RPC; `private` remains outside the API's exposed schemas.
+
+The 23-table policy set is replaced, not augmented: old permissive policies cannot broaden access through OR. Actor-independent checks use `(select auth.uid())` and stable helper initplans; inherited PK/FK/branch indexes are retained. An inactive/missing profile has no role or branch privileges, including catalog reads. A global active administrator is exactly an administrator with NULL sucursal; other administrators are confined to their branch. Shared products/packaging/commission rules have no branch column and are readable by active profiles. The current app has no catalog/profile/configuration management writes, so these unused mutations are closed by grants as well as policies. Clients have no DELETE path; balances/load have no direct write grants or policies.
+
+| Surface | Authorized caller and scope |
+| --- | --- |
+| Clients, sales, expenses | Active seller: own rows in own branch; administrator: authorized branch(es) |
+| Seller load | Active seller: own rows; warehouse/admin: sellers within authorized branch(es); no client writes |
+| Dispatch parents/lines | Seller: own reads; warehouse/production: branch reads; administrator: authorized branches; creation/line insertion: warehouse/admin only |
+| Returns | Warehouse/admin in parent dispatch branch; correction RPC: administrator only |
+| Production and plant losses | Production/admin in authorized branch; warehouse may read losses and record authorized losses; identity/initial active state checked on inserts |
+| GPS | Active seller: own SELECT/INSERT; administrator: authorized branches SELECT; warehouse/production: no rows |
+| Incident, audit, configuration | RLS is installed, but these unused current-frontend objects have no authenticated SELECT/write grants; tests temporarily grant SELECT inside a rolled-back transaction to inspect defense-in-depth policies |
+| `registrar_venta(uuid,text,jsonb,numeric,text)` | Active seller or administrator, authorized active customer/seller and branch; administration acts for the customer's seller while `creado_por` remains `auth.uid()` |
+| `crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb)` | Active warehouse/admin, authorized branch and seller, caller equals both supplied actor IDs; remains SECURITY INVOKER |
+| `corregir_devolucion(uuid,uuid,jsonb,jsonb)` | Active administrator within dispatch branch; supplied actor must equal session, stored actor derives from `auth.uid()` |
+
+All SECURITY DEFINER functions set an empty search path and qualify application objects. Existing stock/cancellation implementations are preserved except the dispatch window guard. Every product/container line insertion checks the parent branch and a server-clock deadline, regardless of `es_ajuste`. A new BEFORE INSERT trigger stamps `despachos.creado_en` from `clock_timestamp()`, preventing future-dated client input from extending the window. Missing configuration falls back to 15 minutes, matching the historical `bd/seed.sql` value; an existing configured value is respected. No HU-26 interface, idempotency redesign, return-cap/cancellation rewrite, bucket or receipt feature is added.
+
+Default application exposure is revoked for objects created by `postgres`, including global PUBLIC function EXECUTE (a schema-local revoke alone cannot remove that default). Platform-owned `supabase_admin` defaults in other schemas are untouched. A future migration/owner must explicitly review its own defaults and grants; this migration is not a promise that subsequently created views become invoker automatically.
+
+### Deferred monetary constraint validation
+
+Eight named `*_finito_b2` constraints reject NaN and both infinities; commission percentage also requires <=100. Existing numeric precision, generated subtotals and nonnegative checks are preserved. Typmod-constrained numeric columns already reject infinities with SQLSTATE 22003; explicit CHECKs also protect NaN and future type changes. The sale RPC parses price as unconstrained numeric first, so NaN/Infinity inputs get stable Spanish P0001 messages before a typmod cast, and the whole operation rolls back even if an earlier detail moved stock.
+
+Every new CHECK remains **NOT VALID**, including on the synthetic local seed: it protects new/updated rows without scanning or rewriting uninspected production history. After the separate remote backup/restore and release-authorization gate, run this read-only inspection on the exact target. Do not silently delete or coerce invalid historical money; obtain a reviewed repair decision first.
+
+```sql
+select 'ventas.total' as field, count(*) as invalid_rows from public.ventas where total in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+union all select 'ventas.descuento', count(*) from public.ventas where descuento in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+union all select 'venta_detalles.precio_unitario', count(*) from public.venta_detalles where precio_unitario in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+union all select 'venta_detalles.subtotal', count(*) from public.venta_detalles where subtotal in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+union all select 'gastos_extras.monto', count(*) from public.gastos_extras where monto in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+union all select 'reglas_comision.porcentaje', count(*) from public.reglas_comision where porcentaje in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric) or porcentaje > 100
+union all select 'reglas_comision.monto_fijo', count(*) from public.reglas_comision where monto_fijo in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric)
+union all select 'productos.precio_base', count(*) from public.productos where precio_base in ('NaN'::numeric,'Infinity'::numeric,'-Infinity'::numeric);
+```
+
+Only after every count is zero and the owner approves the separate scan, apply these statements in a maintenance window and record the results. VALIDATE scans historical rows and takes a table lock; rehearse the timing on the restored copy first.
+
+```sql
+alter table public.ventas validate constraint ventas_total_finito_b2;
+alter table public.ventas validate constraint ventas_descuento_finito_b2;
+alter table public.venta_detalles validate constraint venta_detalles_precio_unitario_finito_b2;
+alter table public.venta_detalles validate constraint venta_detalles_subtotal_finito_b2;
+alter table public.gastos_extras validate constraint gastos_extras_monto_finito_b2;
+alter table public.reglas_comision validate constraint reglas_comision_porcentaje_finito_b2;
+alter table public.reglas_comision validate constraint reglas_comision_monto_fijo_finito_b2;
+alter table public.productos validate constraint productos_precio_base_finito_b2;
+```
+
+The RPC messages requiring the coordinator's frontend catalog update are listed exactly in [B2 validation](validation-b2.md). No frontend code is changed here; unknown messages safely use the existing generic fallback until that separately owned update lands.
+
 ## Local and CI procedure
 
 CLI **2.111.0**, Docker and PostgreSQL **17.6** were used. `config.toml` was generated by `supabase init`, with project_id `ondina-erp`, PostgreSQL major 17 and `[auth].enable_signup = false`; other generated defaults are retained. The existing CLI `.gitignore` covers `.branches` and `.temp`. The local bootstrap also creates `pg_net` in the platform-owned `extensions` schema; it is an explained environment difference outside the public application schema, not a B1 delta. Only this project may own the default local ports during the run; stop this project's stack before another worktree starts it.
@@ -271,19 +330,26 @@ supabase start
 supabase db reset --local
 supabase test db --local
 bash supabase/tests/rehearse-upgrade.sh
+supabase db lint --local --schema public,private --fail-on error
+# The B1-only snapshot comparator intentionally rejects B2 security differences.
+# For that historical diagnostic only, reset to B1 first:
+supabase db reset --local --version 20261013000100
 supabase db dump --local --schema public --file /tmp/ondina-local-public.sql
 supabase db dump --local --file /tmp/ondina-local-full.sql
 # Compare with the supplied read-only snapshot file, never a live remote query:
 python3 supabase/tests/compare-schema.py /path/to/remote-schema.sql \
   /tmp/ondina-local-public.sql /tmp/ondina-local-full.sql
+# Restore the complete reviewed chain after the B1-only diagnostic.
+supabase db reset --local
+supabase test db --local
 supabase stop --no-backup
 ```
 
 The seed creates two fictional sucursales, one profile of each role in each branch, a global administrator, two fictional customers, six catalog products, seven packaging types and initial balances. Fixture emails use example.invalid, RUTs are absent, and auth.users have no login passwords or identities. Seeds are CLI-local only; the production procedure never includes `--include-seed`.
 
-pgTAP asserts the exact table/view inventory, every public table's RLS flag, expected public/private functions, the commission column and nullable admin branch contract. It performs production and ordinary merma cancellation through authenticated RLS and checks stock, packaging and audit actor. Transactions roll back each test file. These are B1 smoke tests, not the complete role/anonymous/inactive/atomicity matrix required to fully close #40; B2 and integrity tasks must extend the tests.
+pgTAP asserts the exact table/view inventory, every public table's RLS flag, expected public/private functions, the commission column and nullable admin branch contract. It performs production and ordinary merma cancellation through authenticated RLS and checks stock, packaging and audit actor. Transactions roll back each test file. B2 adds a separate role/object matrix, inactive/missing-profile checks, cross-branch/peer-seller writes, RPC/trigger/default ACL checks and atomic nonfinite-money rejection. Concurrency and the remaining stock-integrity matrix belong to B3/B5; these SQL tests do not establish production REST/Realtime behavior.
 
-The upgrade rehearsal resets only the local baseline, seeds representative data, records a sale/production/merma, fingerprints **all rows** of all 23 public tables plus auth.users, applies the delta and applies it a second time. Exact counts and content digests must remain identical after each application, including stock, seller load, foreign keys and historical timestamps. The script finishes with the complete reset and pgTAP run. CI's `migrations-check` pins setup-cli by full SHA and CLI 2.111.0, starts only the isolated database, resets migrations + seed, runs pgTAP and always stops with `--no-backup`; other jobs are unchanged. The coordinator owns required-check configuration and integration.
+The upgrade rehearsal resets only the local baseline, seeds representative data, records a sale/production/merma, fingerprints **all rows** of all 23 public tables plus auth.users, applies the delta and applies it a second time. Exact counts and content digests must remain identical after each application, including stock, seller load, foreign keys and historical timestamps. It then applies each later forward migration once and compares all fingerprints again; B2 does not claim migration reapplication is supported. The script finishes with the complete reset and pgTAP run. CI's `migrations-check` pins setup-cli by full SHA and CLI 2.111.0, starts only the isolated database, resets migrations + seed, runs pgTAP and always stops with `--no-backup`; other jobs are unchanged. The coordinator owns required-check configuration and integration.
 
 ## Later authorized production application (not executed here)
 
@@ -302,11 +368,11 @@ supabase db push --linked --dry-run
 supabase db push --linked
 ```
 
-4. Verify the applied ledger, schema diff, unchanged historical row counts/balances and application reads. Check that Realtime now contains exactly the three intended additions. Review and eventually validate the NOT VALID incident constraint after resolving historical invalid rows without silent deletion. Keep the backup and evidence until release acceptance.
+4. Verify the applied ledger, schema diff, unchanged historical row counts/balances and application reads. Check that Realtime now contains exactly the three intended additions. Review and eventually validate the eight NOT VALID B2 monetary constraints using the procedure above, as well as the NOT VALID incident constraint after resolving historical invalid rows without silent deletion. Keep the backup and evidence until release acceptance.
 5. On failure, stop writes and inspect the transaction/ledger before retrying. Do not mark an actually executed delta reverted or rerun the baseline. If only metadata repair happened, restore the saved ledger entries to their original states; if schema/data changed, prefer a reviewed forward fix or restore the tested full backup with the deployment owner. No destructive reverse migration or stock reconstruction is supplied.
 
 References: [database guide](../docs/engineering/database.md), [backend audit](../docs/archive/audits/2026-10-13/workers/backend-schema-rpc.md), [CLI local development](https://supabase.com/docs/guides/local-development/overview), [pgTAP guidance](https://supabase.com/docs/guides/local-development/testing/pgtap-extended), [configuration](https://supabase.com/docs/guides/local-development/managing-config).
 
 ## Validation evidence
 
-See [B1 validation report](validation-b1.md) for exact local outputs, semantic dump comparison and limitations. The supplied dump SHA-256 is `dec1d59d22d89390ef4309fa9c6878c2df713a7025ac071c22c76ed32177a4dd`.
+See [B2 validation report](validation-b2.md) for the hardened-chain evidence and remaining release limits; see [B1 validation report](validation-b1.md) for exact local outputs, semantic dump comparison and limitations. The supplied dump SHA-256 is `dec1d59d22d89390ef4309fa9c6878c2df713a7025ac071c22c76ed32177a4dd`.
