@@ -195,7 +195,7 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
       p_lineas: payload.lineas,
       p_envases: payload.envases,
       p_idempotency_key: payload.idempotency_key ?? crypto.randomUUID(),
-    } as never)
+    })
 
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
@@ -225,7 +225,7 @@ export async function corregirDevolucion(
       p_productos: payload.lineas_producto,
       p_envases: payload.lineas_envase,
       p_motivo: payload.motivo,
-    } as never)
+    })
 
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
@@ -249,12 +249,12 @@ export async function registrarDevolucion(
   payload: Omit<CorregirDevolucionPayload, 'motivo'> & { idempotency_key: string },
 ): Promise<{ error: string | null }> {
   try {
-    const { error } = await supabase.rpc('registrar_devolucion' as never, {
+    const { error } = await supabase.rpc('registrar_devolucion', {
       p_despacho_id: payload.despacho_id,
       p_productos: payload.lineas_producto,
       p_envases: payload.lineas_envase,
       p_idempotency_key: payload.idempotency_key,
-    } as never)
+    })
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
     return { error: mensajeErrorSupabase(error) }

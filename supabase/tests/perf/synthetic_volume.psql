@@ -1,0 +1,155 @@
+-- B4 / OND-5gi.8 / #47: synthetic performance volume. LOCAL ONLY.
+-- Never add this to seed.sql or run it against a remote project. Run it on a local stack
+-- after `supabase db reset --local` (fixtures from seed.sql must exist):
+--   psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/perf/synthetic_volume.psql
+-- The .psql extension is deliberate: `supabase test db` runs every *.sql under supabase/tests,
+-- and this script commits data and has no pgTAP plan.
+-- Volume: 2 sucursales x 20 vendedores (1 seeded + 19 added), ~1,000 clientes,
+-- 50,000 ventas (~90,000 detalles), 50,000 despachos (100,000 detalles, 50,000 envases),
+-- 50,000 producciones, 20,000 mermas, 20,000 gastos over 730 days.
+-- setseed makes the dataset identical on every run, so before/after timings compare the same rows.
+-- Triggers are skipped (session_replication_role = replica) because they would replay
+-- stock/audit logic 300k times; CHECK, UNIQUE and PRIMARY KEY constraints still apply.
+-- Re-running is not idempotent: reset the local database first.
+
+begin;
+set local session_replication_role = replica;
+select setseed(0.4747);
+
+-- Extra sellers: 19 per branch, plus the seeded one = 20 per sucursal.
+insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+select vendedor.id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+       'perf-' || vendedor.id || '@example.invalid', '{}'::jsonb, '{}'::jsonb, now(), now()
+from (
+  select ('20000000-0000-0000-000' || branch || '-' || lpad(n::text, 12, '0'))::uuid as id, branch, n
+  from generate_series(1,2) branch cross join generate_series(100, 118) n
+) vendedor;
+
+insert into public.perfiles(id, sucursal_id, nombres, apellidos, rol)
+select ('20000000-0000-0000-000' || branch || '-' || lpad(n::text, 12, '0'))::uuid,
+       ('10000000-0000-0000-0000-00000000000' || branch)::uuid,
+       'Vendedor Sintético', 'Sucursal ' || branch || ' ' || n, 'vendedor'
+from generate_series(1,2) branch cross join generate_series(100, 118) n;
+
+-- Customers: 25 per seller, all in the seller's branch.
+create temp table vendedores on commit drop as
+select id as vendedor_id, sucursal_id, row_number() over (order by id) as ord
+from public.perfiles where rol = 'vendedor' and activo;
+
+insert into public.clientes(id, sucursal_id, vendedor_id, nombre, direccion, creado_por, tipo)
+select md5('cliente-' || v.vendedor_id || '-' || k)::uuid, v.sucursal_id, v.vendedor_id,
+       'Cliente Sintético ' || v.ord || '-' || k, 'Dirección sintética ' || k, v.vendedor_id,
+       case when k % 3 = 0 then 'mayorista' when k % 3 = 1 then 'minorista' else 'ocasional' end
+from vendedores v cross join generate_series(1, 25) k;
+
+create temp table clientes_vendedor on commit drop as
+select id as cliente_id, vendedor_id, sucursal_id, row_number() over (partition by vendedor_id order by id) as k
+from public.clientes where nombre like 'Cliente Sintético%';
+
+-- Commission rules: one open rule per product type (no overlap, as B3 requires).
+insert into public.reglas_comision(tipo_producto, porcentaje, monto_fijo, vigente_desde, vigente_hasta, creado_por)
+values ('agua', 5, null, '2020-01-01 00:00:00-03', null, '20000000-0000-0000-0000-000000000001'),
+       ('hielo', 3, 10, '2020-01-01 00:00:00-03', null, '20000000-0000-0000-0000-000000000001');
+
+-- Sales: 50,000 rows spread over 40 sellers and 730 days.
+create temp table ventas_sinteticas on commit drop as
+select md5('venta-' || n)::uuid as id, v.sucursal_id, v.vendedor_id, c.cliente_id, n,
+       now() - (random() * interval '730 days') as creado_en,
+       random() < 0.02 as anulado
+from generate_series(1, 50000) n
+join vendedores v on v.ord = (n % 40) + 1
+join clientes_vendedor c on c.vendedor_id = v.vendedor_id and c.k = (n / 40) % 25 + 1;
+
+insert into public.ventas(id, sucursal_id, vendedor_id, cliente_id, metodo_pago, descuento, total, anulado, creado_por, creado_en)
+select id, sucursal_id, vendedor_id, cliente_id,
+       case when n % 2 = 0 then 'efectivo' else 'transferencia' end, 0, 0, anulado, vendedor_id, creado_en
+from ventas_sinteticas;
+
+-- Two distinct products per sale.
+insert into public.venta_detalles(venta_id, producto_id, cantidad, precio_unitario, envases_recibidos)
+select s.id, p.id, 1 + (s.n % 5), p.precio_base, 0
+from ventas_sinteticas s
+join public.productos p on p.id = ('40000000-0000-0000-0000-00000000000' || ((s.n % 6) + 1))::uuid
+union all
+select s.id, p.id, 1 + ((s.n + 2) % 4), p.precio_base, 0
+from ventas_sinteticas s
+join public.productos p on p.id = ('40000000-0000-0000-0000-00000000000' || ((s.n % 6 + 1 + (s.n % 5) + 1) % 6 + 1))::uuid
+where ((s.n % 6) + 1) <> ((s.n % 6 + 1 + (s.n % 5) + 1) % 6 + 1);
+
+update public.ventas v
+set total = coalesce(d.bruto, 0) - v.descuento
+from (select venta_id, sum(cantidad * precio_unitario) as bruto from public.venta_detalles group by venta_id) d
+where d.venta_id = v.id;
+
+-- Dispatches: 50,000 rows; warehouse of the same branch loads the seller.
+create temp table bodegas on commit drop as
+select sucursal_id, id as bodega_id from public.perfiles where rol = 'bodega' and activo;
+
+create temp table despachos_sinteticos on commit drop as
+select md5('despacho-' || n)::uuid as id, v.sucursal_id, v.vendedor_id, b.bodega_id, n,
+       now() - (random() * interval '730 days') as creado_en
+from generate_series(1, 50000) n
+join vendedores v on v.ord = (n % 40) + 1
+join bodegas b on b.sucursal_id = v.sucursal_id;
+
+insert into public.despachos(id, sucursal_id, vendedor_id, despachador_id, creado_por, creado_en)
+select id, sucursal_id, vendedor_id, bodega_id, bodega_id, creado_en from despachos_sinteticos;
+
+insert into public.despacho_detalles(despacho_id, producto_id, cantidad, es_ajuste, creado_en)
+select d.id, ('40000000-0000-0000-0000-00000000000' || ((d.n % 6) + 1))::uuid, 5 + (d.n % 7), false, d.creado_en
+from despachos_sinteticos d
+union all
+select d.id, ('40000000-0000-0000-0000-00000000000' || (((d.n + 3) % 6) + 1))::uuid, 3 + (d.n % 4), false, d.creado_en
+from despachos_sinteticos d
+where ((d.n % 6) + 1) <> (((d.n + 3) % 6) + 1);
+
+insert into public.despacho_envases(despacho_id, tipo_empaque_id, cantidad, es_ajuste, creado_en)
+select d.id, ('30000000-0000-0000-0000-00000000000' || ((d.n % 3) + 1))::uuid, 2 + (d.n % 3), false, d.creado_en
+from despachos_sinteticos d;
+
+-- Production: 50,000 rows alternating branches; 1% annulled.
+insert into public.producciones(sucursal_id, producto_id, cantidad, creado_por, anulado, creado_en)
+select ('10000000-0000-0000-0000-00000000000' || ((n % 2) + 1))::uuid,
+       ('40000000-0000-0000-0000-00000000000' || ((n % 6) + 1))::uuid,
+       10 + (n % 40),
+       ('20000000-0000-0000-000' || ((n % 2) + 1) || '-000000000003')::uuid,
+       random() < 0.01,
+       now() - (random() * interval '730 days')
+from generate_series(1, 50000) n;
+
+-- Waste: 20,000 product mermas without dispatch (read by the production screen) and
+-- 5,000 packaging mermas linked to dispatches for the historical-query path.
+insert into public.mermas(sucursal_id, producto_id, cantidad, motivo, creado_por, creado_en, anulado)
+select ('10000000-0000-0000-0000-00000000000' || ((n % 2) + 1))::uuid,
+       ('40000000-0000-0000-0000-00000000000' || ((n % 6) + 1))::uuid, 1 + (n % 3),
+       'Merma sintética', ('20000000-0000-0000-000' || ((n % 2) + 1) || '-000000000003')::uuid,
+       now() - (random() * interval '730 days'), random() < 0.01
+from generate_series(1, 20000) n;
+
+insert into public.mermas(sucursal_id, despacho_id, tipo_empaque_id, cantidad, motivo, creado_por, creado_en)
+select d.sucursal_id, d.id, ('30000000-0000-0000-0000-00000000000' || ((d.n % 3) + 1))::uuid, 1,
+       'Merma de envase sintética', d.bodega_id, d.creado_en
+from despachos_sinteticos d
+where d.n <= 5000;
+
+-- Seller expenses: 20,000 rows.
+insert into public.gastos_extras(sucursal_id, vendedor_id, tipo, monto, motivo, creado_por, creado_en)
+select v.sucursal_id, v.vendedor_id, case when n % 3 = 0 then 'combustible' else 'otra' end,
+       1000 + (n % 20) * 500, 'Gasto sintético', v.vendedor_id,
+       now() - (random() * interval '730 days')
+from generate_series(1, 20000) n
+join vendedores v on v.ord = (n % 40) + 1;
+
+commit;
+
+analyze public.ventas;
+analyze public.venta_detalles;
+analyze public.despachos;
+analyze public.despacho_detalles;
+analyze public.despacho_envases;
+analyze public.producciones;
+analyze public.mermas;
+analyze public.gastos_extras;
+analyze public.clientes;
+analyze public.perfiles;
+analyze public.reglas_comision;

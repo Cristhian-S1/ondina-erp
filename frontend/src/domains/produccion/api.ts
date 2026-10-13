@@ -120,7 +120,7 @@ export async function obtenerEnvasesDisponibles(
 
 export async function registrarProduccion(datos: NuevaProduccion): Promise<string | null> {
   try {
-    const { error } = await supabase.from('producciones').insert([datos] as never[])
+    const { error } = await supabase.from('producciones').insert([datos])
     return error ? mensajeErrorSupabase(error) : null
   } catch (error: unknown) {
     return mensajeErrorSupabase(error)
@@ -133,7 +133,7 @@ export async function registrarMerma(
   try {
     const { error } = await supabase
       .from('mermas')
-      .insert([datos] as never[])
+      .insert([datos])
 
     return error
       ? mensajeErrorSupabase(error)
