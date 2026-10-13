@@ -8,28 +8,29 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
     name: Lint + typecheck + build + test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Sin concurrencia a nivel de workflow: cada push cancela solo las
+    # validaciones en curso, nunca el deploy de develop en vuelo.
+    concurrency:
+      group: ci-build-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     defaults:
       run:
         working-directory: frontend
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -48,9 +49,13 @@ jobs:
   migrations-check:
     name: Validar migraciones Supabase (sintaxis, no aplica)
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: ci-migrations-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Validar sintaxis SQL de migraciones
         working-directory: supabase/migrations
@@ -70,3 +75,40 @@ jobs:
             fi
           done
           echo "Sintaxis SQL basica OK"
+
+  # Deploy automático de develop. Vive aquí (y no en deploy-develop.yml con
+  # workflow_run) porque workflow_run y workflow_dispatch solo se activan
+  # cuando el archivo existe en la rama por defecto (main). (issue #39 / CI-05)
+  deploy-develop:
+    name: Deploy Vercel Desarrollo (develop)
+    needs: [build, migrations-check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-develop
+      cancel-in-progress: false
+    environment:
+      name: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Vercel CLI
+        run: npm install -g vercel@63.1.2
+
+      - name: Deploy a Vercel (ambiente desarrollo / preview)
+        run: vercel --yes --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
