@@ -1,13 +1,11 @@
 name: Deploy Desarrollo
 
-# Solo despliega cuando el workflow CI termina con éxito sobre develop
-# (issue #39 / CI-05). workflow_dispatch permite redesplegar o hacer
-# rollback manual a un commit, rama o tag concreto.
+# Redespliegue manual / rollback del ambiente de desarrollo.
+# El despliegue automático de develop vive ahora en ci.yml (job
+# deploy-develop) porque workflow_run no se activa desde una rama que no sea
+# la rama por defecto (main); este workflow queda acotado a workflow_dispatch
+# (que tampoco aparece en la UI hasta estar en main). (issue #39 / CI-05)
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [develop]
   workflow_dispatch:
     inputs:
       ref:
@@ -28,20 +26,13 @@ jobs:
     name: Deploy Vercel Desarrollo (develop)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Solo ejecuta para un push verificado a develop: evita que un PR (de fork)
-    # con rama llamada develop dispare un deploy con secretos (pwn request).
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'develop' &&
-      github.event.workflow_run.conclusion == 'success')
     environment:
       name: development
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ inputs.ref || github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Setup Node (frontend/.nvmrc)
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
