@@ -1,0 +1,42 @@
+# Actualizaciones controladas de dependencias (issue #46).
+# - npm y GitHub Actions se revisan semanalmente (lunes, hora de Chile).
+# - Las actualizaciones minor/patch se agrupan por ecosistema en un solo PR;
+#   los saltos major quedan como PR individuales para revisión dedicada.
+# - Tope de 5 PRs abiertos por ecosistema; los PR apuntan a `develop`.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "America/Santiago"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    groups:
+      actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

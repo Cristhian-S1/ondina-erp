@@ -1,8 +1,15 @@
+import { lazy, Suspense } from 'react'
+import type { Role } from '../../types'
 import type { DomainModule } from '../../types/module'
 import { BoxIcon, RecycleIcon, TruckIcon } from '../../components/icons'
-import Despachos from './pages/Despachos'
-import Devoluciones from './pages/Devoluciones'
-import Stock from './pages/Stock'
+
+const allowedRoles: Role[] = ['bodega', 'administrador']
+
+const pages = {
+  Despachos: lazy(() => import('./pages/Despachos')),
+  Devoluciones: lazy(() => import('./pages/Devoluciones')),
+  Stock: lazy(() => import('./pages/Stock')),
+}
 
 const bodegaModule: DomainModule = {
   name: 'bodega',
@@ -11,20 +18,20 @@ const bodegaModule: DomainModule = {
       path: '/despachos',
       label: 'Despachos',
       icon: TruckIcon,
-      roles: ['bodega', 'administrador'],
+      roles: allowedRoles,
     },
     {
       path: '/devoluciones',
       label: 'Devoluciones',
       icon: RecycleIcon,
-      roles: ['bodega', 'administrador'],
+      roles: allowedRoles,
     },
-    { path: '/stock', label: 'Stock', icon: BoxIcon, roles: ['bodega', 'administrador'] },
+    { path: '/stock', label: 'Stock', icon: BoxIcon, roles: allowedRoles },
   ],
   routes: [
-    { path: '/despachos', element: <Despachos /> },
-    { path: '/devoluciones', element: <Devoluciones /> },
-    { path: '/stock', element: <Stock /> },
+    { path: '/despachos', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Despachos /></Suspense> },
+    { path: '/devoluciones', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Devoluciones /></Suspense> },
+    { path: '/stock', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Stock /></Suspense> },
   ],
 }
 

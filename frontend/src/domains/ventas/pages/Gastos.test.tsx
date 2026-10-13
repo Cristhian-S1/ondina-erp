@@ -86,3 +86,17 @@ describe('HU-07 · Gastos — validación de formulario', () => {
     })
   })
 })
+
+
+it('FE-05 · conserva los datos ingresados si falla la lectura del historial', async () => {
+  let rechazar!: (cause: Error) => void
+  vi.mocked(api.obtenerGastosHoy).mockReturnValue(new Promise((_res, rej) => { rechazar = rej }))
+  renderWithProviders(<Gastos />, { perfil: PERFIL })
+  fireEvent.change(screen.getByPlaceholderText('Descripción breve'), { target: { value: 'Bencina de la ruta' } })
+  const { act } = await import('@testing-library/react')
+  await act(async () => { rechazar(new Error('Fallo de consulta')) })
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los gastos de hoy')
+  expect(screen.getByPlaceholderText('Descripción breve')).toHaveValue('Bencina de la ruta')
+  expect(screen.queryByText('No has registrado gastos hoy.')).not.toBeInTheDocument()
+  expect(screen.getByText('Total: —')).toBeInTheDocument()
+})

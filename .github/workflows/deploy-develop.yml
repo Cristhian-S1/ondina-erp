@@ -1,8 +1,18 @@
 name: Deploy Desarrollo
 
+# Redespliegue manual / rollback del ambiente de desarrollo.
+# El despliegue automático de develop vive ahora en ci.yml (job
+# deploy-develop) porque workflow_run no se activa desde una rama que no sea
+# la rama por defecto (main); este workflow queda acotado a workflow_dispatch
+# (que tampoco aparece en la UI hasta estar en main). (issue #39 / CI-05)
 on:
-  push:
-    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit SHA, rama o tag a desplegar
+        required: false
+        default: develop
+        type: string
 
 permissions:
   contents: read
@@ -14,18 +24,35 @@ concurrency:
 jobs:
   deploy:
     name: Deploy Vercel Desarrollo (develop)
+    # Guard de repositorio canónico (REV-5): no ejecutar deploys en forks.
+    if: github.repository == 'Cristhian-S1/ondina-erp'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: development
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Resolver SHA desplegado
+        run: |
+          echo "SHA desplegado: $(git rev-parse HEAD)"
+
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Setup Vercel CLI
-        run: npm install -g vercel@latest
+        run: npm install -g vercel@63.1.2
 
       - name: Deploy a Vercel (ambiente desarrollo / preview)
-        run: vercel --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel --yes --token="$VERCEL_TOKEN"
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

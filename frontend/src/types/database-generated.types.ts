@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -7,31 +7,6 @@
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       auditoria: {
@@ -39,6 +14,7 @@ export type Database = {
           accion: string
           creado_en: string
           id: number
+          motivo: string | null
           registro_id: string
           tabla: string
           usuario_id: string | null
@@ -49,6 +25,7 @@ export type Database = {
           accion: string
           creado_en?: string
           id?: never
+          motivo?: string | null
           registro_id: string
           tabla: string
           usuario_id?: string | null
@@ -59,6 +36,7 @@ export type Database = {
           accion?: string
           creado_en?: string
           id?: never
+          motivo?: string | null
           registro_id?: string
           tabla?: string
           usuario_id?: string | null
@@ -388,6 +366,7 @@ export type Database = {
           creado_por: string
           despachador_id: string
           id: string
+          idempotency_key: string | null
           modificado_en: string | null
           modificado_por: string | null
           sucursal_id: string
@@ -399,6 +378,7 @@ export type Database = {
           creado_por: string
           despachador_id: string
           id?: string
+          idempotency_key?: string | null
           modificado_en?: string | null
           modificado_por?: string | null
           sucursal_id: string
@@ -410,6 +390,7 @@ export type Database = {
           creado_por?: string
           despachador_id?: string
           id?: string
+          idempotency_key?: string | null
           modificado_en?: string | null
           modificado_por?: string | null
           sucursal_id?: string
@@ -431,18 +412,18 @@ export type Database = {
             referencedColumns: ["vendedor_id"]
           },
           {
-            foreignKeyName: "despachos_despachador_id_sucursal_id_fkey"
-            columns: ["despachador_id", "sucursal_id"]
+            foreignKeyName: "despachos_despachador_id_fkey"
+            columns: ["despachador_id"]
             isOneToOne: false
             referencedRelation: "perfiles"
-            referencedColumns: ["id", "sucursal_id"]
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "despachos_despachador_id_sucursal_id_fkey"
-            columns: ["despachador_id", "sucursal_id"]
+            foreignKeyName: "despachos_despachador_id_fkey"
+            columns: ["despachador_id"]
             isOneToOne: false
             referencedRelation: "v_ranking_vendedores"
-            referencedColumns: ["vendedor_id", "sucursal_id"]
+            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "despachos_modificado_por_fkey"
@@ -490,6 +471,7 @@ export type Database = {
           despacho_id: string
           estado: string
           id: string
+          motivo: string | null
           tipo_empaque_id: string
         }
         Insert: {
@@ -500,6 +482,7 @@ export type Database = {
           despacho_id: string
           estado?: string
           id?: string
+          motivo?: string | null
           tipo_empaque_id: string
         }
         Update: {
@@ -510,6 +493,7 @@ export type Database = {
           despacho_id?: string
           estado?: string
           id?: string
+          motivo?: string | null
           tipo_empaque_id?: string
         }
         Relationships: [
@@ -565,6 +549,7 @@ export type Database = {
           creado_por: string
           despacho_id: string
           id: string
+          motivo: string | null
           producto_id: string
         }
         Insert: {
@@ -574,6 +559,7 @@ export type Database = {
           creado_por: string
           despacho_id: string
           id?: string
+          motivo?: string | null
           producto_id: string
         }
         Update: {
@@ -583,6 +569,7 @@ export type Database = {
           creado_por?: string
           despacho_id?: string
           id?: string
+          motivo?: string | null
           producto_id?: string
         }
         Relationships: [
@@ -732,6 +719,7 @@ export type Database = {
           descripcion: string
           id: string
           produccion_id: string | null
+          sucursal_id: string | null
         }
         Insert: {
           creado_en?: string
@@ -739,6 +727,7 @@ export type Database = {
           descripcion: string
           id?: string
           produccion_id?: string | null
+          sucursal_id?: string | null
         }
         Update: {
           creado_en?: string
@@ -746,6 +735,7 @@ export type Database = {
           descripcion?: string
           id?: string
           produccion_id?: string | null
+          sucursal_id?: string | null
         }
         Relationships: [
           {
@@ -767,6 +757,13 @@ export type Database = {
             columns: ["produccion_id"]
             isOneToOne: false
             referencedRelation: "producciones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidencias_produccion_sucursal_id_fkey"
+            columns: ["sucursal_id"]
+            isOneToOne: false
+            referencedRelation: "sucursales"
             referencedColumns: ["id"]
           },
         ]
@@ -883,7 +880,7 @@ export type Database = {
           nombres: string
           rol: string
           rut: string | null
-          sucursal_id: string
+          sucursal_id: string | null
           telefono: string | null
         }
         Insert: {
@@ -894,7 +891,7 @@ export type Database = {
           nombres: string
           rol: string
           rut?: string | null
-          sucursal_id: string
+          sucursal_id?: string | null
           telefono?: string | null
         }
         Update: {
@@ -905,7 +902,7 @@ export type Database = {
           nombres?: string
           rol?: string
           rut?: string | null
-          sucursal_id?: string
+          sucursal_id?: string | null
           telefono?: string | null
         }
         Relationships: [
@@ -924,6 +921,7 @@ export type Database = {
           cantidad: number
           creado_en: string
           creado_por: string
+          empaque_consumido_id: string | null
           id: string
           observaciones: string | null
           producto_id: string
@@ -934,6 +932,7 @@ export type Database = {
           cantidad: number
           creado_en?: string
           creado_por: string
+          empaque_consumido_id?: string | null
           id?: string
           observaciones?: string | null
           producto_id: string
@@ -944,6 +943,7 @@ export type Database = {
           cantidad?: number
           creado_en?: string
           creado_por?: string
+          empaque_consumido_id?: string | null
           id?: string
           observaciones?: string | null
           producto_id?: string
@@ -963,6 +963,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_ranking_vendedores"
             referencedColumns: ["vendedor_id"]
+          },
+          {
+            foreignKeyName: "producciones_empaque_consumido_id_fkey"
+            columns: ["empaque_consumido_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_empaque"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producciones_empaque_consumido_id_fkey"
+            columns: ["empaque_consumido_id"]
+            isOneToOne: false
+            referencedRelation: "v_bidones_vacios_vendedor"
+            referencedColumns: ["tipo_empaque_id"]
           },
           {
             foreignKeyName: "producciones_producto_id_fkey"
@@ -1315,8 +1329,10 @@ export type Database = {
           creado_en: string
           creado_por: string
           descuento: number
+          envases_en_planta: boolean
           folio_documento: string | null
           id: string
+          idempotency_key: string | null
           metodo_pago: string
           modificado_en: string | null
           modificado_por: string | null
@@ -1332,8 +1348,10 @@ export type Database = {
           creado_en?: string
           creado_por: string
           descuento?: number
+          envases_en_planta?: boolean
           folio_documento?: string | null
           id?: string
+          idempotency_key?: string | null
           metodo_pago: string
           modificado_en?: string | null
           modificado_por?: string | null
@@ -1349,8 +1367,10 @@ export type Database = {
           creado_en?: string
           creado_por?: string
           descuento?: number
+          envases_en_planta?: boolean
           folio_documento?: string | null
           id?: string
+          idempotency_key?: string | null
           metodo_pago?: string
           modificado_en?: string | null
           modificado_por?: string | null
@@ -1483,7 +1503,7 @@ export type Database = {
         Row: {
           base_comision: number | null
           comision: number | null
-          mes: string | null
+          jornada: string | null
           monto_fijo: number | null
           porcentaje: number | null
           tipo: string | null
@@ -1731,11 +1751,17 @@ export type Database = {
       }
     }
     Functions: {
+      contar_ventas_jornada: {
+        Args: { p_vendedor_id: string }
+        Returns: number
+      }
       corregir_devolucion: {
         Args: {
           p_creado_por: string
           p_despacho_id: string
           p_envases: Json
+          p_idempotency_key?: string
+          p_motivo?: string
           p_productos: Json
         }
         Returns: undefined
@@ -1745,6 +1771,7 @@ export type Database = {
           p_creado_por: string
           p_despachador_id: string
           p_envases?: Json
+          p_idempotency_key?: string
           p_lineas: Json
           p_sucursal_id: string
           p_vendedor_id: string
@@ -1753,15 +1780,33 @@ export type Database = {
       }
       es_rol: { Args: { p_rol: string }; Returns: boolean }
       mi_sucursal: { Args: never; Returns: string }
+      registrar_devolucion: {
+        Args: {
+          p_despacho_id: string
+          p_envases: Json
+          p_idempotency_key?: string
+          p_productos: Json
+        }
+        Returns: string
+      }
       registrar_venta: {
         Args: {
           p_cliente_id: string
           p_descuento?: number
           p_detalles: Json
+          p_idempotency_key?: string
           p_metodo_pago: string
           p_observaciones?: string
         }
         Returns: string
+      }
+      vendedores_sucursal: {
+        Args: { p_sucursal_id: string }
+        Returns: {
+          apellidos: string
+          id: string
+          nombres: string
+        }[]
       }
     }
     Enums: {
@@ -1891,9 +1936,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

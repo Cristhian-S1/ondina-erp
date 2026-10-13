@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Ondina execution-planning template; not native Orca configuration",
+  "orchestration": {
+    "enabled": false,
+    "baseRef": "origin/develop",
+    "maxConcurrentWorkers": 3
+  },
+  "coordinator": {
+    "client": "claude",
+    "model": null
+  },
+  "roles": {
+    "frontend-ui": {
+      "client": "codex",
+      "model": null,
+      "slots": 1,
+      "activation": "as needed"
+    },
+    "frontend-data": {
+      "client": "codex",
+      "model": null,
+      "slots": 1,
+      "activation": "on demand"
+    },
+    "backend-schema": {
+      "client": "codex",
+      "model": null,
+      "slots": 1,
+      "activation": "as needed"
+    },
+    "backend-rpc": {
+      "client": "codex",
+      "model": null,
+      "slots": 1,
+      "activation": "on demand"
+    },
+    "testing": {
+      "client": "opencode",
+      "model": null,
+      "slots": 1,
+      "activation": "as needed"
+    },
+    "documentation": {
+      "client": "opencode",
+      "model": null,
+      "slots": 1,
+      "activation": "on demand"
+    },
+    "ci-cd": {
+      "client": "opencode",
+      "model": null,
+      "slots": 1,
+      "activation": "on demand"
+    },
+    "security": {
+      "client": "codex",
+      "model": null,
+      "slots": 1,
+      "activation": "on demand"
+    }
+  }
+}

@@ -1,0 +1,114 @@
+name: Health check
+
+# Monitor de disponibilidad (issue #54). Cada 30 minutos comprueba que el
+# frontend de producción responde y que Supabase Auth sigue sano; solo hace
+# lecturas GET, sin ventas ni escrituras. Si algo falla abre o actualiza la
+# incidencia con etiqueta `incidente`; al recuperarse la comenta y cierra.
+# Runbook: docs/engineering/deployment.md (sección Health monitoring).
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health:
+    name: Comprobar producción (sitio + Supabase Auth)
+    # Guard de repositorio canónico (REV-5): no ejecutar en forks.
+    if: github.repository == 'Cristhian-S1/ondina-erp'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Comprobar sitio y Supabase Auth
+        id: checks
+        env:
+          SITE_URL: https://ondina-erp.vercel.app
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          checks_file="$RUNNER_TEMP/health-checks.md"
+          failures=""
+          echo "## Health check" > "$checks_file"
+
+          # (a) Frontend en producción: HTTP 200 y contenedor de la SPA.
+          site_code="$(curl -sS -o "$RUNNER_TEMP/site.html" -w '%{http_code}' --max-time 30 "$SITE_URL" || true)"
+          if [ "$site_code" = "200" ] && grep -q '<div id="root">' "$RUNNER_TEMP/site.html"; then
+            echo "- Sitio \`$SITE_URL\`: OK (HTTP 200)" >> "$checks_file"
+          else
+            failures="${failures:+$failures; }sitio Vercel HTTP $site_code"
+            echo "- Sitio \`$SITE_URL\`: **FALLO** (HTTP $site_code)" >> "$checks_file"
+          fi
+
+          # (b) Supabase Auth: /auth/v1/health con la clave anónima pública.
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::warning::vars.SUPABASE_URL o vars.SUPABASE_ANON_KEY sin configurar; se omite el chequeo de Supabase Auth."
+            echo "- Supabase Auth: omitido (variables de repositorio sin configurar)" >> "$checks_file"
+          else
+            auth_code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 -H "apikey: $SUPABASE_ANON_KEY" "${SUPABASE_URL%/}/auth/v1/health" || true)"
+            if [ "$auth_code" = "200" ]; then
+              echo "- Supabase Auth: OK (HTTP 200)" >> "$checks_file"
+            else
+              failures="${failures:+$failures; }Supabase Auth HTTP $auth_code"
+              echo "- Supabase Auth: **FALLO** (HTTP $auth_code)" >> "$checks_file"
+            fi
+          fi
+
+          echo "failures=$failures" >> "$GITHUB_OUTPUT"
+          cat "$checks_file" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Abrir o actualizar la incidencia de fallo
+        if: steps.checks.outputs.failures != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILURES: ${{ steps.checks.outputs.failures }}
+        run: |
+          {
+            echo "El health check **falló**: $FAILURES"
+            echo
+            cat "$RUNNER_TEMP/health-checks.md"
+            echo
+            echo "Ejecución: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > "$RUNNER_TEMP/incident.md"
+
+          incident_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label incidente \
+            --json number,title --jq 'map(select(.title == "[Incidente] Health check fallido"))[0].number // empty')"
+          if [ -n "$incident_number" ]; then
+            gh issue comment "$incident_number" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/incident.md"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "[Incidente] Health check fallido" \
+              --label incidente --body-file "$RUNNER_TEMP/incident.md"
+          fi
+
+      - name: Fallar la ejecución si hubo chequeos caídos
+        if: steps.checks.outputs.failures != ''
+        env:
+          FAILURES: ${{ steps.checks.outputs.failures }}
+        run: |
+          echo "::error::Health check fallido: $FAILURES"
+          exit 1
+
+      - name: Comentar y cerrar la incidencia si el servicio se recuperó
+        if: steps.checks.outputs.failures == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          incident_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label incidente \
+            --json number,title --jq 'map(select(.title == "[Incidente] Health check fallido"))[0].number // empty')"
+          if [ -z "$incident_number" ]; then
+            echo "Sin incidencias abiertas; nada que cerrar."
+            exit 0
+          fi
+
+          {
+            echo "El health check **se recuperó**: todos los chequeos responden OK."
+            echo
+            cat "$RUNNER_TEMP/health-checks.md"
+            echo
+            echo "Ejecución: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > "$RUNNER_TEMP/recovered.md"
+          gh issue comment "$incident_number" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/recovered.md"
+          gh issue close "$incident_number" --repo "$GITHUB_REPOSITORY" --reason completed

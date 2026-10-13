@@ -8,28 +8,29 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
     name: Lint + typecheck + build + test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Sin concurrencia a nivel de workflow: cada push cancela solo las
+    # validaciones en curso, nunca el deploy de develop en vuelo.
+    concurrency:
+      group: ci-build-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     defaults:
       run:
         working-directory: frontend
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -42,31 +43,113 @@ jobs:
       - name: typecheck + build
         run: npm run build
 
-      - name: Unit/Integration tests
-        run: npm run test -- --reporter=dot
+      - name: Verificar que dist/ no contiene claves privilegiadas
+        run: |
+          if grep -R -l -E "service_role|SUPABASE_SERVICE" dist/; then
+            echo "::error::frontend/dist contiene referencias a service_role o SUPABASE_SERVICE"
+            exit 1
+          fi
+          echo "OK: frontend/dist no referencia claves privilegiadas"
+
+      - name: Presupuesto de tamaño del bundle
+        run: npm run size
+
+      - name: Unit/Integration tests + cobertura
+        run: npm run test:coverage -- --reporter=dot
 
   migrations-check:
-    name: Validar migraciones Supabase (sintaxis, no aplica)
+    name: Validar migraciones Supabase
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: ci-migrations-check-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Validar sintaxis SQL de migraciones
-        working-directory: supabase/migrations
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
+        with:
+          version: 2.111.0
+
+      - name: Start isolated Supabase stack
+        run: supabase start
+
+      - name: Rebuild migrations and synthetic seed
+        run: supabase db reset --local
+
+      - name: Run pgTAP database tests
+        run: supabase test db --local
+
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Export local Supabase env (B5 / #43)
         run: |
-          set -e
-          if ! ls *.sql 1>/dev/null 2>&1; then
-            echo "No hay archivos SQL en supabase/migrations/"
-            exit 0
-          fi
-          for f in *.sql; do
-            if [ -f "$f" ]; then
-              echo "Validando $f"
-              if ! grep -q ";" "$f"; then
-                echo "::error::$f no contiene sentencias terminadas en ';'"
-                exit 1
-              fi
-            fi
-          done
-          echo "Sintaxis SQL basica OK"
+          supabase status -o env | grep -E '^[A-Z0-9_]+="' > "$RUNNER_TEMP/supabase.env"
+          set -a
+          . "$RUNNER_TEMP/supabase.env"
+          set +a
+          {
+            echo "SUPABASE_URL=${API_URL}"
+            echo "SUPABASE_ANON_KEY=${ANON_KEY}"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}"
+          } >> "$GITHUB_ENV"
+          rm -f "$RUNNER_TEMP/supabase.env"
+
+      - name: Role journeys against local Supabase (B5 / #43)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run test:integration
+
+      - name: Database logs on failure
+        if: failure()
+        run: docker logs supabase_db_ondina-erp --tail 150
+
+      - name: Stop isolated database
+        if: always()
+        run: supabase stop --no-backup
+
+  # Deploy automático de develop. Vive aquí (y no en deploy-develop.yml con
+  # workflow_run) porque workflow_run y workflow_dispatch solo se activan
+  # cuando el archivo existe en la rama por defecto (main). (issue #39 / CI-05)
+  deploy-develop:
+    name: Deploy Vercel Desarrollo (develop)
+    needs: [build, migrations-check]
+    # Guard de repositorio canónico (REV-5): no ejecutar deploys en forks.
+    if: github.repository == 'Cristhian-S1/ondina-erp' && github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    concurrency:
+      group: deploy-develop
+      cancel-in-progress: false
+    environment:
+      name: development
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Vercel CLI
+        run: npm install -g vercel@63.1.2
+
+      - name: Deploy a Vercel (ambiente desarrollo / preview)
+        run: vercel --yes --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import logo from '../assets/logo.jpg'
 import type { Role } from '../types'
@@ -20,17 +20,45 @@ const rolEtiqueta: Record<Role, string> = {
   administrador: 'Administrador',
 }
 
+function isDesktop() {
+  return window.matchMedia('(min-width: 1024px)').matches
+}
+
+function subscribeDesktop(onChange: () => void) {
+  const media = window.matchMedia('(min-width: 1024px)')
+  media.addEventListener('change', onChange)
+  return () => media.removeEventListener('change', onChange)
+}
+
 export default function DashboardLayout() {
   const { perfil, signOut } = useAuth()
-  const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const desktop = useSyncExternalStore(subscribeDesktop, isDesktop)
+  const sidebarHidden = !desktop && !mobileOpen
+  const menuButton = useRef<HTMLButtonElement>(null)
+  const sidebar = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!mobileOpen || desktop) return
+    const opener = menuButton.current
+    sidebar.current?.querySelector<HTMLElement>('a, button')?.focus()
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setMobileOpen(false)
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      opener?.focus()
+    }
+  }, [mobileOpen, desktop])
 
   if (!perfil) return <Navigate to="/login" replace />
 
   const visibleNav = ALL_NAV.filter((item) => item.roles.includes(perfil.rol))
-  const current = ALL_NAV.find((item) => item.path === pathname)
-  if (current && !current.roles.includes(perfil.rol)) return <Navigate to="/" replace />
 
   function toggleSidebar() {
     if (window.matchMedia('(min-width: 1024px)').matches) {
@@ -52,6 +80,10 @@ export default function DashboardLayout() {
       )}
 
       <aside
+        ref={sidebar}
+        id="menu-lateral"
+        inert={sidebarHidden}
+        aria-hidden={sidebarHidden}
         className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-brand-900 transition-all duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'lg:w-16' : 'lg:w-64'} lg:translate-x-0`}
@@ -80,7 +112,7 @@ export default function DashboardLayout() {
               title={collapsed ? item.label : undefined}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${
+                `flex min-h-11 min-w-11 items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${
                   isActive
                     ? 'bg-brand-600 text-white'
                     : 'text-slate-300 hover:bg-brand-800 hover:text-white'
@@ -96,8 +128,8 @@ export default function DashboardLayout() {
         <div className="shrink-0 border-t border-brand-800 p-3">
           <button
             type="button"
-            onClick={() => void signOut()}
-            className={`flex w-full items-center gap-3 rounded-lg py-2.5 text-sm text-slate-300 transition-colors hover:bg-red-500/10 hover:text-red-400 ${
+            onClick={() => void signOut().catch(() => {})}
+            className={`flex min-h-11 min-w-11 w-full items-center gap-3 rounded-lg py-2.5 text-sm text-slate-300 transition-colors hover:bg-red-500/10 hover:text-red-400 ${
               collapsed ? 'lg:justify-center lg:px-0' : 'px-4'
             }`}
           >
@@ -114,10 +146,13 @@ export default function DashboardLayout() {
       >
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur">
           <button
+            ref={menuButton}
             type="button"
             onClick={toggleSidebar}
             aria-label="Alternar menú lateral"
-            className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
+            aria-expanded={desktop ? !collapsed : mobileOpen}
+            aria-controls="menu-lateral"
+            className="min-h-11 min-w-11 rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
           >
             <MenuIcon className="h-6 w-6" />
           </button>
@@ -127,7 +162,7 @@ export default function DashboardLayout() {
           <button
             type="button"
             aria-label="Notificaciones"
-            className="relative rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
+            className="relative min-h-11 min-w-11 rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
           >
             <BellIcon className="h-6 w-6" />
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
@@ -149,6 +184,9 @@ export default function DashboardLayout() {
         <main className="flex-1 p-4 sm:p-6">
           <Outlet />
         </main>
+        <footer className="px-4 pb-3 text-right text-xs text-slate-400 sm:px-6" title={`Versión de la aplicación: ${__APP_VERSION__}`}>
+          Versión {__APP_VERSION__}
+        </footer>
       </div>
     </div>
   )

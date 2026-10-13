@@ -1,24 +1,31 @@
+import { lazy, Suspense } from 'react'
+import type { Role } from '../../types'
 import type { DomainModule } from '../../types/module'
 import { Navigate } from 'react-router-dom'
 import { AlertIcon, BarChartIcon, BoxIcon, FactoryIcon, ShieldIcon } from '../../components/icons'
-import Produccion from './pages/Produccion'
+
+const allowedRoles: Role[] = ['produccion', 'administrador']
+
+const pages = {
+  Produccion: lazy(() => import('./pages/Produccion')),
+}
 
 const produccionModule: DomainModule = {
   name: 'produccion',
   nav: [
-    { path: '/produccion/registrar', label: 'Registrar producción', icon: FactoryIcon, roles: ['produccion', 'administrador'] },
-    { path: '/produccion/envases', label: 'Envases vacíos', icon: BoxIcon, roles: ['produccion', 'administrador'] },
-    { path: '/produccion/historial', label: 'Historial', icon: ShieldIcon, roles: ['produccion', 'administrador'] },
-    { path: '/produccion/indicadores', label: 'Indicadores', icon: BarChartIcon, roles: ['produccion', 'administrador'] },
-    { path: '/produccion/incidencias', label: 'Incidencias', icon: AlertIcon, roles: ['produccion', 'administrador'] },
+    { path: '/produccion/registrar', label: 'Registrar producción', icon: FactoryIcon, roles: allowedRoles },
+    { path: '/produccion/envases', label: 'Envases vacíos', icon: BoxIcon, roles: allowedRoles },
+    { path: '/produccion/historial', label: 'Historial', icon: ShieldIcon, roles: allowedRoles },
+    { path: '/produccion/indicadores', label: 'Indicadores', icon: BarChartIcon, roles: allowedRoles },
+    { path: '/produccion/incidencias', label: 'Incidencias', icon: AlertIcon, roles: allowedRoles },
   ],
   routes: [
-    { path: '/produccion', element: <Navigate to="/produccion/registrar" replace /> },
-    { path: '/produccion/registrar', element: <Produccion /> },
-    { path: '/produccion/envases', element: <Produccion /> },
-    { path: '/produccion/historial', element: <Produccion /> },
-    { path: '/produccion/indicadores', element: <Produccion /> },
-    { path: '/produccion/incidencias', element: <Produccion /> },
+    { path: '/produccion', roles: allowedRoles, element: <Navigate to="/produccion/registrar" replace /> },
+    { path: '/produccion/registrar', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/envases', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/historial', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/indicadores', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/incidencias', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
   ],
 }
 

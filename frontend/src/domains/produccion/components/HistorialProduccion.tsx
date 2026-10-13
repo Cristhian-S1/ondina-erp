@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
+import { mensajeErrorSupabase } from '../../../lib/errors'
 import type { Producto } from '../../../types'
 import { obtenerHistorialProduccion } from '../api'
 import type { Produccion } from '../types'
@@ -26,7 +27,7 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
       setError(null)
       void obtenerHistorialProduccion({ sucursalId, productoId, desde, hasta, limite: 200 })
         .then((data) => { if (vigente) setRegistros(data) })
-        .catch((cause: unknown) => { if (vigente) setError(cause instanceof Error ? cause.message : 'No fue posible cargar el historial.') })
+        .catch((cause: unknown) => { if (vigente) setError(mensajeErrorSupabase(cause)) })
         .finally(() => { if (vigente) setCargando(false) })
     }, 0)
     return () => { vigente = false; window.clearTimeout(timer) }

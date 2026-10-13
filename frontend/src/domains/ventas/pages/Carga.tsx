@@ -4,7 +4,9 @@ import { RefreshIcon } from '../../../components/icons'
 import { formatMiles } from '../../../lib/format'
 
 export default function Carga() {
-  const { data, isLoading, refetch, isFetching } = useCargaVendedor()
+  const { data, isLoading, refetch, isFetching, error } = useCargaVendedor()
+
+  const cargaDisponible = (data ?? []).filter((c) => c.cantidad > 0)
 
   return (
     <div className="space-y-6">
@@ -28,17 +30,23 @@ export default function Carga() {
 
       {isLoading ? (
         <p className="text-sm text-slate-500">Cargando...</p>
+      ) : error ? (
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          No fue posible cargar tu carga. Inténtalo de nuevo con Actualizar.
+        </p>
       ) : !data || data.length === 0 ? (
         <div className={cardCls}>
           <p className="px-5 py-8 text-center text-sm text-slate-500">
             Aún no se te ha asignado carga hoy.
           </p>
         </div>
+      ) : cargaDisponible.length === 0 ? (
+        <div className={cardCls}>
+          <p className="px-5 py-8 text-center text-sm text-slate-500">Carga agotada. No quedan unidades disponibles.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data
-            .filter((c) => c.cantidad > 0)
-            .map((c) => (
+          {cargaDisponible.map((c) => (
             <article key={c.producto_id} className={cardCls}>
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                 <h2 className="text-base font-semibold text-slate-900">

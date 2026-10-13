@@ -68,3 +68,19 @@ export interface IndicadorProduccionDiario {
   cantidad: number
   registros: number
 }
+
+export interface IncidenciaProduccion {
+  id: string
+  sucursal_id: string | null
+  produccion_id: string | null
+  descripcion: string
+  creado_por: string
+  creado_en: string
+}
+
+export interface NuevaIncidenciaProduccion {
+  sucursal_id: string
+  produccion_id: string | null
+  descripcion: string
+  creado_por: string
+}

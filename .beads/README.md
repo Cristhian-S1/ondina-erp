@@ -1,81 +1,29 @@
-# Beads - AI-Native Issue Tracking
+# Beads in Ondina
 
-Welcome to Beads! This repository uses **Beads** for issue tracking - a modern, AI-native tool designed to live directly in your codebase alongside your code.
+The embedded Dolt database in `.beads/embeddeddolt/` owns issues with prefix `OND`. Git tracks portable configuration/hooks; machine metadata, database files and passive exports remain ignored.
 
-## What is Beads?
-
-Beads is issue tracking that lives in your repo, making it perfect for AI coding agents and developers who want their issues close to their code. No web UI required - everything works through the CLI and integrates seamlessly with git.
-
-**Learn more:** [github.com/steveyegge/beads](https://github.com/steveyegge/beads)
-
-## Quick Start
-
-### Essential Commands
+## Recover and work
 
 ```bash
-# Create new issues
-bd create "Add user authentication"
-
-# View all issues
-bd list
-
-# View issue details
-bd show <issue-id>
-
-# Update issue status
-bd update <issue-id> --claim
-bd update <issue-id> --status done
-
-# Sync with Dolt remote
-bd dolt push
+bash scripts/bootstrap-beads.sh
+bd prime
+bd stats
+bd ready
 ```
 
-### Working with Issues
+The bootstrap validates an existing database without reinitializing it, or restores a fresh clone with `bd bootstrap --yes`. It installs hooks, sets a contributor role only when missing, and preserves the final config newline omitted by bd 1.0.4. `bd` must be on PATH; no external Dolt server is needed in embedded mode.
 
-Issues in Beads are:
-- **Git-native**: Stored in Dolt database with version control and branching
-- **AI-friendly**: CLI-first design works perfectly with AI coding agents
-- **Branch-aware**: Issues can follow your branch workflow
-- **Always in sync**: Auto-syncs with your commits
+## Configuration and sync
 
-## Why Beads?
+- `repos.primary: "."`; retain the agreed remote and do not add another repository as incidental setup.
+- `import.auto: false` prevents stale branch exports from reviving old state.
+- `export.auto: true` and `export.git-add: false` keep JSONL as a passive local export.
+- Dolt sync uses `refs/dolt/data` on `git+ssh://git@github.com/Cristhian-S1/ondina-erp.git`: `bd dolt pull` / `bd dolt push`. Code `git push` does not publish the issue database.
 
-✨ **AI-Native Design**
-- Built specifically for AI-assisted development workflows
-- CLI-first interface works seamlessly with AI coding agents
-- No context switching to web UIs
+Public Dolt publication was authorized on 2026-10-09. Sync changes within that scope; never put credentials or unrelated personal data in task records. Do not treat a skipped remote or failed push as success.
 
-🚀 **Developer Focused**
-- Issues live in your repo, right next to your code
-- Works offline, syncs when you push
-- Fast, lightweight, and stays out of your way
+## Diagnose safely
 
-🔧 **Git Integration**
-- Automatic sync with git commits
-- Branch-aware issue tracking
-- Dolt-native three-way merge resolution
-
-## Get Started with Beads
-
-Try Beads in your own projects:
-
-```bash
-# Install Beads
-curl -sSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
-
-# Initialize in your repo
-bd init
-
-# Create your first issue
-bd create "Try out Beads"
-```
-
-## Learn More
-
-- **Documentation**: [github.com/steveyegge/beads/docs](https://github.com/steveyegge/beads/tree/main/docs)
-- **Quick Start Guide**: Run `bd quickstart`
-- **Examples**: [github.com/steveyegge/beads/examples](https://github.com/steveyegge/beads/tree/main/examples)
-
----
-
-*Beads: Issue tracking that moves at the speed of thought* ⚡
+Use `bd stats`, `bd ready`, `bd lint`, `bd orphans`, `bd hooks list` and `bd dolt remote list`. Do not use `bd init --force` or reimport a branch's JSONL to repair an existing database.
+For this verified embedded installation, `bd statistics` is absent and `bd doctor`/`bd dolt test` do not establish database health. A federation/external-Dolt config error alone does not prove corruption.
+Keep backups private and compare issues/memories after restoration. Generic `bd prime` closeout defaults do not override the user's commit/publication scope; see [agent tools](../docs/agents/tools.md).

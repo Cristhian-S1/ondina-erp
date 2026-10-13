@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { renderWithProviders } from '@/test/render'
+import { renderWithProviders, makePerfil } from '@/test/render'
 import Despachos from './Despachos'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
@@ -68,7 +68,8 @@ const producto: Producto = {
   creado_en: '2026-01-01T00:00:00Z',
 }
 
-const despachoHoy: Despacho = {
+// Fixture "de hoy": se construye con el reloj fijo activado en beforeEach (TEST-02)
+const makeDespachoHoy = (): Despacho => ({
   id: 'd-1',
   sucursal_id: 'suc-1',
   vendedor_id: 'user-1',
@@ -78,7 +79,7 @@ const despachoHoy: Despacho = {
   creado_en: new Date().toISOString(),
   modificado_por: null,
   modificado_en: null,
-}
+})
 
 const hielo: Producto = {
   id: 'p-hielo',
@@ -121,6 +122,10 @@ const detalle: DespachoDetalle = {
 }
 
 beforeEach(() => {
+  // Reloj fijo: el filtro "Hoy" y los fixtures no deben depender de la medianoche local (TEST-02)
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-13T12:00:00'))
+
   vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal])
   vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto])
   vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([])
@@ -136,6 +141,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.clearAllMocks()
 })
 
@@ -148,7 +154,7 @@ describe('HU-13 · Despachos', () => {
   })
 
   it('renderiza los despachos del día con el total de unidades del vendedor', async () => {
-    vi.mocked(api.obtenerDespachos).mockResolvedValue([despachoHoy])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
     vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
     renderWithProviders(<Despachos />)
     await waitFor(() => {
@@ -232,5 +238,66 @@ describe('HU-13 · Nuevo despacho', () => {
     await abrirModal()
 
     expect(screen.getByLabelText('Bandejas')).toHaveValue('')
+  })
+})
+
+
+it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado vacío', async () => {
+  vi.mocked(api.obtenerDespachos).mockRejectedValue(new Error('Fallo de consulta'))
+  renderWithProviders(<Despachos />)
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar')
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([])
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+})
+
+
+it('FE-05 · conserva el formulario de despacho tras un error de lectura y su reintento', async () => {
+  vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal, { ...sucursal, id: 'suc-2', nombre: 'Sur' }])
+  renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: producto.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
+  vi.mocked(api.obtenerDespachos).mockRejectedValue(new Error('Fallo de consulta'))
+  fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-2' } })
+  await screen.findByRole('alert')
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([])
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByLabelText('Cantidad')).toHaveValue('7')
+  expect(screen.getByRole('combobox', { name: /Producto/ })).toHaveValue(producto.id)
+  expect(screen.getByLabelText('Sucursal')).toHaveValue('suc-2')
+})
+
+it('B3 · keeps dispatch key after failure and renews it after success', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(api.crearDespacho).mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.' }).mockResolvedValue({ error: null })
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: hielo.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  await waitFor(() => expect(api.crearDespacho).toHaveBeenCalledTimes(2))
+  const first = vi.mocked(api.crearDespacho).mock.calls[0][0].idempotency_key
+  expect(vi.mocked(api.crearDespacho).mock.calls[1][0].idempotency_key).toBe(first)
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'Registrar despacho' })).not.toBeInTheDocument())
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: hielo.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  await waitFor(() => expect(api.crearDespacho).toHaveBeenCalledTimes(3))
+  expect(vi.mocked(api.crearDespacho).mock.calls[2][0].idempotency_key).not.toBe(first)
+})
+
+describe('Accesibilidad · filtros de Despachos', () => {
+  it('nombra el filtro de fecha y de vendedor, y el día activo cumple 44 px', async () => {
+    renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+    expect(await screen.findByLabelText('Fecha')).toHaveAttribute('type', 'date')
+    expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
   })
 })

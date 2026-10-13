@@ -3,6 +3,13 @@ name: Deploy Produccion
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit SHA, rama o tag a desplegar (por ejemplo, un rollback)
+        required: false
+        default: main
+        type: string
 
 permissions:
   contents: read
@@ -17,17 +24,31 @@ jobs:
   verify:
     name: Verificar lint + build antes de producción
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # REV-6: la ref solicitada se resuelve una sola vez a un SHA completo;
+    # el job deploy publica exactamente ese commit.
+    outputs:
+      sha: ${{ steps.resolve-sha.outputs.sha }}
     defaults:
       run:
         working-directory: frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          node-version: 22
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Resolver SHA a desplegar
+        id: resolve-sha
+        run: |
+          sha="$(git rev-parse HEAD)"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "SHA resuelto: $sha"
+
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -49,19 +70,37 @@ jobs:
   deploy:
     name: Deploy Vercel Producción (main)
     needs: verify
+    # Guard de repositorio canónico (REV-5): no ejecutar deploys en forks.
+    if: github.repository == 'Cristhian-S1/ondina-erp'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: production
       url: https://ondina-erp.vercel.app
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # REV-6: SHA completo resuelto en verify, nunca una ref mutable.
+          ref: ${{ needs.verify.outputs.sha }}
+
+      - name: Comprobar SHA desplegado
+        env:
+          EXPECTED_SHA: ${{ needs.verify.outputs.sha }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          echo "SHA desplegado: $sha"
+          if [ "$sha" != "$EXPECTED_SHA" ]; then
+            echo "::error::El checkout ($sha) no coincide con el SHA verificado ($EXPECTED_SHA)"
+            exit 1
+          fi
 
       - name: Setup Vercel CLI
-        run: npm install -g vercel@latest
+        run: npm install -g vercel@63.1.2
 
       - name: Deploy a Vercel (ambiente de producción)
-        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --yes --token="$VERCEL_TOKEN"
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

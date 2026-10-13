@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerStockBodega, obtenerStockEnvases } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
 import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
-import type { StockBodega, StockEnvases } from '../types'
 
 type Tab = 'productos' | 'envases'
 
@@ -22,7 +22,7 @@ function Tabs({ activa, onChange }: { activa: Tab; onChange: (tab: Tab) => void 
           key={opcion.id}
           type="button"
           onClick={() => onChange(opcion.id)}
-          className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${
+          className={`min-h-11 rounded-md px-4 py-1.5 text-sm font-semibold transition ${
             activa === opcion.id
               ? 'bg-brand-600 text-white shadow-sm'
               : 'text-brand-700 hover:bg-brand-100 hover:text-brand-900'
@@ -55,42 +55,56 @@ export default function Stock() {
   const [sucursalId, setSucursalId] = useState('')
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
-  const [stockBodega, setStockBodega] = useState<StockBodega[]>([])
-  const [stockEnvases, setStockEnvases] = useState<StockEnvases[]>([])
   const [cargando, setCargando] = useState(true)
-  const [refrescando, setRefrescando] = useState(false)
+
+  const [version, updateVersion] = useState(0)
+  const [errorCatalogo, setErrorCatalogo] = useState<string | null>(null)
+  const stockQuery = useQuery({
+    queryKey: ['stock', perfil?.id, sucursalId],
+    queryFn: async () => {
+      const [stockBodega, stockEnvases] = await Promise.all([
+        obtenerStockBodega(sucursalId), obtenerStockEnvases(sucursalId),
+      ])
+      return { stockBodega, stockEnvases }
+    },
+    enabled: !!perfil && !!sucursalId,
+    // FE-07: refresh on return after stock movements made in other screens or sessions.
+    staleTime: 30_000,
+    refetchOnWindowFocus: 'always',
+  })
+  const stockBodega = stockQuery.data?.stockBodega ?? []
+  const stockEnvases = stockQuery.data?.stockEnvases ?? []
+  const refrescando = stockQuery.isFetching
+  const errorStock = stockQuery.isError ? 'No fue posible cargar el stock. Inténtalo de nuevo con Actualizar.' : null
+  const setVersion: typeof updateVersion = (next) => {
+    updateVersion(next)
+    if (perfil && sucursalId) void stockQuery.refetch()
+  }
 
   useEffect(() => {
+    let vigente = true
     async function init() {
       const [sucursalesData, productosData, empaquesData] = await Promise.all([
         obtenerSucursales(),
         obtenerProductos(true),
         obtenerTiposEmpaque(),
       ])
+      if (!vigente) return
+      setErrorCatalogo(null)
       setSucursales(sucursalesData)
       setProductos(productosData)
       setTiposEmpaque(empaquesData)
-      setSucursalId(perfil?.sucursal_id ?? sucursalesData[0]?.id ?? '')
+      setSucursalId((actual) => actual || perfil?.sucursal_id || sucursalesData[0]?.id || '')
       setCargando(false)
     }
-    void init()
-  }, [perfil])
-
-  const loadStock = useCallback(async (sid: string) => {
-    if (!sid) return
-    setRefrescando(true)
-    const [sb, se] = await Promise.all([obtenerStockBodega(sid), obtenerStockEnvases(sid)])
-    setStockBodega(sb)
-    setStockEnvases(se)
-    setRefrescando(false)
-  }, [])
-
-  useEffect(() => {
-    async function cargar() {
-      await loadStock(sucursalId)
-    }
-    void cargar()
-  }, [sucursalId, loadStock])
+    void init().catch(() => {
+      if (vigente) {
+        setErrorCatalogo('No fue posible cargar los catálogos. Inténtalo de nuevo con Actualizar.')
+        setCargando(false)
+      }
+    })
+    return () => { vigente = false }
+  }, [perfil, version])
 
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 
@@ -150,7 +164,7 @@ export default function Stock() {
             type="button"
             className={btnPrimary}
             disabled={refrescando}
-            onClick={() => void loadStock(sucursalId)}
+            onClick={() => setVersion((actual) => actual + 1)}
           >
             {refrescando ? 'Actualizando...' : 'Actualizar'}
           </button>
@@ -162,7 +176,11 @@ export default function Stock() {
 
       <Tabs activa={tab} onChange={setTab} />
 
-      {tab === 'productos' ? (
+      {errorCatalogo || errorStock ? (
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorCatalogo ?? errorStock}</p>
+      ) : refrescando ? (
+        <p className="text-sm text-slate-500">Actualizando stock...</p>
+      ) : tab === 'productos' ? (
         <SeccionStock titulo="Productos en bodega">
           {filasProductos.length === 0 ? (
             <p className="px-5 py-8 text-center text-sm text-slate-500">

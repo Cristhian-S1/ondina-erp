@@ -1,71 +1,29 @@
-# Project Instructions for AI Agents
+# Ondina with Claude Code
 
-This file provides instructions and context for AI coding agents working on this project.
+@AGENTS.md
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ccf33ec3 -->
-## Beads Issue Tracker
+Use `docs/README.md` to find task-specific references. Path-scoped rules live in `.claude/rules/`; `.claude/skills/` links to the shared `.agents/skills/` source.
+Keep personal preferences in ignored `.claude/settings.local.json` and credentials in local client configuration.
+Inspect loaded instructions with `/context` and connections with `/mcp` when validating a session.
+For requested Orca execution, start with `docs/orchestration/README.md`; do not choose models or dispatch from an unconfigured example profile.
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+## Commands
 
-### Quick Reference
-
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
-```
-
-### Rules
-
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
-
-**Architecture in one line:** issues live in a local Dolt DB; sync uses `refs/dolt/data` on your git remote; `.beads/issues.jsonl` is a passive export. See https://github.com/gastownhall/beads/blob/main/docs/SYNC_CONCEPTS.md for details and anti-patterns.
-
-## Session Completion
-
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
-
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd dolt push
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-<!-- END BEADS INTEGRATION -->
-
-
-## Build & Test
-
-_Add your build and test commands here_
+Run from `frontend/` (Node 22.12+; copy `.env.example` to `.env` with `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`):
 
 ```bash
-# Example:
-# npm install
-# npm test
+npm run dev                          # Vite dev server
+npm run lint                         # ESLint
+npm run build                        # tsc -b && vite build
+npm run test                         # vitest run (jsdom)
+npx vitest run src/domains/ventas/schemas.test.ts   # single file
+npx vitest run -t "nombre del test"                 # single test by name
 ```
 
-## Architecture Overview
+## Architecture
 
-_Add a brief overview of your project architecture_
-
-## Conventions & Patterns
-
-_Add your project-specific conventions here_
+- `frontend/src/domains/index.ts` registers each `DomainModule` (`ventas`, `bodega`, `produccion`, `administracion`); `App.tsx` flattens their `routes` under `ProtectedRoute` + `DashboardLayout`. A new screen is added to its domain's `index.tsx`, not to `App.tsx`.
+- Each domain owns `api.ts` (the only place that imports `src/lib/supabase`), `types.ts`, Zod `schemas.ts`/`validacion.ts`, pure calculations, hooks and pages, with tests colocated next to the code. Pages/hooks never call the Supabase client directly.
+- `src/types/database-generated.types.ts` holds the generated DB types; `@` aliases `src/`. Shared helpers live in `src/lib` (`format.ts` for es-CL thousands formatting/parsing, `ui.ts` for shared Tailwind classes including error styles, `errors.ts`, `catalog.ts`).
+- Stock movements, cancellation compensation and audit history live in the database (`supabase/migrations/`, design in `bd/`), so frontend changes must not reimplement them.
+- Zod is v4 with `@hookform/resolvers` v5; use `z.input`/`z.output` types with React Hook Form. Responsive convention (tables become cards below 640px) is in `docs/engineering/frontend.md`.

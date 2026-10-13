@@ -3,8 +3,9 @@
 // feature/ventas nació de develop y arrastró este componente compartido. En
 // un futuro queda en consideración aislar la navegación de despachos para
 // que no se mezcle con el menú del vendedor de ventas.
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Dialog from '../../../components/Dialog'
 import { useAuth } from '../../../context/auth-context'
 import {
   crearDespacho,
@@ -18,10 +19,11 @@ import {
   obtenerStockEnvases,
   obtenerVendedores,
 } from '../api'
+import type { VendedorSucursal } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
-import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
   Despacho,
@@ -103,7 +105,7 @@ export default function Despachos() {
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<Perfil[]>([])
+  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
   const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
@@ -125,12 +127,16 @@ export default function Despachos() {
     null,
   )
   const [enviando, setEnviando] = useState(false)
+  const intento = useRef<{ contenido: string; clave: string } | null>(null)
 
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
 
+  const [versionLectura, setVersionLectura] = useState(0)
+  const [errorLectura, setErrorLectura] = useState<string | null>(null)
+  const [errorSucursales, setErrorSucursales] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const bandejaTipo = useMemo(
@@ -158,57 +164,67 @@ export default function Despachos() {
   useEffect(() => {
     async function init() {
       const data = await obtenerSucursales()
+      setErrorSucursales(null)
       setSucursales(data)
-      setSucursalId(perfil?.sucursal_id ?? data[0]?.id ?? '')
+      setSucursalId((actual) => actual || perfil?.sucursal_id || data[0]?.id || '')
     }
-    void init()
-  }, [perfil])
+    void init().catch(() => {
+      setErrorSucursales('No fue posible cargar las sucursales. Inténtalo de nuevo.')
+      setCargando(false)
+    })
+  }, [perfil, versionLectura])
 
   const load = useCallback(async () => {
-    const [vendedoresData, productosData, empaquesData, despachosRaw, stockRaw, envasesRaw] =
-      await Promise.all([
-        obtenerVendedores(sucursalId),
-        obtenerProductos(true),
-        obtenerTiposEmpaque(),
-        obtenerDespachos(sucursalId),
-        obtenerStockBodega(sucursalId),
-        obtenerStockEnvases(sucursalId),
+    try {
+      setErrorLectura(null)
+      const [vendedoresData, productosData, empaquesData, despachosRaw, stockRaw, envasesRaw] =
+        await Promise.all([
+          obtenerVendedores(sucursalId),
+          obtenerProductos(true),
+          obtenerTiposEmpaque(),
+          obtenerDespachos(sucursalId),
+          obtenerStockBodega(sucursalId),
+          obtenerStockEnvases(sucursalId),
+        ])
+
+      const ids = despachosRaw.map((d) => d.id)
+      const [detalles, envases, dProd, dEnv, cargaRaw] = await Promise.all([
+        obtenerDetallesDespacho(ids),
+        obtenerEnvasesDespacho(ids),
+        obtenerDevolucionesProducto(ids),
+        obtenerDevolucionesEnvase(ids),
+        obtenerCargaVendedores(vendedoresData.map((v) => v.id)),
       ])
 
-    const ids = despachosRaw.map((d) => d.id)
-    const [detalles, envases, dProd, dEnv, cargaRaw] = await Promise.all([
-      obtenerDetallesDespacho(ids),
-      obtenerEnvasesDespacho(ids),
-      obtenerDevolucionesProducto(ids),
-      obtenerDevolucionesEnvase(ids),
-      obtenerCargaVendedores(vendedoresData.map((v) => v.id)),
-    ])
+      const nombreVendedor = (id: string) => {
+        const v = vendedoresData.find((x) => x.id === id)
+        return v ? `${v.nombres} ${v.apellidos}` : 'Desconocido'
+      }
 
-    const nombreVendedor = (id: string) => {
-      const v = vendedoresData.find((x) => x.id === id)
-      return v ? `${v.nombres} ${v.apellidos}` : 'Desconocido'
+      setVendedores(vendedoresData)
+      setProductos(productosData)
+      setTiposEmpaque(empaquesData)
+      setDespachos(
+        despachosRaw.map((d) => ({
+          ...d,
+          totalUnidades: detalles
+            .filter((x) => x.despacho_id === d.id)
+            .reduce((sum, x) => sum + x.cantidad, 0),
+          vendedorNombre: nombreVendedor(d.vendedor_id),
+        })),
+      )
+      setDespachoDetalles(detalles)
+      setDespachoEnvases(envases)
+      setDesvProducto(dProd)
+      setDesvEnvase(dEnv)
+      setStockBodega(stockRaw)
+      setStockEnvases(envasesRaw)
+      setCargaVendedor(cargaRaw)
+    } catch {
+      setErrorLectura('No fue posible cargar los despachos. Inténtalo de nuevo.')
+    } finally {
+      setCargando(false)
     }
-
-    setVendedores(vendedoresData)
-    setProductos(productosData)
-    setTiposEmpaque(empaquesData)
-    setDespachos(
-      despachosRaw.map((d) => ({
-        ...d,
-        totalUnidades: detalles
-          .filter((x) => x.despacho_id === d.id)
-          .reduce((sum, x) => sum + x.cantidad, 0),
-        vendedorNombre: nombreVendedor(d.vendedor_id),
-      })),
-    )
-    setDespachoDetalles(detalles)
-    setDespachoEnvases(envases)
-    setDesvProducto(dProd)
-    setDesvEnvase(dEnv)
-    setStockBodega(stockRaw)
-    setStockEnvases(envasesRaw)
-    setCargaVendedor(cargaRaw)
-    setCargando(false)
   }, [sucursalId])
 
   useEffect(() => {
@@ -216,7 +232,7 @@ export default function Despachos() {
       await load()
     }
     void cargar()
-  }, [load])
+  }, [load, versionLectura])
 
   async function registrarDespacho() {
     if (!perfil) return
@@ -265,7 +281,7 @@ export default function Despachos() {
     }
 
     setEnviando(true)
-    const { error: err } = await crearDespacho({
+    const payload = {
       sucursal_id: sucursalId,
       vendedor_id: vendedorId,
       despachador_id: perfil.id,
@@ -278,7 +294,12 @@ export default function Despachos() {
         tipo_empaque_id: l.tipo_empaque_id,
         cantidad: parseMiles(String(l.cantidad)),
       })),
-    })
+    }
+    const contenido = JSON.stringify(payload)
+    if (intento.current?.contenido !== contenido) {
+      intento.current = { contenido, clave: crypto.randomUUID() }
+    }
+    const { error: err } = await crearDespacho({ ...payload, idempotency_key: intento.current.clave })
 
     if (err) {
       setError(err)
@@ -286,6 +307,7 @@ export default function Despachos() {
       return
     }
 
+    intento.current = null
     setEnviando(false)
     setModalOpen(false)
     setVendedorId('')
@@ -388,6 +410,15 @@ export default function Despachos() {
     return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
   }, [desvProducto, desvEnvase, despachos, despachosFiltrados, productos, tiposEmpaque])
 
+  if (errorSucursales || errorLectura) {
+    return (
+      <div className="space-y-3">
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorSucursales ?? errorLectura}</p>
+        <button type="button" className={btnSecondary} onClick={() => setVersionLectura((actual) => actual + 1)}>Reintentar</button>
+      </div>
+    )
+  }
+
   if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
 
   return (
@@ -454,8 +485,8 @@ export default function Despachos() {
                     type="button"
                     className={
                       diaFiltro === valor
-                        ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
-                        : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                        ? 'min-h-11 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                        : 'min-h-11 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
                     }
                     onClick={() => {
                       setDiaFiltro(valor)
@@ -470,7 +501,8 @@ export default function Despachos() {
               {esAdmin && (
                 <input
                   type="date"
-                  className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                  aria-label="Fecha"
+                  className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
                   value={fechaSeleccionada}
                   onChange={(e) => {
                     setFechaSeleccionada(e.target.value)
@@ -482,7 +514,8 @@ export default function Despachos() {
             </div>
 
             <select
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+              aria-label="Filtrar por vendedor"
+              className="min-h-11 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
               value={vendedorFiltro}
               onChange={(e) => {
                 setVendedorFiltro(e.target.value)
@@ -723,21 +756,7 @@ export default function Despachos() {
         </aside>
       </div>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
-          <div className="max-h-full w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Nuevo despacho</h2>
-              <button
-                type="button"
-                className="rounded-lg px-2 py-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                onClick={() => setModalOpen(false)}
-                aria-label="Cerrar"
-              >
-                ✕
-              </button>
-            </div>
-
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo despacho">
             <label className={labelCls}>
               Vendedor
               <select
@@ -908,9 +927,7 @@ export default function Despachos() {
                 {enviando ? 'Registrando...' : 'Registrar despacho'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+      </Dialog>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
 import { registrarVenta } from '../api'
@@ -28,14 +29,23 @@ function aArgs(form: RegistrarVentaForm): {
 export function useRegistrarVenta() {
   const { perfil } = useAuth()
   const queryClient = useQueryClient()
+  const intento = useRef<{ contenido: string; clave: string } | null>(null)
 
   return useMutation({
     mutationFn: (form: RegistrarVentaForm) => {
       if (!perfil) throw new Error('No hay sesión activa')
-      return registrarVenta(aArgs(form))
+      const args = aArgs(form)
+      const contenido = JSON.stringify([perfil.id, args])
+      if (intento.current?.contenido !== contenido) {
+        intento.current = { contenido, clave: crypto.randomUUID() }
+      }
+      return registrarVenta({ ...args, p_idempotency_key: intento.current.clave })
     },
-    onSuccess: (res) => {
+    onSuccess: (res, form) => {
       if (res.error) return
+      if (intento.current?.contenido === JSON.stringify([perfil?.id, aArgs(form)])) {
+        intento.current = null
+      }
       void queryClient.invalidateQueries({ queryKey: ['ventas', 'carga'] })
       void queryClient.invalidateQueries({ queryKey: ['ventas', 'historico'] })
     },

@@ -1,19 +1,17 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../../context/auth-context'
-import { supabase } from '../../../lib/supabase'
-import { obtenerProductos, obtenerTiposEmpaque } from '../../../lib/catalog'
+import SucursalSelector from '../../../components/SucursalSelector'
+import { useDatosProduccion } from '../hooks/useDatosProduccion'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
-import type { Producto, TipoEmpaque } from '../../../types'
+import type { TipoEmpaque } from '../../../types'
 import {
-  obtenerEnvasesDisponibles,
-  obtenerMermas,
-  obtenerProducciones,
+  registrarIncidencia,
   registrarMerma,
   registrarProduccion,
 } from '../api'
-import type { EnvaseDisponible, MermaProduccion, Produccion as RegistroProduccion } from '../types'
+import type { EnvaseDisponible, Produccion as RegistroProduccion } from '../types'
 import { validarMerma , validarProduccion } from '../validacion'
 import HistorialProduccion from '../components/HistorialProduccion'
 import IndicadoresProduccion from '../components/IndicadoresProduccion'
@@ -22,23 +20,35 @@ type Seccion = 'registrar' | 'envases' | 'historial' | 'indicadores' | 'incidenc
 
 export default function Produccion() {
   const { perfil } = useAuth()
+  const [seleccion, setSeleccion] = useState({ perfilId: perfil?.id, sucursalId: '' })
+  const esAdmin = perfil?.rol === 'administrador'
+  const sucursalId = esAdmin
+    ? (seleccion.perfilId === perfil.id ? seleccion.sucursalId : '')
+    : perfil?.sucursal_id ?? ''
+  return <div className="space-y-6">
+    {esAdmin && <SucursalSelector value={sucursalId} onChange={(id) => setSeleccion({ perfilId: perfil.id, sucursalId: id })} />}
+    {sucursalId && perfil ? <ProduccionSucursal key={`${perfil.id}:${sucursalId}`} sucursalId={sucursalId} />
+      : <p role="status" className="text-sm text-slate-500">{esAdmin ? 'Selecciona una sucursal para trabajar en producción.' : 'Para trabajar en producción debes tener una sucursal operativa asignada. Contacta al administrador.'}</p>}
+  </div>
+}
+
+function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
+  const { perfil } = useAuth()
   const { pathname } = useLocation()
-  const sucursalId = perfil?.sucursal_id ?? ''
   const seccion = pathname.split('/').at(-1) as Seccion
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [empaques, setEmpaques] = useState<TipoEmpaque[]>([])
-  const [producciones, setProducciones] = useState<RegistroProduccion[]>([])
-  const [envases, setEnvases] = useState<EnvaseDisponible[]>([])
+  const vigente = useRef(true)
+  useEffect(() => {
+    vigente.current = true
+    return () => { vigente.current = false }
+  }, [])
   const [productoId, setProductoId] = useState('')
   const [cantidad, setCantidad] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState<string | null>(null)
-  const [versionDatos, setVersionDatos] = useState(0)
   
-  const [mermas, setMermas] = useState<MermaProduccion[]>([])
+  const [descripcionIncidencia, setDescripcionIncidencia] = useState('')
   const [productoMermaId, setProductoMermaId] = useState('')
   const [cantidadMerma, setCantidadMerma] = useState('')
   const [motivoMerma, setMotivoMerma] = useState('')
@@ -52,62 +62,18 @@ export default function Produccion() {
     return () => window.clearTimeout(timer)
   }, [seccion])
 
-  const cargarDatos = useCallback(async () => {
-    if (!sucursalId) return
-    setCargando(true)
-    setError(null)
-    try {
-      const [productosData, empaquesData, produccionesData, mermasData] = await Promise.all([
-        obtenerProductos(true),
-        obtenerTiposEmpaque(),
-        obtenerProducciones(sucursalId),
-        obtenerMermas(sucursalId),
-      ])
-      const envasesData = await obtenerEnvasesDisponibles(sucursalId, empaquesData)
-      setProductos(productosData)
-      setEmpaques(empaquesData)
-      setProducciones(produccionesData)
-      setMermas(mermasData)
-      setEnvases(envasesData)
-      setVersionDatos((version) => version + 1)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No fue posible cargar producción.')
-    } finally {
-      setCargando(false)
-    }
-  }, [sucursalId])
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void cargarDatos(), 0)
-    return () => window.clearTimeout(timer)
-  }, [cargarDatos])
-
-  useEffect(() => {
-    if (!sucursalId) return
-    const actualizar = () => void cargarDatos()
-    const canal = supabase
-      .channel(`produccion-${sucursalId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, actualizar)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mermas',
-          filter: `sucursal_id=eq.${sucursalId}`,
-        },
-        actualizar,
-      )      
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, actualizar)
-      .subscribe()
-    return () => { void supabase.removeChannel(canal) }
-  }, [cargarDatos, sucursalId])
+  const consulta = useDatosProduccion(perfil?.id ?? '', sucursalId)
+  const { productos = [], empaques = [], producciones = [], mermas = [], incidencias = [], envases = [] } = consulta.data ?? {}
+  const cargando = consulta.isLoading
+  const errorLectura = consulta.error ? 'No fue posible cargar los datos de producción. Inténtalo de nuevo con Actualizar.' : null
+  const versionDatos = consulta.dataUpdatedAt
+  const cargarDatos = consulta.refetch
 
   async function guardarProduccion(event: FormEvent) {
     event.preventDefault()
-    if (!perfil?.sucursal_id) return
+    if (!perfil || !sucursalId) return
     const datos = {
-      sucursal_id: perfil.sucursal_id,
+      sucursal_id: sucursalId,
       producto_id: productoId,
       cantidad: parseMiles(cantidad),
       observaciones: observaciones.trim() || null,
@@ -119,6 +85,7 @@ export default function Produccion() {
     setError(null)
     setExito(null)
     const mensaje = await registrarProduccion(datos)
+    if (!vigente.current) return
     setGuardando(false)
     if (mensaje) return setError(mensaje)
     setCantidad('')
@@ -127,13 +94,35 @@ export default function Produccion() {
     await cargarDatos()
   }
 
+  async function guardarIncidencia(event: FormEvent) {
+    event.preventDefault()
+    if (!perfil || !sucursalId) return
+    const descripcion = descripcionIncidencia.trim()
+    if (!descripcion || descripcion.length > 1000) {
+      setError('Describe la incidencia en un máximo de 1000 caracteres.')
+      return
+    }
+    setGuardando(true)
+    setError(null)
+    setExito(null)
+    const mensaje = await registrarIncidencia({
+      sucursal_id: sucursalId, produccion_id: null, descripcion, creado_por: perfil.id,
+    })
+    if (!vigente.current) return
+    setGuardando(false)
+    if (mensaje) return setError(mensaje)
+    setDescripcionIncidencia('')
+    setExito('Incidencia registrada. Las existencias se mantienen.')
+    await cargarDatos()
+  }
+
   async function guardarMerma(event: FormEvent) {
     event.preventDefault()
 
-    if (!perfil?.sucursal_id) return
+    if (!perfil || !sucursalId) return
 
     const datos = {
-      sucursal_id: perfil.sucursal_id,
+      sucursal_id: sucursalId,
       producto_id: productoMermaId,
       tipo_empaque_id: null,
       despacho_id: null,
@@ -154,6 +143,7 @@ export default function Produccion() {
     setExito(null)
 
     const mensaje = await registrarMerma(datos)
+    if (!vigente.current) return
 
     setGuardando(false)
 
@@ -185,6 +175,7 @@ export default function Produccion() {
         <button type="button" className={btnSecondary} onClick={() => void cargarDatos()}>Actualizar</button>
       </header>
 
+      {errorLectura && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{errorLectura}</p>}
       {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {exito && <p role="status" className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{exito}</p>}
       {cargando ? <p className="text-sm text-slate-500">Cargando información...</p> : null}
@@ -208,13 +199,32 @@ export default function Produccion() {
             </label>
             <label className={labelCls}>Cantidad<input className={inputCls} type="text" inputMode="numeric" placeholder="" value={cantidad} onChange={(event) => setCantidad(formatMilesInput(event.target.value))} /></label>
             <label className={labelCls}>Observaciones (opcional)<textarea className={inputCls} rows={3} maxLength={1000} value={observaciones} onChange={(event) => setObservaciones(event.target.value)} /></label>
-            <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
+            <button disabled={guardando || !!errorLectura} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
           </form>
-          <TablaProducciones registros={producciones} nombreProducto={nombreProducto} />
+          {!errorLectura && <TablaProducciones registros={producciones} nombreProducto={nombreProducto} />}
         </div>
       )}
 
       {!cargando && seccion === 'incidencias' && (
+        <div className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(18rem,24rem)_1fr]">
+            <form className={`${cardCls} space-y-4 p-5`} onSubmit={(event) => void guardarIncidencia(event)}>
+              <h2 className="font-semibold text-slate-900">Incidencia descriptiva</h2>
+              <p className="text-sm text-slate-500">Registra una observación del turno. Esta incidencia no cambia las existencias; si hubo pérdida, registra una merma en la sección siguiente.</p>
+              <label className={labelCls}>Descripción de la incidencia
+                <textarea className={inputCls} rows={4} maxLength={1000} value={descripcionIncidencia} onChange={(event) => setDescripcionIncidencia(event.target.value)} />
+              </label>
+              <button disabled={guardando || !!errorLectura} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar incidencia'}</button>
+            </form>
+            {!errorLectura && <section className={cardCls}>
+              <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Incidencias recientes</h2>
+              {incidencias.length === 0 ? <EstadoVacio texto="No hay incidencias registradas." /> :
+                <ul className="divide-y divide-slate-100">{incidencias.map((item) => <li key={item.id} className="space-y-1 px-5 py-4">
+                  <p className="text-xs text-slate-500">{new Date(item.creado_en).toLocaleString('es-CL', { timeZone: 'America/Santiago' })}</p>
+                  <p className="whitespace-pre-wrap text-sm">{item.descripcion}</p>
+                </li>)}</ul>}
+            </section>}
+          </div>
         <div className="grid gap-6 xl:grid-cols-[minmax(18rem,24rem)_1fr]">
           <form
             className={`${cardCls} space-y-4 p-5`}
@@ -278,14 +288,14 @@ export default function Produccion() {
             </label>
 
             <button
-              disabled={guardando}
+              disabled={guardando || !!errorLectura}
               className={btnPrimary}
             >
               {guardando ? 'Registrando...' : 'Registrar merma'}
             </button>
           </form>
 
-          <section className={cardCls}>
+          {!errorLectura && <section className={cardCls}>
             <div className="border-b border-slate-100 px-5 py-4">
               <h2 className="font-semibold">
                 Mermas recientes
@@ -334,13 +344,14 @@ export default function Produccion() {
                 </table>
               </div>
             )}
-          </section>
+          </section>}
+        </div>
         </div>
       )}
 
-      {!cargando && seccion === 'envases' && <TablaEnvases envases={envases} empaques={empaques} />}
-      {!cargando && seccion === 'historial' && <HistorialProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
-      {!cargando && seccion === 'indicadores' && <IndicadoresProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
+      {!cargando && !errorLectura && seccion === 'envases' && <TablaEnvases envases={envases} empaques={empaques} />}
+      {!cargando && !errorLectura && seccion === 'historial' && <HistorialProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
+      {!cargando && !errorLectura && seccion === 'indicadores' && <IndicadoresProduccion sucursalId={sucursalId} productos={productos} versionDatos={versionDatos} />}
     </div>
   )
 }

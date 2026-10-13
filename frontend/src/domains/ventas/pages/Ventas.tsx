@@ -12,6 +12,7 @@ import {
 
 export default function Ventas() {
   const carga = useCargaVendedor()
+  const cargaDisponible = (carga.data ?? []).filter((c) => c.cantidad > 0)
 
   return (
     <div className="space-y-6">
@@ -90,16 +91,18 @@ export default function Ventas() {
           <h2 className="text-base font-semibold text-slate-900">Mi carga de hoy</h2>
           <Link
             to="/carga"
-            className="text-sm font-medium text-brand-700 hover:text-brand-800"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700 hover:text-brand-800"
           >
             Ver todo
           </Link>
         </div>
         {carga.isLoading ? (
           <p className="px-5 py-8 text-center text-sm text-slate-500">Cargando...</p>
-        ) : carga.data && carga.data.length > 0 ? (
+        ) : carga.error ? (
+          <p role="alert" className="px-5 py-8 text-center text-sm text-red-600">No fue posible cargar tu carga. Inténtalo de nuevo desde Mi carga.</p>
+        ) : cargaDisponible.length > 0 ? (
           <ul className="divide-y divide-slate-100">
-            {carga.data.filter((c) => c.cantidad > 0).slice(0, 5).map((c) => (
+            {cargaDisponible.slice(0, 5).map((c) => (
               <li
                 key={c.producto_id}
                 className="flex items-center justify-between gap-3 px-5 py-3"
@@ -115,7 +118,7 @@ export default function Ventas() {
           </ul>
         ) : (
           <p className="px-5 py-8 text-center text-sm text-slate-500">
-            Aún no se te ha asignado carga hoy.
+            {carga.data?.length ? 'Carga agotada. No quedan unidades disponibles.' : 'Aún no se te ha asignado carga hoy.'}
           </p>
         )}
       </section>

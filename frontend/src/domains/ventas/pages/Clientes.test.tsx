@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render'
 import Clientes from './Clientes'
 
@@ -25,6 +25,27 @@ function setup(data: Awaited<ReturnType<typeof api.obtenerClientesRuta>>) {
 }
 
 describe('HU-04 · Clientes', () => {
+  it.each(['Nuevo cliente', 'Registrar primer cliente'])('moves focus into the dialog from %s and restores it after Escape', async (name) => {
+    setup([])
+    renderWithProviders(<Clientes />)
+    await screen.findByText('No tienes clientes en tu ruta.')
+    const opener = screen.getByRole('button', { name })
+    opener.focus()
+    fireEvent.click(opener)
+
+    const dialog = screen.getByRole('dialog', { name: 'Nuevo cliente' })
+    expect(dialog).toHaveAttribute('open')
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    expect(within(dialog).getByRole('textbox', { name: 'Nombre' })).toBeInTheDocument()
+    // Escape is delivered to native dialogs as a cancel event by the browser.
+    fireEvent(dialog, new Event('cancel', { cancelable: true }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
+    fireEvent.click(opener)
+    expect(screen.getByRole('dialog', { name: 'Nuevo cliente' })).toHaveAttribute('open')
+  })
+
   it('muestra el estado vacío cuando la cartera no tiene clientes', async () => {
     setup([])
     renderWithProviders(<Clientes />)

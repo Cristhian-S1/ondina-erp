@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock del cliente Supabase compartido para los servicios del dominio bodega.
 const mock = vi.hoisted(() => {
+  let readError: { message: string } | null = null
   let dataByTable: Record<string, unknown[]> = {}
   let lastQueryByTable: Record<string, Record<string, unknown>> = {}
   let insertResult: { error: { message: string; code?: string } | null } = { error: null }
@@ -22,7 +23,7 @@ const mock = vi.hoisted(() => {
         insertSpy(payload)
         return Promise.resolve(insertResult)
       },
-      returns: () => Promise.resolve({ data: dataByTable[table] ?? [] }),
+      returns: () => Promise.resolve({ data: dataByTable[table] ?? [], error: readError }),
     }
     lastQueryByTable[table] = q
     return q
@@ -40,7 +41,9 @@ const mock = vi.hoisted(() => {
     supabase: supabaseMock,
     insertSpy,
     rpcSpy,
+    setReadError: () => { readError = { message: 'private SQL detail' } },
     reset: () => {
+      readError = null
       dataByTable = {}
       lastQueryByTable = {}
       insertResult = { error: null }
@@ -59,6 +62,9 @@ const mock = vi.hoisted(() => {
     setRpcError: (error: { message: string; code?: string }) => {
       rpcResult = { data: null, error }
     },
+    setRpcData: (data: unknown) => {
+      rpcResult = { data, error: null }
+    },
   }
 })
 
@@ -76,6 +82,7 @@ import {
   obtenerStockBodega,
   obtenerStockEnvases,
   obtenerVendedores,
+  registrarDevolucion,
   registrarDevolucionEnvases,
   registrarDevolucionProductos,
 } from './api'
@@ -89,15 +96,18 @@ describe('HU-13 · obtenerVendedores', () => {
     expect(mock.supabase.from).not.toHaveBeenCalled()
   })
 
-  it('consulta perfiles vendedores activos de la sucursal', async () => {
-    mock.setData('perfiles', [{ id: 'u-1' }])
+  it('lista vendedores activos de la sucursal por el RPC acotado, sin leer perfiles', async () => {
+    mock.setRpcData([{ id: 'u-1', nombres: 'Ana', apellidos: 'Pérez' }])
     const res = await obtenerVendedores('suc-1')
-    expect(res).toEqual([{ id: 'u-1' }])
-    const q = mock.getQuery('perfiles')
-    expect(q.eq).toHaveBeenCalledWith('sucursal_id', 'suc-1')
-    expect(q.eq).toHaveBeenCalledWith('rol', 'vendedor')
-    expect(q.eq).toHaveBeenCalledWith('activo', true)
-    expect(q.order).toHaveBeenCalledWith('nombres')
+    expect(res).toEqual([{ id: 'u-1', nombres: 'Ana', apellidos: 'Pérez' }])
+    expect(mock.rpcSpy).toHaveBeenCalledWith('vendedores_sucursal', { p_sucursal_id: 'suc-1' })
+    expect(mock.supabase.from).not.toHaveBeenCalledWith('perfiles')
+  })
+
+  it('traduce el error de lectura de vendedores sin revelar el detalle', async () => {
+    mock.setRpcError({ message: 'private SQL detail' })
+    await expect(obtenerVendedores('suc-1')).rejects.toThrow('No fue posible cargar los vendedores. Inténtalo de nuevo.')
+    await expect(obtenerVendedores('suc-1')).rejects.not.toThrow('private SQL detail')
   })
 })
 
@@ -214,6 +224,7 @@ describe('HU-13 · obtenerCargaVendedores', () => {
 
 describe('HU-13 · crearDespacho', () => {
   const payload = {
+    idempotency_key: 'key-despacho',
     sucursal_id: 'suc-1',
     vendedor_id: 'u-1',
     despachador_id: 'u-2',
@@ -222,7 +233,7 @@ describe('HU-13 · crearDespacho', () => {
     envases: [{ tipo_empaque_id: 'te-1', cantidad: 2 }],
   }
 
-  it('invoca el RPC crear_despacho con las líneas y envases', async () => {
+  it('invoca el RPC crear_despacho con las líneas, envases y la clave recibida', async () => {
     const res = await crearDespacho(payload)
     expect(res.error).toBeNull()
     expect(mock.rpcSpy).toHaveBeenCalledWith(
@@ -234,6 +245,7 @@ describe('HU-13 · crearDespacho', () => {
         p_creado_por: 'u-2',
         p_lineas: payload.lineas,
         p_envases: payload.envases,
+        p_idempotency_key: 'key-despacho',
       }),
     )
   })
@@ -241,67 +253,48 @@ describe('HU-13 · crearDespacho', () => {
   it('traduce el error de stock insuficiente (P0001) al español', async () => {
     mock.setRpcError({ code: 'P0001', message: 'Stock insuficiente de envases para el tipo X' })
     const res = await crearDespacho(payload)
-    expect(res.error).toBe('Stock insuficiente de envases para el tipo X')
+    expect(res.error).toBe('No hay stock suficiente de envases.')
   })
 })
 
-describe('HU-13 · registrarDevolucionProductos', () => {
-  it('inserta cada línea con despacho y usuario', async () => {
-    const res = await registrarDevolucionProductos({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas: [
-        { producto_id: 'p-1', cantidad: 3 },
-        { producto_id: 'p-2', cantidad: 1 },
-      ],
+describe('B3 · atomic returns', () => {
+  it('sends both sets and one stable key to one RPC with no direct INSERT', async () => {
+    const payload = { despacho_id: 'd1', creado_por: 'u1', idempotency_key: 'key-1',
+      lineas_producto: [{ producto_id: 'p1', cantidad: 4 }],
+      lineas_envase: [{ tipo_empaque_id: 'e1', cantidad: 2, estado: 'bueno' as const }] }
+    await registrarDevolucion(payload)
+    await registrarDevolucion(payload)
+    expect(mock.rpcSpy).toHaveBeenCalledTimes(2)
+    expect(mock.rpcSpy).toHaveBeenLastCalledWith('registrar_devolucion', {
+      p_despacho_id: 'd1', p_productos: payload.lineas_producto, p_envases: payload.lineas_envase, p_idempotency_key: 'key-1',
     })
-    expect(res.error).toBeNull()
-    expect(mock.insertSpy).toHaveBeenCalledTimes(1)
-    const payload = mock.insertSpy.mock.calls[0][0] as Record<string, unknown>[]
-    expect(payload).toEqual([
-      { despacho_id: 'd-1', producto_id: 'p-1', cantidad: 3, creado_por: 'u-2' },
-      { despacho_id: 'd-1', producto_id: 'p-2', cantidad: 1, creado_por: 'u-2' },
-    ])
+    expect(mock.insertSpy).not.toHaveBeenCalled()
   })
-
-  it('expone el error de la BD sin traducir si no tiene código', async () => {
-    mock.setInsertError({ message: 'Carga insuficiente del vendedor para devolver el producto' })
-    const res = await registrarDevolucionProductos({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas: [{ producto_id: 'p-1', cantidad: 99 }],
-    })
-    expect(res.error).toBe('Carga insuficiente del vendedor para devolver el producto')
+  it('routes legacy single-set services through the atomic RPC', async () => {
+    await registrarDevolucionProductos({ idempotency_key: 'key-p', despacho_id: 'd1', creado_por: 'u1', lineas: [{ producto_id: 'p1', cantidad: 1 }] })
+    await registrarDevolucionEnvases({ idempotency_key: 'key-e', despacho_id: 'd1', creado_por: 'u1', lineas: [{ tipo_empaque_id: 'e1', cantidad: 1, estado: 'malo' }] })
+    expect(mock.rpcSpy).toHaveBeenNthCalledWith(1, 'registrar_devolucion', expect.objectContaining({ p_envases: [] }))
+    expect(mock.rpcSpy).toHaveBeenNthCalledWith(2, 'registrar_devolucion', expect.objectContaining({ p_productos: [] }))
+    expect(mock.insertSpy).not.toHaveBeenCalled()
   })
-})
-
-describe('HU-13 · registrarDevolucionEnvases', () => {
-  it('inserta cada envase con su estado (bueno o malo)', async () => {
-    const res = await registrarDevolucionEnvases({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas: [
-        { tipo_empaque_id: 'te-1', cantidad: 4, estado: 'bueno' },
-        { tipo_empaque_id: 'te-2', cantidad: 2, estado: 'malo' },
-      ],
-    })
-    expect(res.error).toBeNull()
-    const payload = mock.insertSpy.mock.calls[0][0] as Record<string, unknown>[]
-    expect(payload).toEqual([
-      { despacho_id: 'd-1', tipo_empaque_id: 'te-1', cantidad: 4, estado: 'bueno', creado_por: 'u-2' },
-      { despacho_id: 'd-1', tipo_empaque_id: 'te-2', cantidad: 2, estado: 'malo', creado_por: 'u-2' },
-    ])
+  it('returns the safe rejection from the joint operation', async () => {
+    mock.setRpcError({ code: 'P0001', message: 'No se puede devolver más de lo despachado.' })
+    expect(await registrarDevolucion({ despacho_id: 'd1', creado_por: 'u1', lineas_producto: [], lineas_envase: [], idempotency_key: 'key' })).toEqual({ error: 'No se puede devolver más de lo despachado.' })
   })
 })
 
 describe('HU-13 · corregirDevolucion', () => {
+  const payload = {
+    idempotency_key: 'key-c',
+    despacho_id: 'd-1',
+    creado_por: 'u-2',
+    motivo: 'Conteo',
+    lineas_producto: [{ producto_id: 'p-1', cantidad: 2 }],
+    lineas_envase: [{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' as const }],
+  }
+
   it('invoca el RPC corregir_devolucion con líneas de producto y envase', async () => {
-    const res = await corregirDevolucion({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas_producto: [{ producto_id: 'p-1', cantidad: 2 }],
-      lineas_envase: [{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' }],
-    })
+    const res = await corregirDevolucion(payload)
     expect(res.error).toBeNull()
     expect(mock.rpcSpy).toHaveBeenCalledWith(
       'corregir_devolucion',
@@ -312,5 +305,30 @@ describe('HU-13 · corregirDevolucion', () => {
         p_envases: [{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' }],
       }),
     )
+  })
+
+  it('reenvía la misma clave en cada reintento del mismo envío', async () => {
+    await corregirDevolucion(payload)
+    await corregirDevolucion(payload)
+    expect(mock.rpcSpy).toHaveBeenNthCalledWith(1, 'corregir_devolucion', expect.objectContaining({ p_idempotency_key: 'key-c' }))
+    expect(mock.rpcSpy).toHaveBeenNthCalledWith(2, 'corregir_devolucion', expect.objectContaining({ p_idempotency_key: 'key-c' }))
+  })
+})
+
+
+describe('FE-05 · errores de lectura', () => {
+  it.each([
+    ['despachos', () => obtenerDespachos('suc-1')],
+    ['detalles', () => obtenerDetallesDespacho(['d-1'])],
+    ['envases', () => obtenerEnvasesDespacho(['d-1'])],
+    ['devoluciones de productos', () => obtenerDevolucionesProducto(['d-1'])],
+    ['devoluciones de envases', () => obtenerDevolucionesEnvase(['d-1'])],
+    ['stock de productos', () => obtenerStockBodega('suc-1')],
+    ['stock de envases', () => obtenerStockEnvases('suc-1')],
+    ['carga de vendedores', () => obtenerCargaVendedores(['u-1'])],
+  ])('rechaza errores al leer %s con un mensaje seguro', async (_nombre, leer) => {
+    mock.setReadError()
+    await expect(leer()).rejects.toThrow(/^No fue posible cargar .* Inténtalo de nuevo\.$/)
+    await expect(leer()).rejects.not.toThrow('private SQL detail')
   })
 })

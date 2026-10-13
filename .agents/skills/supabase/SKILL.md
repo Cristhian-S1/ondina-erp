@@ -8,6 +8,10 @@ metadata:
 
 # Supabase
 
+## Ondina scope
+
+Confirm an isolated local or staging environment before writing SQL. Remote schema/history reconciliation is pending; the iteration examples below do not authorize production changes or writes to a default linked remote. Read the [database guide](../../../docs/engineering/database.md).
+
 ## Core Principles
 
 **1. Supabase changes frequently — verify against changelog and current docs before implementing.**

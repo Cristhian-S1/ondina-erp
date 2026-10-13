@@ -10,6 +10,7 @@ export interface NavItem {
 }
 
 export interface RouteItem {
+  roles: Role[]
   path: string
   element: ReactNode
 }
