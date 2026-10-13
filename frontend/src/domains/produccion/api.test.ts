@@ -87,7 +87,7 @@ describe('obtenerProducciones', () => {
     })
 
     await expect(obtenerProducciones('sucursal-1')).rejects.toThrow(
-      'Error de base de datos',
+      'No fue posible completar la operación. Inténtalo de nuevo.',
     )
   })
 })
@@ -125,7 +125,7 @@ describe('registrarProduccion', () => {
 
   it('devuelve el mensaje de error cuando Supabase falla', async () => {
     insertMock.mockResolvedValue({
-      error: { message: 'No hay stock suficiente' },
+      error: { code: 'P0001', message: 'No hay stock suficiente' },
     })
 
     const resultado = await registrarProduccion({
@@ -136,7 +136,7 @@ describe('registrarProduccion', () => {
       creado_por: 'usuario-1',
     })
 
-    expect(resultado).toBe('No hay stock suficiente')
+    expect(resultado).toBe('No hay stock suficiente.')
   })
 })
 
@@ -177,7 +177,7 @@ describe('registrarMerma', () => {
 
   it('devuelve el mensaje de error cuando falla el registro', async () => {
     insertMock.mockResolvedValue({
-      error: { message: 'Stock insuficiente' },
+      error: { code: 'P0001', message: 'Stock insuficiente' },
     })
 
     const resultado = await registrarMerma({
@@ -190,7 +190,7 @@ describe('registrarMerma', () => {
       creado_por: 'usuario-1',
     })
 
-    expect(resultado).toBe('Stock insuficiente')
+    expect(resultado).toBe('No hay stock suficiente.')
   })
 })
 
@@ -256,7 +256,7 @@ describe('obtenerMermas', () => {
 
     await expect(
       obtenerMermas('sucursal-1'),
-    ).rejects.toThrow('Error al consultar mermas')
+    ).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })
 
@@ -342,7 +342,7 @@ describe('obtenerHistorialProduccion', () => {
       obtenerHistorialProduccion({
         sucursalId: 'sucursal-1',
       }),
-    ).rejects.toThrow('Error al obtener historial')
+    ).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })
 
@@ -424,7 +424,7 @@ describe('obtenerIndicadoresProduccion', () => {
         '2026-08-01',
         '2026-08-12',
       ),
-    ).rejects.toThrow('Error al obtener indicadores')
+    ).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })
 
@@ -509,6 +509,6 @@ describe('obtenerEnvasesDisponibles', () => {
 
     await expect(
       obtenerEnvasesDisponibles('sucursal-1', []),
-    ).rejects.toThrow('Error al obtener envases')
+    ).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })

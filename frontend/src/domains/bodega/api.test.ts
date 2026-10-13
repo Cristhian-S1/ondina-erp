@@ -244,7 +244,7 @@ describe('HU-13 · crearDespacho', () => {
   it('traduce el error de stock insuficiente (P0001) al español', async () => {
     mock.setRpcError({ code: 'P0001', message: 'Stock insuficiente de envases para el tipo X' })
     const res = await crearDespacho(payload)
-    expect(res.error).toBe('Stock insuficiente de envases para el tipo X')
+    expect(res.error).toBe('No hay stock suficiente de envases.')
   })
 })
 
@@ -267,14 +267,14 @@ describe('HU-13 · registrarDevolucionProductos', () => {
     ])
   })
 
-  it('expone el error de la BD sin traducir si no tiene código', async () => {
-    mock.setInsertError({ message: 'Carga insuficiente del vendedor para devolver el producto' })
+  it('traduce la carga insuficiente sin exponer el producto', async () => {
+    mock.setInsertError({ code: 'P0001', message: 'Carga insuficiente del vendedor para devolver el producto p-1' })
     const res = await registrarDevolucionProductos({
       despacho_id: 'd-1',
       creado_por: 'u-2',
       lineas: [{ producto_id: 'p-1', cantidad: 99 }],
     })
-    expect(res.error).toBe('Carga insuficiente del vendedor para devolver el producto')
+    expect(res.error).toBe('No tienes carga suficiente para devolver uno de los productos.')
   })
 })
 
