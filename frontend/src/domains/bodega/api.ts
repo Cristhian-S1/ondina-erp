@@ -13,6 +13,7 @@ import type {
 } from './types'
 
 export interface NuevoDespacho {
+  idempotency_key?: string
   sucursal_id: string
   vendedor_id: string
   despachador_id: string
@@ -22,12 +23,14 @@ export interface NuevoDespacho {
 }
 
 export interface DevolucionProductosPayload {
+  idempotency_key?: string
   despacho_id: string
   creado_por: string
   lineas: { producto_id: string; cantidad: number }[]
 }
 
 export interface DevolucionEnvasesPayload {
+  idempotency_key?: string
   despacho_id: string
   creado_por: string
   lineas: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
@@ -36,6 +39,7 @@ export interface DevolucionEnvasesPayload {
 export interface CorregirDevolucionPayload {
   despacho_id: string
   creado_por: string
+  motivo?: string
   lineas_producto: { producto_id: string; cantidad: number }[]
   lineas_envase: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
 }
@@ -190,6 +194,7 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
       p_creado_por: payload.creado_por,
       p_lineas: payload.lineas,
       p_envases: payload.envases,
+      p_idempotency_key: payload.idempotency_key ?? crypto.randomUUID(),
     } as never)
 
     return { error: error ? mensajeErrorSupabase(error) : null }
@@ -201,22 +206,13 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
 export async function registrarDevolucionProductos(
   payload: DevolucionProductosPayload,
 ): Promise<{ error: string | null }> {
-  try {
-    const { error } = await supabase
-      .from('devoluciones_productos')
-      .insert(
-        payload.lineas.map((l) => ({
-          despacho_id: payload.despacho_id,
-          producto_id: l.producto_id,
-          cantidad: l.cantidad,
-          creado_por: payload.creado_por,
-        })) as never[],
-      )
-
-    return { error: error ? mensajeErrorSupabase(error) : null }
-  } catch (error: unknown) {
-    return { error: mensajeErrorSupabase(error) }
-  }
+  return registrarDevolucion({
+    despacho_id: payload.despacho_id,
+    creado_por: payload.creado_por,
+    lineas_producto: payload.lineas,
+    lineas_envase: [],
+    idempotency_key: payload.idempotency_key ?? crypto.randomUUID(),
+  })
 }
 
 export async function corregirDevolucion(
@@ -228,6 +224,7 @@ export async function corregirDevolucion(
       p_creado_por: payload.creado_por,
       p_productos: payload.lineas_producto,
       p_envases: payload.lineas_envase,
+      p_motivo: payload.motivo,
     } as never)
 
     return { error: error ? mensajeErrorSupabase(error) : null }
@@ -239,19 +236,25 @@ export async function corregirDevolucion(
 export async function registrarDevolucionEnvases(
   payload: DevolucionEnvasesPayload,
 ): Promise<{ error: string | null }> {
-  try {
-    const { error } = await supabase
-      .from('devoluciones_envases')
-      .insert(
-        payload.lineas.map((l) => ({
-          despacho_id: payload.despacho_id,
-          tipo_empaque_id: l.tipo_empaque_id,
-          cantidad: l.cantidad,
-          estado: l.estado,
-          creado_por: payload.creado_por,
-        })) as never[],
-      )
+  return registrarDevolucion({
+    despacho_id: payload.despacho_id,
+    creado_por: payload.creado_por,
+    lineas_envase: payload.lineas,
+    lineas_producto: [],
+    idempotency_key: payload.idempotency_key ?? crypto.randomUUID(),
+  })
+}
 
+export async function registrarDevolucion(
+  payload: Omit<CorregirDevolucionPayload, 'motivo'> & { idempotency_key: string },
+): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.rpc('registrar_devolucion' as never, {
+      p_despacho_id: payload.despacho_id,
+      p_productos: payload.lineas_producto,
+      p_envases: payload.lineas_envase,
+      p_idempotency_key: payload.idempotency_key,
+    } as never)
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
     return { error: mensajeErrorSupabase(error) }

@@ -79,6 +79,7 @@ import {
   obtenerStockBodega,
   obtenerStockEnvases,
   obtenerVendedores,
+  registrarDevolucion,
   registrarDevolucionEnvases,
   registrarDevolucionProductos,
 } from './api'
@@ -248,52 +249,29 @@ describe('HU-13 · crearDespacho', () => {
   })
 })
 
-describe('HU-13 · registrarDevolucionProductos', () => {
-  it('inserta cada línea con despacho y usuario', async () => {
-    const res = await registrarDevolucionProductos({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas: [
-        { producto_id: 'p-1', cantidad: 3 },
-        { producto_id: 'p-2', cantidad: 1 },
-      ],
+describe('B3 · atomic returns', () => {
+  it('sends both sets and one stable key to one RPC with no direct INSERT', async () => {
+    const payload = { despacho_id: 'd1', creado_por: 'u1', idempotency_key: 'key-1',
+      lineas_producto: [{ producto_id: 'p1', cantidad: 4 }],
+      lineas_envase: [{ tipo_empaque_id: 'e1', cantidad: 2, estado: 'bueno' as const }] }
+    await registrarDevolucion(payload)
+    await registrarDevolucion(payload)
+    expect(mock.rpcSpy).toHaveBeenCalledTimes(2)
+    expect(mock.rpcSpy).toHaveBeenLastCalledWith('registrar_devolucion', {
+      p_despacho_id: 'd1', p_productos: payload.lineas_producto, p_envases: payload.lineas_envase, p_idempotency_key: 'key-1',
     })
-    expect(res.error).toBeNull()
-    expect(mock.insertSpy).toHaveBeenCalledTimes(1)
-    const payload = mock.insertSpy.mock.calls[0][0] as Record<string, unknown>[]
-    expect(payload).toEqual([
-      { despacho_id: 'd-1', producto_id: 'p-1', cantidad: 3, creado_por: 'u-2' },
-      { despacho_id: 'd-1', producto_id: 'p-2', cantidad: 1, creado_por: 'u-2' },
-    ])
+    expect(mock.insertSpy).not.toHaveBeenCalled()
   })
-
-  it('traduce la carga insuficiente sin exponer el producto', async () => {
-    mock.setInsertError({ code: 'P0001', message: 'Carga insuficiente del vendedor para devolver el producto p-1' })
-    const res = await registrarDevolucionProductos({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas: [{ producto_id: 'p-1', cantidad: 99 }],
-    })
-    expect(res.error).toBe('No tienes carga suficiente para devolver uno de los productos.')
+  it('routes legacy single-set services through the atomic RPC', async () => {
+    await registrarDevolucionProductos({ despacho_id: 'd1', creado_por: 'u1', lineas: [{ producto_id: 'p1', cantidad: 1 }] })
+    await registrarDevolucionEnvases({ despacho_id: 'd1', creado_por: 'u1', lineas: [{ tipo_empaque_id: 'e1', cantidad: 1, estado: 'malo' }] })
+    expect(mock.rpcSpy).toHaveBeenNthCalledWith(1, 'registrar_devolucion', expect.objectContaining({ p_envases: [] }))
+    expect(mock.rpcSpy).toHaveBeenNthCalledWith(2, 'registrar_devolucion', expect.objectContaining({ p_productos: [] }))
+    expect(mock.insertSpy).not.toHaveBeenCalled()
   })
-})
-
-describe('HU-13 · registrarDevolucionEnvases', () => {
-  it('inserta cada envase con su estado (bueno o malo)', async () => {
-    const res = await registrarDevolucionEnvases({
-      despacho_id: 'd-1',
-      creado_por: 'u-2',
-      lineas: [
-        { tipo_empaque_id: 'te-1', cantidad: 4, estado: 'bueno' },
-        { tipo_empaque_id: 'te-2', cantidad: 2, estado: 'malo' },
-      ],
-    })
-    expect(res.error).toBeNull()
-    const payload = mock.insertSpy.mock.calls[0][0] as Record<string, unknown>[]
-    expect(payload).toEqual([
-      { despacho_id: 'd-1', tipo_empaque_id: 'te-1', cantidad: 4, estado: 'bueno', creado_por: 'u-2' },
-      { despacho_id: 'd-1', tipo_empaque_id: 'te-2', cantidad: 2, estado: 'malo', creado_por: 'u-2' },
-    ])
+  it('returns the safe rejection from the joint operation', async () => {
+    mock.setRpcError({ code: 'P0001', message: 'No se puede devolver más de lo despachado.' })
+    expect(await registrarDevolucion({ despacho_id: 'd1', creado_por: 'u1', lineas_producto: [], lineas_envase: [], idempotency_key: 'key' })).toEqual({ error: 'No se puede devolver más de lo despachado.' })
   })
 })
 

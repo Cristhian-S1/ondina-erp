@@ -3,7 +3,7 @@
 // feature/ventas nació de develop y arrastró este componente compartido. En
 // un futuro queda en consideración aislar la navegación de despachos para
 // que no se mezcle con el menú del vendedor de ventas.
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Dialog from '../../../components/Dialog'
 import { useAuth } from '../../../context/auth-context'
@@ -126,6 +126,7 @@ export default function Despachos() {
     null,
   )
   const [enviando, setEnviando] = useState(false)
+  const intento = useRef<{ contenido: string; clave: string } | null>(null)
 
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
@@ -279,7 +280,7 @@ export default function Despachos() {
     }
 
     setEnviando(true)
-    const { error: err } = await crearDespacho({
+    const payload = {
       sucursal_id: sucursalId,
       vendedor_id: vendedorId,
       despachador_id: perfil.id,
@@ -292,7 +293,12 @@ export default function Despachos() {
         tipo_empaque_id: l.tipo_empaque_id,
         cantidad: parseMiles(String(l.cantidad)),
       })),
-    })
+    }
+    const contenido = JSON.stringify(payload)
+    if (intento.current?.contenido !== contenido) {
+      intento.current = { contenido, clave: crypto.randomUUID() }
+    }
+    const { error: err } = await crearDespacho({ ...payload, idempotency_key: intento.current.clave })
 
     if (err) {
       setError(err)
@@ -300,6 +306,7 @@ export default function Despachos() {
       return
     }
 
+    intento.current = null
     setEnviando(false)
     setModalOpen(false)
     setVendedorId('')

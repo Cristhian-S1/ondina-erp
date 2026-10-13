@@ -56,3 +56,31 @@ describe('REV-4 · catálogo de errores públicos', () => {
     expect(mensajeErrorSupabase({ code: 'P0001', message: 'private SQL detail: La venta debe incluir al menos un detalle' })).toBe(generico)
   })
 })
+
+describe('B2/B3 · safe business rejections', () => {
+  it.each([
+    'El despacho solo admite envases de uso interno.',
+    'Stock o carga insuficiente para completar la operación.',
+    'No se puede reactivar un movimiento anulado.',
+    'No se puede devolver más de lo despachado.',
+    'La ventana de ajuste del despacho expiró.',
+    'No tienes permisos para crear despachos en esta sucursal.',
+    'El usuario de la operación no coincide con la sesión.',
+    'El formato de las líneas no es válido.',
+    'No tienes permisos para registrar ventas.',
+    'El descuento debe ser un número finito.',
+    'El precio unitario debe ser un número finito.',
+    'El vendedor no existe o está desactivado.',
+    'La clave de reintento pertenece a otra operación.',
+    'Indica el motivo de la corrección.',
+    'No tienes permisos para registrar devoluciones.',
+    'No se puede modificar una regla de comisión histórica.',
+    'Una regla nueva no puede cambiar comisiones de ventas anteriores.',
+    'Línea de producto inválida en la devolución.',
+    'Línea de envase inválida en la devolución.',
+    'Selecciona una sucursal para registrar la incidencia.',
+  ])('allows the exact reviewed Spanish rejection: %s', message => {
+    expect(mensajeErrorSupabase({ code: 'P0001', message })).toBe(message)
+    expect(mensajeErrorSupabase({ code: 'P0001', message: message + ' private SQL detail' })).toBe(generico)
+  })
+})
