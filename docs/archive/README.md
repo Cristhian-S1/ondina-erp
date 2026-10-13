@@ -4,7 +4,7 @@ Read an archived report only for a dated finding, rationale or earlier verificat
 
 | Date | Evidence |
 | --- | --- |
-| 2026-10-09 | [Initial audit](audits/2026-10-09/auditoria-inicial-2026-10-09.md), [integral audit](audits/2026-10-09/auditoria-integral-2026-10-09.md), [earlier session context](audits/2026-10-09/contexto-sesion-auditoria.md), [Kimi handoff](audits/2026-10-09/kimi-k3-frontend-ventas.md). |
+| 2026-10-09 | [Initial audit](audits/2026-10-09/auditoria-inicial-2026-10-09.md), [integral audit](audits/2026-10-09/auditoria-integral-2026-10-09.md), [earlier session context](audits/2026-10-09/contexto-sesion-auditoria.md), Kimi handoff (removed in `a0a8f65`; recoverable from Git at commit `55d6c0f`). |
 | 2026-10-12 | [Earlier skill review](audits/2026-10-12/skills-del-proyecto.md); use the current [catalog](../skills.md) for selection. |
 | 2026-10-13 | [Deep audit](audits/2026-10-13/auditoria-profunda-2026-10-13.md), [evaluation of the 2026-10-09 audit](audits/2026-10-13/evaluacion-auditoria-2026-10-09.md), [worker reports](audits/2026-10-13/workers/README.md). |
 

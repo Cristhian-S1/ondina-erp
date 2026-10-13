@@ -1,6 +1,6 @@
 # User-Story Implementation
 
-Code review baseline: `develop` commit `55d6c0f`, 2026-10-12. This matrix describes repository implementation, not live database behavior or production acceptance. The [requirements](../product/requirements.md) and [story criteria](../product/stories/README.md) remain authoritative for intent.
+Code review baseline: `develop` commit `55d6c0f`, 2026-10-12; the code was re-reviewed on 2026-10-13 during the [deep audit](../archive/audits/2026-10-13/auditoria-profunda-2026-10-13.md), including the HU-31 session-restoration fix now in `develop` (#36 stays open until the role journeys are tested). This matrix describes repository implementation, not live database behavior or production acceptance. The [requirements](../product/requirements.md) and [story criteria](../product/stories/README.md) remain authoritative for intent.
 **Present** means relevant code exists; **Partial** means an explicit gap is known; **Placeholder/No UI/Backend only** describe the missing delivery surface. Tasks and their current status live in Beads, not this table.
 
 ## Sales
@@ -34,18 +34,18 @@ Code review baseline: `develop` commit `55d6c0f`, 2026-10-12. This matrix descri
 
 | Story | Implementation | Evidence or limit |
 | --- | --- | --- |
-| [HU-19](../product/stories/production.md#hu-19) | Present | Production empty-container section and stock queries. |
-| [HU-20](../product/stories/production.md#hu-20) | Present | `registrarProduccion` inserts production; database owns stock effects. |
-| [HU-21](../product/stories/production.md#hu-21) | Present | `HistorialProduccion.tsx` and history queries. |
-| [HU-22](../product/stories/production.md#hu-22) | Present | `IndicadoresProduccion.tsx` and production data/metrics. |
-| [HU-23](../product/stories/production.md#hu-23) | Partial | The incidents section inserts into `mermas`; general incidents require acceptance review. |
+| [HU-19](../product/stories/production.md#hu-19) | Present | Production empty-container section and stock queries. An administrator without an operational branch now sees an explicit message instead of the endless loading state (#37; selector still pending). |
+| [HU-20](../product/stories/production.md#hu-20) | Present | `registrarProduccion` inserts production; database owns stock effects. An administrator without an operational branch now sees an explicit message instead of the endless loading state (#37; selector still pending). |
+| [HU-21](../product/stories/production.md#hu-21) | Present | `HistorialProduccion.tsx` and history queries. An administrator without an operational branch now sees an explicit message instead of the endless loading state (#37; selector still pending). |
+| [HU-22](../product/stories/production.md#hu-22) | Present | `IndicadoresProduccion.tsx` and production data/metrics. An administrator without an operational branch now sees an explicit message instead of the endless loading state (#37; selector still pending). |
+| [HU-23](../product/stories/production.md#hu-23) | Partial | The incidents section inserts into `mermas`; general incidents require acceptance review. An administrator without an operational branch now sees an explicit message instead of the endless loading state (#37; selector still pending). |
 | [HU-24](../product/stories/warehouse.md#hu-24) | Present | `Stock.tsx` and stock services. |
 | [HU-25](../product/stories/warehouse.md#hu-25) | Present | `Despachos.tsx` and dispatch services. |
 | [HU-26](../product/stories/warehouse.md#hu-26) | Backend only | Adjustment rules are in SQL; no dedicated adjustment UI. |
 | [HU-27](../product/stories/warehouse.md#hu-27) | Present | `Devoluciones.tsx` and product-return services. |
 | [HU-28](../product/stories/warehouse.md#hu-28) | Present | `Devoluciones.tsx` and container-return services. |
 | [HU-29](../product/stories/warehouse.md#hu-29) | Partial | Production has a merma form, but the requested warehouse/dispatch flow is absent. |
-| [HU-31](../product/stories/authentication.md#hu-31) | Partial | Login/role routing exists; profile restoration has an open race (OND-82e). |
+| [HU-31](../product/stories/authentication.md#hu-31) | Partial | Login/role routing exists; the session-restoration race (OND-82e) was fixed in `develop` on 2026-10-13, but #36 stays open until the role journeys are tested. |
 
 ## Scope and verification
 

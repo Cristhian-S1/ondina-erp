@@ -9,7 +9,7 @@ See [user-story implementation](docs/status/user-stories.md) for code evidence a
 
 ## Quick start
 
-Use Node.js 22.12 or later and a development Supabase project:
+Use Node.js 22 per `frontend/.nvmrc` and a development Supabase project:
 
 ```bash
 cd frontend
@@ -34,7 +34,7 @@ npm run test
 | `frontend/` | React/Vite/TypeScript application, domain services and Vitest/Testing Library tests. |
 | `bd/` | SQL design, business objects and diagrams. |
 | `supabase/migrations/` | Versioned migrations; reconcile them with remote schema/history before deployment. |
-| `.github/workflows/` | Declared CI and Vercel deployment workflows. |
+| `.github/workflows/` | Declared CI and Vercel deployment workflows; the development deploy runs only after the CI checks pass. |
 | `docs/` | [Task-based documentation index](docs/README.md). |
 | `.agents/skills/` | Shared skill source, exposed to Claude through `.claude/skills/` symlinks. |
 
