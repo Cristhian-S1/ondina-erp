@@ -73,6 +73,8 @@ export default function RankingVendedores() {
           valueFormat="MMMM YYYY"
           radius="md"
           size="md"
+          // #52: objetivo táctil mínimo de 44 px en tablets.
+          styles={{ input: { minHeight: 44 } }}
           dropdownType="popover"
         />
       </div>
