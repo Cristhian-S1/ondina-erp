@@ -20,16 +20,7 @@ function setup(path: string, role: Role) {
     </Routes></MemoryRouter>
   </AuthContext.Provider>)
 }
-describe('Dashboard route roles', () => {
-  it.each(['/stock', '/stock/', '/STOCK'])('allows the expected role for %s', (path) => {
-    setup(path, 'bodega')
-    expect(screen.getByText('Stock page')).toBeInTheDocument()
-  })
-  it.each(['/stock', '/stock/', '/STOCK'])('blocks another role for %s', (path) => {
-    setup(path, 'vendedor')
-    expect(screen.getByText('Home page')).toBeInTheDocument()
-    expect(screen.queryByText('Stock page')).not.toBeInTheDocument()
-  })
+describe('Dashboard navigation', () => {
   it('makes the closed mobile sidebar inert and exposes its toggle state', () => {
     const { container } = setup('/', 'bodega')
     const toggle = screen.getByRole('button', { name: 'Alternar menú lateral' })

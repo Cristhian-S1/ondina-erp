@@ -14,7 +14,9 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           {domains.flatMap((module) =>
             module.routes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
+              <Route key={route.path} element={<ProtectedRoute roles={route.roles} />}>
+                <Route path={route.path} element={route.element} />
+              </Route>
             )),
           )}
         </Route>
