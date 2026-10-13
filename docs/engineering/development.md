@@ -7,6 +7,20 @@ Only public values belong in `VITE_*` (`VITE_SUPABASE_URL` and the anon/publisha
 When `supabase/config.toml` exists in the repository, `supabase start` provides an isolated local Supabase stack for development; never copy real data or credentials into it. Until then, use a dedicated development project.
 Read [architecture](architecture.md), [frontend](frontend.md) or [database](database.md) for the area being changed.
 
+## Role journeys against a local Supabase (B5)
+
+`frontend/tests/integration/*.journey.ts` exercise the real frontend service layer (`src/domains/*/api.ts`, `src/lib/*.ts`) against the isolated local stack, authenticated as real Supabase Auth users. Start the stack, reset it to the synthetic seed and run:
+
+```bash
+supabase start
+supabase db reset --local
+cd frontend
+npm ci
+npm run test:integration
+```
+
+The global setup creates one login-capable synthetic account per role and branch (plus an inactive seller and a global administrator) with the service-role key, and the teardown disables and soft-deletes them; the journeys only use each user's authenticated client and reserve the service-role client for balance/audit assertions. CI runs the suite in the `Validar migraciones Supabase` job after `supabase test db`, exporting `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from `supabase status -o env`; those variables override the CLI lookup when running elsewhere. The unit suite does not collect `tests/integration/*.journey.ts`.
+
 ## Git and review
 
 - `develop` is integration; `main` is the production release branch.
