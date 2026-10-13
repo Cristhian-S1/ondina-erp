@@ -205,3 +205,12 @@ it('RB-11 · la corrección reenvía la misma clave tras un fallo sin usar el fl
   expect(second.idempotency_key).toBe(first.idempotency_key)
   expect(api.registrarDevolucion).not.toHaveBeenCalled()
 })
+
+describe('Accesibilidad · filtros de Devoluciones', () => {
+  it('nombra el filtro de fecha y de vendedor, y el día activo cumple 44 px', async () => {
+    renderWithProviders(<Devoluciones />, { perfil: makePerfil({ rol: 'administrador' }) })
+    expect(await screen.findByLabelText('Fecha')).toHaveAttribute('type', 'date')
+    expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
+  })
+})

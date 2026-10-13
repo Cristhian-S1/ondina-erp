@@ -432,8 +432,8 @@ export default function Devoluciones() {
                   type="button"
                   className={
                     diaFiltro === valor
-                      ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
-                      : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                      ? 'min-h-11 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                      : 'min-h-11 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
                   }
                   onClick={() => {
                     setDiaFiltro(valor)
@@ -448,7 +448,8 @@ export default function Devoluciones() {
             {esAdmin && (
               <input
                 type="date"
-                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                aria-label="Fecha"
+                className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
                 value={fechaSeleccionada}
                 onChange={(e) => {
                   setFechaSeleccionada(e.target.value)
@@ -460,7 +461,8 @@ export default function Devoluciones() {
           </div>
 
           <select
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+            aria-label="Filtrar por vendedor"
+            className="min-h-11 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
             value={vendedorFiltro}
             onChange={(e) => {
               setVendedorFiltro(e.target.value)
