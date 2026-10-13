@@ -190,7 +190,7 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
       p_creado_por: payload.creado_por,
       p_lineas: payload.lineas,
       p_envases: payload.envases,
-    } as never)
+    })
 
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
@@ -210,7 +210,7 @@ export async function registrarDevolucionProductos(
           producto_id: l.producto_id,
           cantidad: l.cantidad,
           creado_por: payload.creado_por,
-        })) as never[],
+        })),
       )
 
     return { error: error ? mensajeErrorSupabase(error) : null }
@@ -228,7 +228,7 @@ export async function corregirDevolucion(
       p_creado_por: payload.creado_por,
       p_productos: payload.lineas_producto,
       p_envases: payload.lineas_envase,
-    } as never)
+    })
 
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
@@ -249,7 +249,7 @@ export async function registrarDevolucionEnvases(
           cantidad: l.cantidad,
           estado: l.estado,
           creado_por: payload.creado_por,
-        })) as never[],
+        })),
       )
 
     return { error: error ? mensajeErrorSupabase(error) : null }

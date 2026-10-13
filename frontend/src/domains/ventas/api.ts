@@ -185,6 +185,7 @@ export async function registrarVenta(
     const { data, error } = await supabase.rpc('registrar_venta', {
       p_cliente_id: args.p_cliente_id,
       p_metodo_pago: args.p_metodo_pago,
+      // TODO(#51): DetalleVentaInput is an interface, so it lacks the Json index signature; change it to a type alias in ventas/types.ts to drop this cast.
       p_detalles: args.p_detalles as unknown as Json,
       p_descuento: args.p_descuento,
       p_observaciones: args.p_observaciones,
