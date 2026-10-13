@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import { useAuth } from '../../../context/auth-context'
 import { useClientesRuta } from '../hooks/useClientesRuta'
@@ -31,7 +32,7 @@ const METODOS: { value: 'efectivo' | 'transferencia'; label: string }[] = [
   { value: 'transferencia', label: 'Transferencia' },
 ]
 
-const STORAGE_KEY = 'ondina:draft-registrar-venta'
+const STORAGE_PREFIX = 'ondina:draft-registrar-venta:'
 
 const PRODUCTOS_DEFAULT = ['Bidón POL', 'Bidón PET', 'Hielo CUBO']
 
@@ -48,37 +49,46 @@ function fmtCLP(n: number) {
   return formatMiles(n)
 }
 
-function cargarDraft(): Partial<RegistrarVentaForm> | null {
+const draftSchema = registrarVentaSchema.extend({
+  clienteId: z.string(),
+  descuento: z.number().min(0),
+  detalles: z.array(z.object({
+    productoId: z.string(),
+    cantidad: z.number().int().min(0),
+    precioUnitario: z.number().min(0),
+  })).min(1).max(MAX_PRODUCTOS),
+})
+
+function cargarDraft(key: string): RegistrarVentaForm | null {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY)
+    const raw = sessionStorage.getItem(key)
     if (!raw) return null
-    return JSON.parse(raw) as Partial<RegistrarVentaForm>
+    const result = draftSchema.safeParse(JSON.parse(raw))
+    if (result.success) return result.data
   } catch {
-    return null
+    // noop
   }
+  limpiarDraft(key)
+  return null
 }
 
-function guardarDraft(form: RegistrarVentaForm) {
+function guardarDraft(key: string, form: RegistrarVentaFormInput) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(form))
+    sessionStorage.setItem(key, JSON.stringify(form))
   } catch {
     // noop
   }
 }
 
-function limpiarDraft() {
+function limpiarDraft(key: string) {
   try {
-    sessionStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(key)
   } catch {
     // noop
   }
 }
 
 function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVentaForm {
-  const draft = cargarDraft()
-  const draftTieneProducto =
-    !!draft?.detalles?.length && draft.detalles.some((d) => d?.productoId)
-  if (draftTieneProducto) return draft as RegistrarVentaForm
   if (productos && productos.length > 0) {
     return {
       clienteId: '',
@@ -106,6 +116,14 @@ function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVen
 
 export default function RegistrarVenta() {
   const { perfil } = useAuth()
+  return <FormularioVenta key={perfil?.id ?? 'sin-sesion'} />
+}
+
+function FormularioVenta() {
+  const { perfil } = useAuth()
+  const storageKey = perfil ? `${STORAGE_PREFIX}${perfil.id}` : null
+  const [draft] = useState(() => storageKey ? cargarDraft(storageKey) : null)
+  const [completed, setCompleted] = useState(false)
   const navigate = useNavigate()
   const clientes = useClientesRuta()
   const productos = useProductosVenta()
@@ -127,7 +145,7 @@ export default function RegistrarVenta() {
     formState: { errors },
   } = useForm<RegistrarVentaFormInput, unknown, RegistrarVentaForm>({
     resolver: zodResolver(registrarVentaSchema),
-    defaultValues: defaults,
+    defaultValues: draft ?? defaults,
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
@@ -136,17 +154,17 @@ export default function RegistrarVenta() {
   useEffect(() => {
     if (!didInitRef.current && productos.data?.length) {
       didInitRef.current = true
-      reset(defaults)
+      reset(draft ?? defaults)
     }
-  }, [productos.data, defaults, reset])
+  }, [productos.data, defaults, draft, reset])
 
   const formValues = useWatch({ control })
   const first = useWatch({ control, name: 'detalles' })
   useEffect(() => {
-    if (formValues && (formValues as RegistrarVentaForm).detalles) {
-      guardarDraft(formValues as RegistrarVentaForm)
+    if (storageKey && didInitRef.current && !completed && formValues.detalles) {
+      guardarDraft(storageKey, formValues as RegistrarVentaFormInput)
     }
-  }, [formValues])
+  }, [formValues, storageKey, completed])
 
   const productoPorId = useMemo(() => {
     const m = new Map<string, ProductoVenta>()
@@ -216,7 +234,8 @@ export default function RegistrarVenta() {
     registrar.mutate(limpio, {
       onSuccess: (res) => {
         if (res.id) {
-          limpiarDraft()
+          setCompleted(true)
+          if (storageKey) limpiarDraft(storageKey)
           reset(defaults)
           mostrar(`Venta registrada. Folio: ${res.id.substring(0, 8)}`, 'exito')
           void carga.refetch()
