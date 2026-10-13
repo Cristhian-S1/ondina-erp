@@ -91,7 +91,7 @@ export default function Ventas() {
           <h2 className="text-base font-semibold text-slate-900">Mi carga de hoy</h2>
           <Link
             to="/carga"
-            className="text-sm font-medium text-brand-700 hover:text-brand-800"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-brand-700 hover:text-brand-800"
           >
             Ver todo
           </Link>

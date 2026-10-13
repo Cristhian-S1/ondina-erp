@@ -198,3 +198,14 @@ it.each(['obtenerClientesRuta', 'obtenerProductosVenta', 'obtenerCargaVendedor']
     expect(api.registrarVenta).not.toHaveBeenCalled()
   },
 )
+
+describe('Accesibilidad · RegistrarVenta', () => {
+  it('asocia cliente, productos por fila y método de pago a un nombre accesible', async () => {
+    await renderForm()
+    expect(screen.getByRole('combobox', { name: 'Cliente de tu cartera' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Producto 1' })).toHaveValue('p1')
+    expect(screen.getByRole('combobox', { name: 'Producto 2' })).toHaveValue('p2')
+    expect(screen.getByRole('combobox', { name: 'Producto 3' })).toHaveValue('p3')
+    expect(screen.getByLabelText('Método de pago')).toBeInTheDocument()
+  })
+})

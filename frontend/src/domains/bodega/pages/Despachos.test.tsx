@@ -292,3 +292,12 @@ it('B3 · keeps dispatch key after failure and renews it after success', async (
   await waitFor(() => expect(api.crearDespacho).toHaveBeenCalledTimes(3))
   expect(vi.mocked(api.crearDespacho).mock.calls[2][0].idempotency_key).not.toBe(first)
 })
+
+describe('Accesibilidad · filtros de Despachos', () => {
+  it('nombra el filtro de fecha y de vendedor, y el día activo cumple 44 px', async () => {
+    renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+    expect(await screen.findByLabelText('Fecha')).toHaveAttribute('type', 'date')
+    expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
+  })
+})
