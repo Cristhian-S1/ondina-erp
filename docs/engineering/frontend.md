@@ -18,6 +18,10 @@ Use `frontend/src/lib/ui.ts` instead of duplicating error styles:
 Use `useToast`/`Toast` for write outcomes: `exito` for success, `error` for failed mutations or business validation. Field errors remain next to their input. Translate technical backend errors into useful Spanish feedback.
 Reuse the existing Toast behavior, including auto-dismiss and mobile positioning; do not create a second notification system.
 
+## Data loading, errors and drafts
+
+Read services (`api.ts`, `lib/catalog.ts`) throw user-safe Spanish errors instead of returning `[]`, so a failed read is not mistaken for an empty result (#49); pages surface the message and keep their retry path. Domain modules route through `React.lazy` with a `Suspense` fallback, so each domain page loads on first visit (#50). The sale draft lives in `sessionStorage` under `ondina:draft-registrar-venta:<perfilId>`, is restored only for that identity and is cleared on logout (#36).
+
 ## Layout and numeric input
 
 - Verify 375px, 768px and 1280px layouts, including keyboard use and horizontal overflow.
