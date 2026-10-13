@@ -1,19 +1,16 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../../context/auth-context'
-import { supabase } from '../../../lib/supabase'
-import { obtenerProductos, obtenerTiposEmpaque } from '../../../lib/catalog'
+import SucursalSelector from '../../../components/SucursalSelector'
+import { useDatosProduccion } from '../hooks/useDatosProduccion'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
-import type { Producto, TipoEmpaque } from '../../../types'
+import type { TipoEmpaque } from '../../../types'
 import {
-  obtenerEnvasesDisponibles,
-  obtenerMermas,
-  obtenerProducciones,
   registrarMerma,
   registrarProduccion,
 } from '../api'
-import type { EnvaseDisponible, MermaProduccion, Produccion as RegistroProduccion } from '../types'
+import type { EnvaseDisponible, Produccion as RegistroProduccion } from '../types'
 import { validarMerma , validarProduccion } from '../validacion'
 import HistorialProduccion from '../components/HistorialProduccion'
 import IndicadoresProduccion from '../components/IndicadoresProduccion'
@@ -22,24 +19,34 @@ type Seccion = 'registrar' | 'envases' | 'historial' | 'indicadores' | 'incidenc
 
 export default function Produccion() {
   const { perfil } = useAuth()
+  const [seleccion, setSeleccion] = useState({ perfilId: perfil?.id, sucursalId: '' })
+  const esAdmin = perfil?.rol === 'administrador'
+  const sucursalId = esAdmin
+    ? (seleccion.perfilId === perfil.id ? seleccion.sucursalId : '')
+    : perfil?.sucursal_id ?? ''
+  return <div className="space-y-6">
+    {esAdmin && <SucursalSelector value={sucursalId} onChange={(id) => setSeleccion({ perfilId: perfil.id, sucursalId: id })} />}
+    {sucursalId && perfil ? <ProduccionSucursal key={`${perfil.id}:${sucursalId}`} sucursalId={sucursalId} />
+      : <p role="status" className="text-sm text-slate-500">{esAdmin ? 'Selecciona una sucursal para trabajar en producción.' : 'Para trabajar en producción debes tener una sucursal operativa asignada. Contacta al administrador.'}</p>}
+  </div>
+}
+
+function ProduccionSucursal({ sucursalId }: { sucursalId: string }) {
+  const { perfil } = useAuth()
   const { pathname } = useLocation()
-  const sucursalId = perfil?.sucursal_id ?? ''
   const seccion = pathname.split('/').at(-1) as Seccion
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [empaques, setEmpaques] = useState<TipoEmpaque[]>([])
-  const [producciones, setProducciones] = useState<RegistroProduccion[]>([])
-  const [envases, setEnvases] = useState<EnvaseDisponible[]>([])
+  const vigente = useRef(true)
+  useEffect(() => {
+    vigente.current = true
+    return () => { vigente.current = false }
+  }, [])
   const [productoId, setProductoId] = useState('')
   const [cantidad, setCantidad] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
-  const [errorLectura, setErrorLectura] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [exito, setExito] = useState<string | null>(null)
-  const [versionDatos, setVersionDatos] = useState(0)
   
-  const [mermas, setMermas] = useState<MermaProduccion[]>([])
   const [productoMermaId, setProductoMermaId] = useState('')
   const [cantidadMerma, setCantidadMerma] = useState('')
   const [motivoMerma, setMotivoMerma] = useState('')
@@ -53,66 +60,18 @@ export default function Produccion() {
     return () => window.clearTimeout(timer)
   }, [seccion])
 
-  const cargarDatos = useCallback(async () => {
-    if (!sucursalId) {
-      setCargando(false)
-      return
-    }
-    setCargando(true)
-    setError(null)
-    try {
-      setErrorLectura(null)
-      const [productosData, empaquesData, produccionesData, mermasData] = await Promise.all([
-        obtenerProductos(true),
-        obtenerTiposEmpaque(),
-        obtenerProducciones(sucursalId),
-        obtenerMermas(sucursalId),
-      ])
-      const envasesData = await obtenerEnvasesDisponibles(sucursalId, empaquesData)
-      setProductos(productosData)
-      setEmpaques(empaquesData)
-      setProducciones(produccionesData)
-      setMermas(mermasData)
-      setEnvases(envasesData)
-      setVersionDatos((version) => version + 1)
-    } catch {
-      setErrorLectura('No fue posible cargar los datos de producción. Inténtalo de nuevo con Actualizar.')
-    } finally {
-      setCargando(false)
-    }
-  }, [sucursalId])
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => void cargarDatos(), 0)
-    return () => window.clearTimeout(timer)
-  }, [cargarDatos])
-
-  useEffect(() => {
-    if (!sucursalId) return
-    const actualizar = () => void cargarDatos()
-    const canal = supabase
-      .channel(`produccion-${sucursalId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, actualizar)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mermas',
-          filter: `sucursal_id=eq.${sucursalId}`,
-        },
-        actualizar,
-      )      
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, actualizar)
-      .subscribe()
-    return () => { void supabase.removeChannel(canal) }
-  }, [cargarDatos, sucursalId])
+  const consulta = useDatosProduccion(perfil?.id ?? '', sucursalId)
+  const { productos = [], empaques = [], producciones = [], mermas = [], envases = [] } = consulta.data ?? {}
+  const cargando = consulta.isLoading
+  const errorLectura = consulta.error ? 'No fue posible cargar los datos de producción. Inténtalo de nuevo con Actualizar.' : null
+  const versionDatos = consulta.dataUpdatedAt
+  const cargarDatos = consulta.refetch
 
   async function guardarProduccion(event: FormEvent) {
     event.preventDefault()
-    if (!perfil?.sucursal_id) return
+    if (!perfil || !sucursalId) return
     const datos = {
-      sucursal_id: perfil.sucursal_id,
+      sucursal_id: sucursalId,
       producto_id: productoId,
       cantidad: parseMiles(cantidad),
       observaciones: observaciones.trim() || null,
@@ -124,6 +83,7 @@ export default function Produccion() {
     setError(null)
     setExito(null)
     const mensaje = await registrarProduccion(datos)
+    if (!vigente.current) return
     setGuardando(false)
     if (mensaje) return setError(mensaje)
     setCantidad('')
@@ -135,10 +95,10 @@ export default function Produccion() {
   async function guardarMerma(event: FormEvent) {
     event.preventDefault()
 
-    if (!perfil?.sucursal_id) return
+    if (!perfil || !sucursalId) return
 
     const datos = {
-      sucursal_id: perfil.sucursal_id,
+      sucursal_id: sucursalId,
       producto_id: productoMermaId,
       tipo_empaque_id: null,
       despacho_id: null,
@@ -159,6 +119,7 @@ export default function Produccion() {
     setExito(null)
 
     const mensaje = await registrarMerma(datos)
+    if (!vigente.current) return
 
     setGuardando(false)
 
@@ -176,10 +137,6 @@ export default function Produccion() {
     )
 
     await cargarDatos()
-  }
-
-  if (!sucursalId) {
-    return <p role="alert" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Para trabajar en producción debes asignar o seleccionar una sucursal operativa. Contacta al administrador.</p>
   }
 
   const nombreProducto = (id: string) => productos.find((item) => item.id === id)?.nombre ?? 'Producto'

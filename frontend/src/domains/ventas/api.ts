@@ -14,17 +14,21 @@ import type {
 } from './types'
 
 // --- HU-04: clientes de la ruta ---
-export async function obtenerClientesRuta(perfil: Perfil): Promise<ClienteCartera[]> {
+export async function obtenerClientesRuta(perfil: Perfil, sucursalSeleccionada?: string, vendedorSeleccionado?: string): Promise<ClienteCartera[]> {
   try {
-    const { data, error } = await supabase
+    const esAdmin = perfil.rol === 'administrador'
+    const sucursalId = esAdmin ? sucursalSeleccionada : perfil.sucursal_id
+    const vendedorId = esAdmin ? vendedorSeleccionado : perfil.id
+    if (esAdmin && (!sucursalId || !vendedorId)) return []
+    let consulta = supabase
       .from('clientes')
       .select(
         'id, nombre, telefono, direccion, numero_local, tipo, activo, creado_en',
       )
-      .eq('vendedor_id', perfil.id)
+      .eq('vendedor_id', vendedorId ?? perfil.id)
       .eq('activo', true)
-      .order('nombre', { ascending: true })
-      .returns<ClienteCartera[]>()
+    if (sucursalId) consulta = consulta.eq('sucursal_id', sucursalId)
+    const { data, error } = await consulta.order('nombre', { ascending: true }).returns<ClienteCartera[]>()
     if (error) throw new Error('No fue posible cargar los clientes de tu ruta. Inténtalo de nuevo.')
     return data ?? []
   } catch (error: unknown) {

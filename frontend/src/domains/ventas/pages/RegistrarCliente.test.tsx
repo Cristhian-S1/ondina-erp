@@ -92,7 +92,7 @@ describe('HU-02 · RegistrarCliente — validación de formulario', () => {
 it('FE-05 · muestra error de vendedores sin borrar los datos del cliente', async () => {
   let rechazar!: (cause: Error) => void
   vi.mocked(api.obtenerVendedoresSucursal).mockReturnValue(new Promise((_res, rej) => { rechazar = rej }))
-  renderWithProviders(<RegistrarCliente open={true} onClose={() => {}} />, { perfil: makePerfil({ rol: 'administrador' }) })
+  renderWithProviders(<RegistrarCliente open={true} onClose={() => {}} sucursalId="suc-1" />, { perfil: makePerfil({ rol: 'administrador' }) })
   fireEvent.change(screen.getByPlaceholderText('Nombre o razón comercial'), { target: { value: 'Almacén Sur' } })
   const { act } = await import('@testing-library/react')
   await act(async () => { rechazar(new Error('Fallo de consulta')) })
