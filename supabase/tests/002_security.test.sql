@@ -74,7 +74,7 @@ select is((select count(*) from pg_class c where c.relnamespace='public'::regnam
 select ok(not exists(select 1 from pg_proc p where p.pronamespace in ('public'::regnamespace,'private'::regnamespace) and p.prorettype in ('trigger'::regtype,'event_trigger'::regtype) and has_function_privilege('authenticated',p.oid,'EXECUTE')), 'All public/private trigger helpers deny authenticated execution');
 select ok(not exists(select 1 from pg_proc p where p.pronamespace='public'::regnamespace
  and has_function_privilege('authenticated',p.oid,'EXECUTE')
- and p.proname not in ('registrar_venta','crear_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada')), 'Authenticated RPC allow-list has exactly the frontend endpoints');
+ and p.proname not in ('registrar_venta','crear_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada','vendedores_sucursal')), 'Authenticated RPC allow-list has exactly the frontend endpoints');
 select ok(not exists(select 1 from pg_proc p where p.pronamespace in ('public'::regnamespace,'private'::regnamespace)
  and p.prosecdef and not coalesce(p.proconfig @> array['search_path=""'],false)), 'Every definer has empty search_path');
 select is((select count(*) from pg_constraint where conname like '%_finito_b2' and not convalidated),8::bigint,'All eight finite-money checks remain NOT VALID for remote review');
@@ -200,7 +200,7 @@ select is((select count(*) from public.sucursales),1::bigint,'role 2, branch 1: 
 select is((select count(*) from public.productos),6::bigint,'role 2, branch 1: productos visible rows');
 select is((select count(*) from public.tipos_empaque),7::bigint,'role 2, branch 1: tipos_empaque visible rows');
 select is((select count(*) from public.reglas_comision),1::bigint,'role 2, branch 1: reglas_comision visible rows');
-select is((select count(*) from public.perfiles),3::bigint,'role 2, branch 1: perfiles visible rows');
+select is((select count(*) from public.perfiles),1::bigint,'role 2, branch 1: perfiles visible rows (own profile only, RB-15)');
 select is((select count(*) from public.clientes),0::bigint,'role 2, branch 1: clientes visible rows');
 select is((select count(*) from public.ventas),0::bigint,'role 2, branch 1: ventas visible rows');
 select is((select count(*) from public.venta_detalles),0::bigint,'role 2, branch 1: venta_detalles visible rows');
@@ -230,7 +230,7 @@ select is((select count(*) from public.sucursales),1::bigint,'role 2, branch 2: 
 select is((select count(*) from public.productos),6::bigint,'role 2, branch 2: productos visible rows');
 select is((select count(*) from public.tipos_empaque),7::bigint,'role 2, branch 2: tipos_empaque visible rows');
 select is((select count(*) from public.reglas_comision),1::bigint,'role 2, branch 2: reglas_comision visible rows');
-select is((select count(*) from public.perfiles),2::bigint,'role 2, branch 2: perfiles visible rows');
+select is((select count(*) from public.perfiles),1::bigint,'role 2, branch 2: perfiles visible rows (own profile only, RB-15)');
 select is((select count(*) from public.clientes),0::bigint,'role 2, branch 2: clientes visible rows');
 select is((select count(*) from public.ventas),0::bigint,'role 2, branch 2: ventas visible rows');
 select is((select count(*) from public.venta_detalles),0::bigint,'role 2, branch 2: venta_detalles visible rows');
@@ -482,7 +482,7 @@ select lives_ok($sql$insert into public.gastos_extras(sucursal_id,vendedor_id,mo
 reset role;
 select ok(has_function_privilege('authenticated','public.registrar_venta(uuid,text,jsonb,numeric,text,uuid)','EXECUTE'),'Frontend endpoint remains callable: registrar_venta(uuid,text,jsonb,numeric,text)');
 select ok(has_function_privilege('authenticated','public.crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb,uuid)','EXECUTE'),'Frontend endpoint remains callable: crear_despacho(uuid,uuid,uuid,uuid,jsonb,jsonb)');
-select ok(has_function_privilege('authenticated','public.corregir_devolucion(uuid,uuid,jsonb,jsonb,text)','EXECUTE'),'Frontend endpoint remains callable: corregir_devolucion(uuid,uuid,jsonb,jsonb)');
+select ok(has_function_privilege('authenticated','public.corregir_devolucion(uuid,uuid,jsonb,jsonb,text,uuid)','EXECUTE'),'Frontend endpoint remains callable: corregir_devolucion(uuid,uuid,jsonb,jsonb,text,uuid)');
 create function public.b2_default_acl_probe() returns integer language sql as 'select 1';
 create table public.b2_default_acl_probe(id integer);
 select ok(not has_function_privilege('anon','public.b2_default_acl_probe()','EXECUTE') and not has_function_privilege('authenticated','public.b2_default_acl_probe()','EXECUTE'),'Future postgres functions have no implicit API execution');

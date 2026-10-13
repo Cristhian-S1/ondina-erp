@@ -413,3 +413,55 @@ business operations; seed/maintenance events without a JWT can retain null actor
 Legacy incidents are preserved with author-based RLS but need an authorized
 branch review for the new explicitly filtered UI list; no reclassification of
 old losses or silent conversion is performed.
+
+## B6 revision R1 delta
+
+Migration `20261013200000_b6_revision_fixes.sql` (OND-5gi.9; GitHub #29, #30, #31, #32, #33, #42) follows B4 and is forward-only.
+Its behavior is documented in the [database guide](../docs/engineering/database.md#b6-backend-review-fixes--2026-10-13).
+It changes functions, policies, one CHECK and grants; it rewrites no rows, balances, prices or history.
+
+Remote ordering and gates:
+
+- Apply the SQL before the frontend commit. The new bodega seller list (`vendedores_sucursal`) and the correction key argument
+  (`corregir_devolucion(..., p_idempotency_key)`) do not exist before this migration. Before the frontend lands, the previous
+  bodega client reads only its own profile, so dispatch and return screens list no sellers.
+- RB-4 preflight, before applying B3 on the restored copy. B3's `EXCLUDE` constraint on `reglas_comision` aborts on any overlap.
+  The query must return zero rows:
+
+  ```sql
+  select a.id as regla_a, b.id as regla_b
+  from public.reglas_comision a
+  join public.reglas_comision b
+    on a.id < b.id
+   and a.tipo_producto = b.tipo_producto
+   and tstzrange(a.vigente_desde, a.vigente_hasta, '[)')
+       && tstzrange(b.vigente_desde, b.vigente_hasta, '[)');
+  ```
+
+- RB-5 `auditoria_accion_check` is created `NOT VALID` by this migration, so new and updated rows are checked without a
+  table scan here. B3 still creates the same check validated, and that statement scans `auditoria` when B3 is applied.
+  Avoiding that scan requires `NOT VALID` in B3's statement, which this delta does not change. The repository does not
+  record the size of `auditoria`; measure it on the restored copy before the window. Validate the historical rows separately,
+  in a window after the count is zero:
+
+  ```sql
+  select count(*) from public.auditoria where accion not in ('INSERT','UPDATE','ANULACION','DELETE'); -- must be 0
+  alter table public.auditoria validate constraint auditoria_accion_check;
+  ```
+
+- Index creation (RB-6): the non-concurrent indexes from B1, B3 and B4 are accepted at the measured remote volume
+  (38 sales and 16 dispatches on 2026-10-13). Larger volumes need `CREATE INDEX CONCURRENTLY` as separate statements outside
+  a transaction.
+- Local Auth: `[auth.email].enable_signup` is the CLI key for the email/password provider (`GOTRUE_EXTERNAL_EMAIL_ENABLED`) and
+  must stay `true`. Self-service sign-up is closed by `[auth].enable_signup = false` (`GOTRUE_DISABLE_SIGNUP=true`). With the
+  previous `false`, every password sign-in failed with `Email logins are disabled`, so the B5 journeys could not sign in.
+
+Local validation on 2026-10-13 (isolated stack, `project_id` `ondina-erp`, after the B6 migration):
+
+- `supabase db reset --local`: passed.
+- `supabase test db --local`: 5 files, 654 assertions, passed. `005_b6_revision.test.sql` is new; `002_security.test.sql`
+  now expects bodega to read only its own profile and uses the six-argument correction signature.
+- `supabase/tests/rehearse-upgrade.sh`: passed. Row counts and content hashes were unchanged for every public table and
+  `auth.users` after each forward migration, including the B6 delta. The script's final reset and suite also passed.
+- `supabase db advisors --local --type security`: no issues found.
+- Frontend (from `frontend/`): lint, build, size, unit tests (43 files, 522 tests) and `test:integration` (6 files, 22 tests) passed.
