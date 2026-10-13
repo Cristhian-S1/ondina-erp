@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import RegistrarCliente from './RegistrarCliente'
 
@@ -25,6 +26,41 @@ afterEach(() => {
 function setup() {
   vi.mocked(api.crearCliente).mockResolvedValue({ error: null })
 }
+
+function RegistrationExample() {
+  const [open, setOpen] = useState(false)
+  return <>
+    <button type="button" onClick={() => setOpen(true)}>Registrar cliente</button>
+    <RegistrarCliente open={open} onClose={() => setOpen(false)} />
+  </>
+}
+
+describe('RegistrarCliente · accessible dialog', () => {
+  it.each(['Escape', 'Cerrar', 'Cancelar'])('moves focus inside and returns it to the opener after %s', (action) => {
+    setup()
+    renderWithProviders(<RegistrationExample />, { perfil: PERFIL })
+    const opener = screen.getByRole('button', { name: 'Registrar cliente' })
+    opener.focus()
+    fireEvent.click(opener)
+
+    const dialog = screen.getByRole('dialog', { name: 'Nuevo cliente' })
+    expect(dialog).toHaveAttribute('open')
+    expect(dialog.contains(document.activeElement)).toBe(true)
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Almacén Sur' } })
+    if (action === 'Escape') {
+      // Browsers translate Escape into the native cancel event.
+      fireEvent(dialog, new Event('cancel', { cancelable: true }))
+    } else {
+      fireEvent.click(within(dialog).getByRole('button', { name: action }))
+    }
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
+    expect(api.crearCliente).not.toHaveBeenCalled()
+    fireEvent.click(opener)
+    expect(within(screen.getByRole('dialog')).getByRole('textbox', { name: 'Nombre' })).toHaveValue('')
+  })
+})
 
 async function renderModal() {
   setup()
