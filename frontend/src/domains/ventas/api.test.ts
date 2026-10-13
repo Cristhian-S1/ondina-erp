@@ -10,7 +10,7 @@ const mock = vi.hoisted(() => {
     then: (resolve: (value: typeof readResult) => unknown) => Promise.resolve(readResult).then(resolve),
   }
   let insertResult: { error: { message: string } | null } = { error: null }
-  let rpcResult: { data: unknown; error: { message: string } | null } = {
+  let rpcResult: { data: unknown; error: { message: string; code?: string } | null } = {
     data: 'venta-uuid',
     error: null,
   }
@@ -44,7 +44,7 @@ const mock = vi.hoisted(() => {
       insertResult = { error: { message: msg } }
     },
     setRpcError: (msg: string) => {
-      rpcResult = { data: null, error: { message: msg } }
+      rpcResult = { data: null, error: { message: msg, code: 'P0001' } }
     },
   }
 })
