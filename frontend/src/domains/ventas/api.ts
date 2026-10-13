@@ -179,17 +179,19 @@ export async function crearGasto(
 
 // --- HU-01: RPC registrar_venta ---
 export async function registrarVenta(
-  args: RegistrarVentaArgs,
+  args: RegistrarVentaArgs & { p_idempotency_key: string },
 ): Promise<{ id: string | null; error: string | null }> {
   try {
-    const { data, error } = await supabase.rpc('registrar_venta', {
+    const rpcArgs = {
       p_cliente_id: args.p_cliente_id,
       p_metodo_pago: args.p_metodo_pago,
       // TODO(#51): DetalleVentaInput is an interface, so it lacks the Json index signature; change it to a type alias in ventas/types.ts to drop this cast.
       p_detalles: args.p_detalles as unknown as Json,
       p_descuento: args.p_descuento,
       p_observaciones: args.p_observaciones,
-    })
+      p_idempotency_key: args.p_idempotency_key,
+    }
+    const { data, error } = await supabase.rpc('registrar_venta', rpcArgs)
 
     if (error) {
       return { id: null, error: mensajeErrorSupabase(error) }
@@ -237,25 +239,15 @@ export async function obtenerCantidadVentasJornada(
   vendedorId: string,
 ): Promise<number> {
   try {
-    const inicio = new Date()
-    inicio.setHours(0, 0, 0, 0)
-
-    const fin = new Date(inicio)
-    fin.setDate(fin.getDate() + 1)
-
-    const { count, error } = await supabase
-      .from('ventas')
-      .select('id', { count: 'exact', head: true })
-      .eq('vendedor_id', vendedorId)
-      .eq('anulado', false)
-      .gte('creado_en', inicio.toISOString())
-      .lt('creado_en', fin.toISOString())
+    const { data, error } = await supabase.rpc('contar_ventas_jornada', {
+      p_vendedor_id: vendedorId,
+    })
 
     if (error) {
       throw new Error('No fue posible obtener la cantidad de ventas')
     }
 
-    return count ?? 0
+    return typeof data === 'number' ? data : 0
   } catch (error: unknown) {
     throw new Error(mensajeErrorSupabase(error), { cause: error })
   }

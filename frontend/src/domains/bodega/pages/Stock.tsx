@@ -22,7 +22,7 @@ function Tabs({ activa, onChange }: { activa: Tab; onChange: (tab: Tab) => void 
           key={opcion.id}
           type="button"
           onClick={() => onChange(opcion.id)}
-          className={`rounded-md px-4 py-1.5 text-sm font-semibold transition ${
+          className={`min-h-11 rounded-md px-4 py-1.5 text-sm font-semibold transition ${
             activa === opcion.id
               ? 'bg-brand-600 text-white shadow-sm'
               : 'text-brand-700 hover:bg-brand-100 hover:text-brand-900'

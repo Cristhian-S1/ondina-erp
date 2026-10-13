@@ -60,7 +60,7 @@ jobs:
   migrations-check:
     name: Validar migraciones Supabase
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     concurrency:
       group: ci-migrations-check-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
@@ -73,14 +73,40 @@ jobs:
         with:
           version: 2.111.0
 
-      - name: Start isolated database
-        run: supabase db start
+      - name: Start isolated Supabase stack
+        run: supabase start
 
       - name: Rebuild migrations and synthetic seed
         run: supabase db reset --local
 
       - name: Run pgTAP database tests
         run: supabase test db --local
+
+      - name: Setup Node (frontend/.nvmrc)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Export local Supabase env (B5 / #43)
+        run: |
+          supabase status -o env | grep -E '^[A-Z0-9_]+="' > "$RUNNER_TEMP/supabase.env"
+          set -a
+          . "$RUNNER_TEMP/supabase.env"
+          set +a
+          {
+            echo "SUPABASE_URL=${API_URL}"
+            echo "SUPABASE_ANON_KEY=${ANON_KEY}"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SERVICE_ROLE_KEY}"
+          } >> "$GITHUB_ENV"
+          rm -f "$RUNNER_TEMP/supabase.env"
+
+      - name: Role journeys against local Supabase (B5 / #43)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run test:integration
 
       - name: Database logs on failure
         if: failure()

@@ -13,6 +13,7 @@ import type {
 } from './types'
 
 export interface NuevoDespacho {
+  idempotency_key: string
   sucursal_id: string
   vendedor_id: string
   despachador_id: string
@@ -22,35 +23,35 @@ export interface NuevoDespacho {
 }
 
 export interface DevolucionProductosPayload {
+  idempotency_key: string
   despacho_id: string
   creado_por: string
   lineas: { producto_id: string; cantidad: number }[]
 }
 
 export interface DevolucionEnvasesPayload {
+  idempotency_key: string
   despacho_id: string
   creado_por: string
   lineas: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
 }
 
 export interface CorregirDevolucionPayload {
+  idempotency_key: string
   despacho_id: string
   creado_por: string
+  motivo?: string
   lineas_producto: { producto_id: string; cantidad: number }[]
   lineas_envase: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
 }
 
-export async function obtenerVendedores(sucursalId?: string): Promise<Perfil[]> {
+// Solo nombre e identificador: bodega no lee perfiles de vendedores (RB-15).
+export type VendedorSucursal = Pick<Perfil, 'id' | 'nombres' | 'apellidos'>
+
+export async function obtenerVendedores(sucursalId?: string): Promise<VendedorSucursal[]> {
   try {
     if (!sucursalId) return []
-    const { data, error } = await supabase
-      .from('perfiles')
-      .select('*')
-      .eq('sucursal_id', sucursalId)
-      .eq('rol', 'vendedor')
-      .eq('activo', true)
-      .order('nombres')
-      .returns<Perfil[]>()
+    const { data, error } = await supabase.rpc('vendedores_sucursal', { p_sucursal_id: sucursalId })
     if (error) throw new Error('No fue posible cargar los vendedores. Inténtalo de nuevo.')
     return data ?? []
   } catch (error: unknown) {
@@ -190,6 +191,7 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
       p_creado_por: payload.creado_por,
       p_lineas: payload.lineas,
       p_envases: payload.envases,
+      p_idempotency_key: payload.idempotency_key,
     })
 
     return { error: error ? mensajeErrorSupabase(error) : null }
@@ -201,22 +203,13 @@ export async function crearDespacho(payload: NuevoDespacho): Promise<{ error: st
 export async function registrarDevolucionProductos(
   payload: DevolucionProductosPayload,
 ): Promise<{ error: string | null }> {
-  try {
-    const { error } = await supabase
-      .from('devoluciones_productos')
-      .insert(
-        payload.lineas.map((l) => ({
-          despacho_id: payload.despacho_id,
-          producto_id: l.producto_id,
-          cantidad: l.cantidad,
-          creado_por: payload.creado_por,
-        })),
-      )
-
-    return { error: error ? mensajeErrorSupabase(error) : null }
-  } catch (error: unknown) {
-    return { error: mensajeErrorSupabase(error) }
-  }
+  return registrarDevolucion({
+    despacho_id: payload.despacho_id,
+    creado_por: payload.creado_por,
+    lineas_producto: payload.lineas,
+    lineas_envase: [],
+    idempotency_key: payload.idempotency_key,
+  })
 }
 
 export async function corregirDevolucion(
@@ -228,6 +221,8 @@ export async function corregirDevolucion(
       p_creado_por: payload.creado_por,
       p_productos: payload.lineas_producto,
       p_envases: payload.lineas_envase,
+      p_motivo: payload.motivo,
+      p_idempotency_key: payload.idempotency_key,
     })
 
     return { error: error ? mensajeErrorSupabase(error) : null }
@@ -239,19 +234,25 @@ export async function corregirDevolucion(
 export async function registrarDevolucionEnvases(
   payload: DevolucionEnvasesPayload,
 ): Promise<{ error: string | null }> {
-  try {
-    const { error } = await supabase
-      .from('devoluciones_envases')
-      .insert(
-        payload.lineas.map((l) => ({
-          despacho_id: payload.despacho_id,
-          tipo_empaque_id: l.tipo_empaque_id,
-          cantidad: l.cantidad,
-          estado: l.estado,
-          creado_por: payload.creado_por,
-        })),
-      )
+  return registrarDevolucion({
+    despacho_id: payload.despacho_id,
+    creado_por: payload.creado_por,
+    lineas_envase: payload.lineas,
+    lineas_producto: [],
+    idempotency_key: payload.idempotency_key,
+  })
+}
 
+export async function registrarDevolucion(
+  payload: Omit<CorregirDevolucionPayload, 'motivo'>,
+): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.rpc('registrar_devolucion', {
+      p_despacho_id: payload.despacho_id,
+      p_productos: payload.lineas_producto,
+      p_envases: payload.lineas_envase,
+      p_idempotency_key: payload.idempotency_key,
+    })
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
     return { error: mensajeErrorSupabase(error) }

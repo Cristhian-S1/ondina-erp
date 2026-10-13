@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
-import { renderWithProviders } from '@/test/render'
+import { makePerfil, renderWithProviders } from '@/test/render'
 import Devoluciones from './Devoluciones'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
@@ -17,6 +17,8 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/domains/bodega/api')>()
   return {
     ...actual,
+    registrarDevolucion: vi.fn(),
+    corregirDevolucion: vi.fn(),
     obtenerVendedores: vi.fn(),
     obtenerDespachos: vi.fn(),
     obtenerDetallesDespacho: vi.fn(),
@@ -157,4 +159,58 @@ it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado
   vi.mocked(api.obtenerDespachos).mockResolvedValue([])
   fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
   await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+})
+
+it('B3 · sends products and containers together and keeps the key after failure', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  vi.mocked(api.registrarDevolucion).mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.' }).mockResolvedValue({ error: null })
+  renderWithProviders(<Devoluciones />)
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/i }))
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad de envases buenos de Bandeja' }), { target: { value: '1' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  await waitFor(() => expect(api.registrarDevolucion).toHaveBeenCalledTimes(2))
+  const [first, second] = vi.mocked(api.registrarDevolucion).mock.calls.map(([args]) => args)
+  expect(first.lineas_producto).toEqual([{ producto_id: 'p-1', cantidad: 2 }])
+  expect(first.lineas_envase).toEqual([{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' }])
+  expect(second.idempotency_key).toBe(first.idempotency_key)
+  await waitFor(() => expect(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' })).toHaveValue(null))
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  await waitFor(() => expect(api.registrarDevolucion).toHaveBeenCalledTimes(3))
+  expect(vi.mocked(api.registrarDevolucion).mock.calls[2][0].idempotency_key).not.toBe(first.idempotency_key)
+})
+
+it('RB-11 · la corrección reenvía la misma clave tras un fallo sin usar el flujo de devolución', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  vi.mocked(api.obtenerDevolucionesProducto).mockResolvedValue([
+    { id: 'dev-1', despacho_id: 'd-1', producto_id: 'p-1', cantidad: 2, anulado: false, creado_por: 'user-1', creado_en: '2026-01-01T12:00:00Z' },
+  ])
+  vi.mocked(api.corregirDevolucion)
+    .mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.' })
+    .mockResolvedValue({ error: null })
+  renderWithProviders(<Devoluciones />, { perfil: makePerfil({ rol: 'administrador' }) })
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/i }))
+  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '1' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }))
+  await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }))
+  await waitFor(() => expect(api.corregirDevolucion).toHaveBeenCalledTimes(2))
+  const [first, second] = vi.mocked(api.corregirDevolucion).mock.calls.map(([args]) => args)
+  expect(first.idempotency_key).toEqual(expect.any(String))
+  expect(second.idempotency_key).toBe(first.idempotency_key)
+  expect(api.registrarDevolucion).not.toHaveBeenCalled()
+})
+
+describe('Accesibilidad · filtros de Devoluciones', () => {
+  it('nombra el filtro de fecha y de vendedor, y el día activo cumple 44 px', async () => {
+    renderWithProviders(<Devoluciones />, { perfil: makePerfil({ rol: 'administrador' }) })
+    expect(await screen.findByLabelText('Fecha')).toHaveAttribute('type', 'date')
+    expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
+  })
 })

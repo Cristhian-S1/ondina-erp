@@ -8,6 +8,7 @@ import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
 import { useAuth } from '../../../context/auth-context'
 import { crearClienteSchema, type CrearClienteForm, type CrearClienteInput } from '../schemas'
 import { btnPrimary, btnSecondary, errorTextCls, inputCls, labelCls } from '../../../lib/ui'
+import { mensajeErrorSupabase } from '../../../lib/errors'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 
@@ -86,7 +87,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         cierreTimer.current = setTimeout(onClose, 1500)
       },
       onError: (err) => {
-        mostrar(err instanceof Error ? err.message : 'No se pudo registrar el cliente', 'error')
+        mostrar(mensajeErrorSupabase(err), 'error')
       },
     })
   }

@@ -3,7 +3,7 @@
 // feature/ventas nació de develop y arrastró este componente compartido. En
 // un futuro queda en consideración aislar la navegación de despachos para
 // que no se mezcle con el menú del vendedor de ventas.
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Dialog from '../../../components/Dialog'
 import { useAuth } from '../../../context/auth-context'
@@ -19,10 +19,11 @@ import {
   obtenerStockEnvases,
   obtenerVendedores,
 } from '../api'
+import type { VendedorSucursal } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
-import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
 import type {
   CargaVendedor,
   Despacho,
@@ -104,7 +105,7 @@ export default function Despachos() {
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<Perfil[]>([])
+  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
   const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
@@ -126,6 +127,7 @@ export default function Despachos() {
     null,
   )
   const [enviando, setEnviando] = useState(false)
+  const intento = useRef<{ contenido: string; clave: string } | null>(null)
 
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
@@ -279,7 +281,7 @@ export default function Despachos() {
     }
 
     setEnviando(true)
-    const { error: err } = await crearDespacho({
+    const payload = {
       sucursal_id: sucursalId,
       vendedor_id: vendedorId,
       despachador_id: perfil.id,
@@ -292,7 +294,12 @@ export default function Despachos() {
         tipo_empaque_id: l.tipo_empaque_id,
         cantidad: parseMiles(String(l.cantidad)),
       })),
-    })
+    }
+    const contenido = JSON.stringify(payload)
+    if (intento.current?.contenido !== contenido) {
+      intento.current = { contenido, clave: crypto.randomUUID() }
+    }
+    const { error: err } = await crearDespacho({ ...payload, idempotency_key: intento.current.clave })
 
     if (err) {
       setError(err)
@@ -300,6 +307,7 @@ export default function Despachos() {
       return
     }
 
+    intento.current = null
     setEnviando(false)
     setModalOpen(false)
     setVendedorId('')
@@ -477,8 +485,8 @@ export default function Despachos() {
                     type="button"
                     className={
                       diaFiltro === valor
-                        ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
-                        : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                        ? 'min-h-11 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                        : 'min-h-11 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
                     }
                     onClick={() => {
                       setDiaFiltro(valor)
@@ -493,7 +501,8 @@ export default function Despachos() {
               {esAdmin && (
                 <input
                   type="date"
-                  className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                  aria-label="Fecha"
+                  className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
                   value={fechaSeleccionada}
                   onChange={(e) => {
                     setFechaSeleccionada(e.target.value)
@@ -505,7 +514,8 @@ export default function Despachos() {
             </div>
 
             <select
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+              aria-label="Filtrar por vendedor"
+              className="min-h-11 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
               value={vendedorFiltro}
               onChange={(e) => {
                 setVendedorFiltro(e.target.value)

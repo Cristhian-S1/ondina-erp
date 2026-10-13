@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import {
   corregirDevolucion,
@@ -10,12 +10,12 @@ import {
   obtenerEnvasesDespacho,
   obtenerStockEnvases,
   obtenerVendedores,
-  registrarDevolucionEnvases,
-  registrarDevolucionProductos,
+  registrarDevolucion,
 } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
 import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
-import type { Perfil, Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
+import type { VendedorSucursal } from '../api'
 import type {
   CargaVendedor,
   Despacho,
@@ -71,7 +71,7 @@ export default function Devoluciones() {
 
   const [sucursales, setSucursales] = useState<Sucursal[]>([])
   const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<Perfil[]>([])
+  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
   const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
@@ -92,6 +92,7 @@ export default function Devoluciones() {
     Record<string, { buenos: string; malos: string }>
   >({})
   const [enviando, setEnviando] = useState(false)
+  const intento = useRef<{ contenido: string; clave: string } | null>(null)
   const [versionLectura, setVersionLectura] = useState(0)
   const [errorLectura, setErrorLectura] = useState<string | null>(null)
   const [errorSucursales, setErrorSucursales] = useState<string | null>(null)
@@ -336,44 +337,26 @@ export default function Devoluciones() {
     }
 
     setEnviando(true)
-    if (esCorreccion) {
-      const { error: err } = await corregirDevolucion({
-        despacho_id: seleccionado,
-        creado_por: perfil.id,
-        lineas_producto: lineasProducto,
-        lineas_envase: lineasEnvase,
-      })
-      if (err) {
-        setError(err)
-        setEnviando(false)
-        return
-      }
-    } else {
-      if (lineasProducto.length > 0) {
-        const { error: err } = await registrarDevolucionProductos({
-          despacho_id: seleccionado,
-          creado_por: perfil.id,
-          lineas: lineasProducto,
-        })
-        if (err) {
-          setError(err)
-          setEnviando(false)
-          return
-        }
-      }
-      if (lineasEnvase.length > 0) {
-        const { error: err } = await registrarDevolucionEnvases({
-          despacho_id: seleccionado,
-          creado_por: perfil.id,
-          lineas: lineasEnvase,
-        })
-        if (err) {
-          setError(err)
-          setEnviando(false)
-          return
-        }
-      }
+    const payload = {
+      despacho_id: seleccionado,
+      creado_por: perfil.id,
+      lineas_producto: lineasProducto,
+      lineas_envase: lineasEnvase,
     }
+    // El tipo de operación forma parte del contenido: una devolución y una corrección con las mismas líneas no comparten clave.
+    const contenido = JSON.stringify([esCorreccion, sucursalId, payload])
+    if (intento.current?.contenido !== contenido) {
+      intento.current = { contenido, clave: crypto.randomUUID() }
+    }
+    const { error: err } = esCorreccion
+      ? await corregirDevolucion({ ...payload, idempotency_key: intento.current.clave })
+      : await registrarDevolucion({ ...payload, idempotency_key: intento.current.clave })
+    if (err) {
+      setError(err)
+      setEnviando(false)
+      return
+    }
+    intento.current = null
 
     setEnviando(false)
     setProductoInputs({})
@@ -449,8 +432,8 @@ export default function Devoluciones() {
                   type="button"
                   className={
                     diaFiltro === valor
-                      ? 'rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
-                      : 'rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
+                      ? 'min-h-11 rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white'
+                      : 'min-h-11 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400'
                   }
                   onClick={() => {
                     setDiaFiltro(valor)
@@ -465,7 +448,8 @@ export default function Devoluciones() {
             {esAdmin && (
               <input
                 type="date"
-                className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                aria-label="Fecha"
+                className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
                 value={fechaSeleccionada}
                 onChange={(e) => {
                   setFechaSeleccionada(e.target.value)
@@ -477,7 +461,8 @@ export default function Devoluciones() {
           </div>
 
           <select
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+            aria-label="Filtrar por vendedor"
+            className="min-h-11 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
             value={vendedorFiltro}
             onChange={(e) => {
               setVendedorFiltro(e.target.value)

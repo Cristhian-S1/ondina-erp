@@ -27,6 +27,7 @@ const mock = vi.hoisted(() => {
       })),
       rpc: vi.fn((fn: string, args: unknown) => {
         rpcSpy(fn, args)
+        if (fn === 'contar_ventas_jornada') return Promise.resolve({ data: readResult.count, error: readResult.error })
         return Promise.resolve(rpcResult)
       }),
     },
@@ -115,10 +116,11 @@ describe('HU-01 · registrarVenta', () => {
       p_detalles: [{ producto_id: 'p-1', cantidad: 2, precio_unitario: 1000, envases_recibidos: 0 }],
       p_descuento: 0,
       p_observaciones: undefined,
+      p_idempotency_key: 'key-venta',
     })
     expect(res.id).toBe('venta-uuid')
     expect(res.error).toBeNull()
-    expect(mock.rpcSpy).toHaveBeenCalledWith('registrar_venta', expect.objectContaining({ p_cliente_id: 'cli-1' }))
+    expect(mock.rpcSpy).toHaveBeenCalledWith('registrar_venta', expect.objectContaining({ p_cliente_id: 'cli-1', p_idempotency_key: 'key-venta' }))
   })
 
   it('traduce el error de carga insuficiente al español', async () => {
@@ -129,6 +131,7 @@ describe('HU-01 · registrarVenta', () => {
       p_detalles: [{ producto_id: 'p-1', cantidad: 99, precio_unitario: 1000, envases_recibidos: 0 }],
       p_descuento: 0,
       p_observaciones: undefined,
+      p_idempotency_key: 'key-venta-insuficiente',
     })
     expect(res.id).toBeNull()
     expect(res.error).toBe('No tienes carga suficiente de uno de los productos.')
@@ -161,4 +164,11 @@ describe('FE-05 · lecturas de ventas', () => {
     mock.setReadResult(true)
     await expect(obtenerCantidadVentasJornada(perfil.id)).rejects.toThrow('No fue posible')
   })
+})
+
+it('B3 · asks SQL for Santiago jornada without a browser-derived UTC range', async () => {
+  mock.reset()
+  const count = await obtenerCantidadVentasJornada('user-1')
+  expect(count).toBe(0)
+  expect(mock.rpcSpy).toHaveBeenCalledWith('contar_ventas_jornada', { p_vendedor_id: 'user-1' })
 })

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { mensajeErrorSupabase } from '../../../lib/errors'
 import { useAuth } from '../../../context/auth-context'
 import { useClientesRuta } from '../hooks/useClientesRuta'
 import { useProductosVenta } from '../hooks/useProductosVenta'
@@ -131,6 +132,7 @@ function FormularioVenta() {
   const errorLectura = clientes.error || productos.error || carga.error
   const registrar = useRegistrarVenta()
   const { toast, mostrar, cerrar } = useToast()
+  const clienteId = useId()
 
   const defaults = useMemo(
     () => construirDefaults(productos.data),
@@ -250,7 +252,7 @@ function FormularioVenta() {
         }
       },
       onError: (err) => {
-        mostrar(err instanceof Error ? err.message : 'No se pudo registrar la venta', 'error')
+        mostrar(mensajeErrorSupabase(err), 'error')
       },
     })
   }
@@ -284,9 +286,9 @@ function FormularioVenta() {
             <h2 className="text-base font-semibold text-slate-900">1 · Cliente</h2>
           </div>
           <div className="space-y-4 px-5 py-4">
-            <label className={`${labelCls} max-w-md`}>
+            <label htmlFor={clienteId} className={`${labelCls} max-w-md`}>
               Cliente de tu cartera
-              <select className={inputCls} {...register('clienteId')}>
+              <select id={clienteId} className={inputCls} {...register('clienteId')}>
                 <option value="">Selecciona un cliente...</option>
                 {clientes.data?.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -367,6 +369,7 @@ function FormularioVenta() {
                       <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
                         <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Producto</span>
                         <select
+                          aria-label={`Producto ${index + 1}`}
                           className={inputCls}
                           {...productoReg}
                           onChange={(e) => {
@@ -589,9 +592,7 @@ function FormularioVenta() {
               )}
               {registrar.error && (
                 <p className={errorBlockCls}>
-                  {registrar.error instanceof Error
-                    ? registrar.error.message
-                    : 'No se pudo registrar la venta'}
+                  {mensajeErrorSupabase(registrar.error)}
                 </p>
               )}
               <button type="submit" className={btnPrimary} disabled={registrar.isPending || !!errorLectura}>

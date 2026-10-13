@@ -11,6 +11,35 @@ const mensajesPorCodigo = new Map<string, string>([
 ])
 
 const mensajesDeNegocio = new Map<string, string>([
+  ['El despacho solo admite envases de uso interno.', 'El despacho solo admite envases de uso interno.'],
+  ['La ventana de ajuste del despacho expiró.', 'La ventana de ajuste del despacho expiró.'],
+  ['No tienes permisos para crear despachos en esta sucursal.', 'No tienes permisos para crear despachos en esta sucursal.'],
+  ['El usuario de la operación no coincide con la sesión.', 'El usuario de la operación no coincide con la sesión.'],
+  ['El formato de las líneas no es válido.', 'El formato de las líneas no es válido.'],
+  ['No tienes permisos para corregir devoluciones de esta sucursal.', 'No tienes permisos para corregir devoluciones de esta sucursal.'],
+  ['No tienes permisos para registrar ventas.', 'No tienes permisos para registrar ventas.'],
+  ['El descuento debe ser un número finito.', 'El descuento debe ser un número finito.'],
+  ['El formato de los detalles de venta no es válido.', 'El formato de los detalles de venta no es válido.'],
+  ['El vendedor no existe o está desactivado.', 'El vendedor no existe o está desactivado.'],
+  ['El precio unitario debe ser un número finito.', 'El precio unitario debe ser un número finito.'],
+  ['Stock o carga insuficiente para completar la operación.', 'Stock o carga insuficiente para completar la operación.'],
+  ['Los movimientos conservan su historial; utiliza la anulación.', 'Los movimientos conservan su historial; utiliza la anulación.'],
+  ['No se puede reactivar un movimiento anulado.', 'No se puede reactivar un movimiento anulado.'],
+  ['Los datos de un movimiento registrado no se pueden editar.', 'Los datos de un movimiento registrado no se pueden editar.'],
+  ['El tipo y empaque de un producto con movimientos son históricos.', 'El tipo y empaque de un producto con movimientos son históricos.'],
+  ['La clave de reintento pertenece a otra operación.', 'La clave de reintento pertenece a otra operación.'],
+  ['El despacho está anulado o pertenece a otra sucursal.', 'El despacho está anulado o pertenece a otra sucursal.'],
+  ['No se puede devolver más de lo despachado.', 'No se puede devolver más de lo despachado.'],
+  ['La merma supera lo despachado pendiente de ese producto.', 'La merma supera lo despachado pendiente de ese producto.'],
+  ['Línea de producto inválida en la devolución.', 'Línea de producto inválida en la devolución.'],
+  ['Línea de envase inválida en la devolución.', 'Línea de envase inválida en la devolución.'],
+  ['No tienes permisos para registrar devoluciones.', 'No tienes permisos para registrar devoluciones.'],
+  ['Indica el motivo de la corrección.', 'Indica el motivo de la corrección.'],
+  ['No se puede modificar una regla de comisión histórica.', 'No se puede modificar una regla de comisión histórica.'],
+  ['Una regla nueva no puede cambiar comisiones de ventas anteriores.', 'Una regla nueva no puede cambiar comisiones de ventas anteriores.'],
+  ['Selecciona una sucursal para registrar la incidencia.', 'Selecciona una sucursal para registrar la incidencia.'],
+  ['La categoría de un empaque con movimientos es histórica.', 'La categoría de un empaque con movimientos es histórica.'],
+
   ['Cliente inexistente o fuera de su cartera/sucursal', 'El cliente no pertenece a tu cartera o sucursal.'],
   ['Método de pago inválido (efectivo o transferencia)', 'El método de pago no es válido.'],
   ['La venta debe incluir al menos un detalle', 'Debes agregar al menos un producto a la venta.'],
@@ -88,4 +117,28 @@ export function mensajeErrorSupabase(error: unknown): string {
   return typeof message === 'string'
     ? mensajesPublicos.get(message) ?? mensajeGenerico
     : mensajeGenerico
+}
+
+const mensajeAutenticacionGenerico = 'No fue posible iniciar sesión. Inténtalo de nuevo.'
+const mensajeCredenciales = 'Correo o contraseña incorrectos.'
+const mensajeLimiteIntentos = 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+
+const mensajesAutenticacionPorCodigo = new Map<string, string>([
+  ['invalid_credentials', mensajeCredenciales],
+  ['over_request_rate_limit', mensajeLimiteIntentos],
+  ['over_email_send_rate_limit', mensajeLimiteIntentos],
+])
+
+// Los errores de Supabase Auth traen code/status estables; su texto en inglés nunca se muestra.
+export function mensajeErrorAutenticacion(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return mensajeAutenticacionGenerico
+
+  const { code, status, message } = error as { code?: unknown; status?: unknown; message?: unknown }
+  if (typeof code === 'string') {
+    const porCodigo = mensajesAutenticacionPorCodigo.get(code)
+    if (porCodigo) return porCodigo
+  }
+  if (status === 429) return mensajeLimiteIntentos
+  if (message === 'Invalid login credentials') return mensajeCredenciales
+  return mensajeAutenticacionGenerico
 }
