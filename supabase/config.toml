@@ -218,8 +218,10 @@ web3 = 30
 # secret = ""
 
 [auth.email]
-# #44: accounts are created by an authorized administrator (invitation), never by self-service signup.
-enable_signup = false
+# Keeps the email/password provider enabled (login). In the CLI this key maps to the email
+# provider switch, so setting it to false disables email logins entirely. Self-service sign-up
+# is closed by `[auth] enable_signup = false` above (#44).
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
