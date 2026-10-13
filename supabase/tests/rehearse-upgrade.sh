@@ -48,6 +48,16 @@ select 'warehouse_stock=' || cantidad from public.stock_bodega
 select 'empty_packaging=' || cantidad from public.stock_envases
  where sucursal_id='10000000-0000-0000-0000-000000000001' and tipo_empaque_id='30000000-0000-0000-0000-000000000001';
 SQL
+# Append every later forward migration exactly once. Unlike B1's object additions,
+# hardening deltas need not be idempotent (e.g. named NOT VALID constraints).
+for forward_migration in supabase/migrations/*.sql; do
+  if [[ "$(basename "$forward_migration")" > "20261013000100_align_repo_design.sql" ]]; then
+    psql_local < "$forward_migration"
+    psql_local -qAt < "$workspace_tmp/fingerprint.sql" > "$workspace_tmp/forward"
+    diff -u "$workspace_tmp/reapplied" "$workspace_tmp/forward"
+    echo "PASS: $(basename "$forward_migration") preserved all row counts and content hashes."
+  fi
+done
 # Return the local migration ledger and fixture state to the normal clean chain.
 supabase db reset --local
 supabase test db --local
