@@ -54,7 +54,10 @@ export default function Produccion() {
   }, [seccion])
 
   const cargarDatos = useCallback(async () => {
-    if (!sucursalId) return
+    if (!sucursalId) {
+      setCargando(false)
+      return
+    }
     setCargando(true)
     setError(null)
     try {
@@ -173,6 +176,10 @@ export default function Produccion() {
     )
 
     await cargarDatos()
+  }
+
+  if (!sucursalId) {
+    return <p role="alert" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Para trabajar en producción debes asignar o seleccionar una sucursal operativa. Contacta al administrador.</p>
   }
 
   const nombreProducto = (id: string) => productos.find((item) => item.id === id)?.nombre ?? 'Producto'

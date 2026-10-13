@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useState, useSyncExternalStore } from 'react'
+import { matchPath, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import logo from '../assets/logo.jpg'
 import type { Role } from '../types'
@@ -20,16 +20,28 @@ const rolEtiqueta: Record<Role, string> = {
   administrador: 'Administrador',
 }
 
+function isDesktop() {
+  return window.matchMedia('(min-width: 1024px)').matches
+}
+
+function subscribeDesktop(onChange: () => void) {
+  const media = window.matchMedia('(min-width: 1024px)')
+  media.addEventListener('change', onChange)
+  return () => media.removeEventListener('change', onChange)
+}
+
 export default function DashboardLayout() {
   const { perfil, signOut } = useAuth()
   const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const desktop = useSyncExternalStore(subscribeDesktop, isDesktop)
+  const sidebarHidden = !desktop && !mobileOpen
 
   if (!perfil) return <Navigate to="/login" replace />
 
   const visibleNav = ALL_NAV.filter((item) => item.roles.includes(perfil.rol))
-  const current = ALL_NAV.find((item) => item.path === pathname)
+  const current = ALL_NAV.find((item) => matchPath({ path: item.path, end: true, caseSensitive: false }, pathname))
   if (current && !current.roles.includes(perfil.rol)) return <Navigate to="/" replace />
 
   function toggleSidebar() {
@@ -52,6 +64,9 @@ export default function DashboardLayout() {
       )}
 
       <aside
+        id="menu-lateral"
+        inert={sidebarHidden}
+        aria-hidden={sidebarHidden}
         className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-brand-900 transition-all duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'lg:w-16' : 'lg:w-64'} lg:translate-x-0`}
@@ -96,7 +111,7 @@ export default function DashboardLayout() {
         <div className="shrink-0 border-t border-brand-800 p-3">
           <button
             type="button"
-            onClick={() => void signOut()}
+            onClick={() => void signOut().catch(() => {})}
             className={`flex w-full items-center gap-3 rounded-lg py-2.5 text-sm text-slate-300 transition-colors hover:bg-red-500/10 hover:text-red-400 ${
               collapsed ? 'lg:justify-center lg:px-0' : 'px-4'
             }`}
@@ -117,6 +132,8 @@ export default function DashboardLayout() {
             type="button"
             onClick={toggleSidebar}
             aria-label="Alternar menú lateral"
+            aria-expanded={desktop ? !collapsed : mobileOpen}
+            aria-controls="menu-lateral"
             className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
           >
             <MenuIcon className="h-6 w-6" />
