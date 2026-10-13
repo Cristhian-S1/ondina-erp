@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import type { Role } from '../../types'
 import type { DomainModule } from '../../types/module'
 import {
   ClipboardListIcon,
@@ -7,6 +8,9 @@ import {
   ShoppingCartIcon,
   UsersIcon,
 } from '../../components/icons'
+
+const allowedRoles: Role[] = ['vendedor', 'administrador']
+const commissionRoles: Role[] = ['vendedor']
 
 const pages = {
   Clientes: lazy(() => import('./pages/Clientes')),
@@ -25,54 +29,54 @@ const ventasModule: DomainModule = {
       path: '/ventas',
       label: 'Resumen',
       icon: ClipboardListIcon,
-      roles: ['vendedor', 'administrador'],
+      roles: allowedRoles,
     },
     {
       path: '/ventas/registrar',
       label: 'Registrar venta',
       icon: ShoppingCartIcon,
-      roles: ['vendedor', 'administrador'],
+      roles: allowedRoles,
     },
     {
       path: '/clientes',
       label: 'Clientes',
       icon: UsersIcon,
-      roles: ['vendedor', 'administrador'],
+      roles: allowedRoles,
     },
     {
       path: '/carga',
       label: 'Mi carga',
       icon: DropletIcon,
-      roles: ['vendedor', 'administrador'],
+      roles: allowedRoles,
     },
     {
       path: '/gastos',
       label: 'Gastos',
       icon: DollarIcon,
-      roles: ['vendedor', 'administrador'],
+      roles: allowedRoles,
     },
     {
       path: '/mi-comision',
       label: 'Mi comisión',
       icon: DollarIcon,
-      roles: ['vendedor'],
+      roles: commissionRoles,
     },
     {
       path: '/ranking-vendedores',
       label: 'Ranking vendedores',
       icon: ShoppingCartIcon,
-      roles: ['vendedor', 'administrador'],
+      roles: allowedRoles,
     },
   ],
 
   routes: [
-    { path: '/ventas', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Ventas /></Suspense> },
-    { path: '/ventas/registrar', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.RegistrarVenta /></Suspense> },
-    { path: '/clientes', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Clientes /></Suspense> },
-    { path: '/carga', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Carga /></Suspense> },
-    { path: '/gastos', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Gastos /></Suspense> },
-    { path: '/mi-comision', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.MiComision /></Suspense> },
-    { path: '/ranking-vendedores', element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.RankingVendedores /></Suspense> },
+    { path: '/ventas', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Ventas /></Suspense> },
+    { path: '/ventas/registrar', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.RegistrarVenta /></Suspense> },
+    { path: '/clientes', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Clientes /></Suspense> },
+    { path: '/carga', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Carga /></Suspense> },
+    { path: '/gastos', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Gastos /></Suspense> },
+    { path: '/mi-comision', roles: commissionRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.MiComision /></Suspense> },
+    { path: '/ranking-vendedores', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.RankingVendedores /></Suspense> },
   ],
 }
 

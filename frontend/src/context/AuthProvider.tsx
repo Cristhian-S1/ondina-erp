@@ -21,26 +21,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const identity = useRef<string | null | undefined>(undefined)
   const version = useRef(0)
-  const loadedIdentity = useRef<string | null>(null)
+  const loadedProfile = useRef<Perfil | null>(null)
 
   useEffect(() => {
     let active = true
     let receivedAuthEvent = false
     let pendingSession: number | undefined
 
-    async function loadSession(userId: string | null) {
-      if (!active) return
+    function prepareSession(userId: string | null) {
       const request = ++version.current
-      if (identity.current !== userId) {
-        clearIdentityData(queryClient, identity.current)
+      window.clearTimeout(pendingSession)
+      const background = !!userId && identity.current === userId && loadedProfile.current?.id === userId
+      if (!background) {
+        if (identity.current !== userId || !userId) {
+          clearIdentityData(queryClient, identity.current)
+        }
         identity.current = userId
+        loadedProfile.current = null
+        setPerfil(null)
+        setError(null)
+        setLoading(!!userId)
       }
-      loadedIdentity.current = null
-      setPerfil(null)
-      setError(null)
-      setLoading(!!userId)
-      if (!userId) return
+      return { request, background }
+    }
 
+    function blockProfile(message: string, userId: string) {
+      clearIdentityData(queryClient, userId)
+      loadedProfile.current = null
+      setPerfil(null)
+      setError(message)
+    }
+
+    async function loadProfile(userId: string, request: number, background: boolean) {
+      if (!active || request !== version.current) return
       try {
         const { data, error: profileError } = await supabase
           .from('perfiles')
@@ -50,33 +63,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!active || request !== version.current) return
 
         if (profileError && profileError.code !== 'PGRST116') {
-          setError('No fue posible cargar tu perfil. Intenta iniciar sesión nuevamente.')
+          blockProfile('No fue posible cargar tu perfil. Intenta iniciar sesión nuevamente.', userId)
         } else if (!data) {
-          setError('Tu cuenta no tiene un perfil asignado. Contacta al administrador.')
+          blockProfile('Tu cuenta no tiene un perfil asignado. Contacta al administrador.', userId)
         } else if (data.activo === false) {
-          setError('Tu cuenta está inactiva. Contacta al administrador para recuperar el acceso.')
+          blockProfile('Tu cuenta está inactiva. Contacta al administrador para recuperar el acceso.', userId)
         } else {
-          loadedIdentity.current = userId
-          setPerfil(data as Perfil)
+          const next = data as Perfil
+          const previous = loadedProfile.current
+          if (previous && (previous.rol !== next.rol || previous.sucursal_id !== next.sucursal_id)) {
+            clearIdentityData(queryClient, userId)
+          }
+          loadedProfile.current = next
+          setPerfil(next)
+          setError(null)
         }
       } catch {
         if (active && request === version.current) {
-          setError('No fue posible cargar tu perfil. Intenta iniciar sesión nuevamente.')
+          blockProfile('No fue posible cargar tu perfil. Intenta iniciar sesión nuevamente.', userId)
         }
       } finally {
-        if (active && request === version.current) setLoading(false)
+        if (active && request === version.current && !background) setLoading(false)
       }
     }
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return
       receivedAuthEvent = true
-      const request = ++version.current
-      window.clearTimeout(pendingSession)
       const userId = session?.user.id ?? null
-      if (userId && identity.current === userId && loadedIdentity.current === userId) return
+      const { request, background } = prepareSession(userId)
+      if (!userId) return
       pendingSession = window.setTimeout(() => {
-        if (active && request === version.current) void loadSession(userId)
+        void loadProfile(userId, request, background)
       }, 0)
     })
 
@@ -87,7 +105,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
         return
       }
-      void loadSession(data.session?.user.id ?? null)
+      const userId = data.session?.user.id ?? null
+      const { request, background } = prepareSession(userId)
+      if (userId) void loadProfile(userId, request, background)
     }).catch(() => {
       if (!active || receivedAuthEvent) return
       setError('No fue posible recuperar tu sesión. Intenta iniciar sesión nuevamente.')
@@ -117,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ++version.current
     clearIdentityData(queryClient, identity.current)
     identity.current = null
-    loadedIdentity.current = null
+    loadedProfile.current = null
     setPerfil(null)
     setLoading(false)
     setError(null)

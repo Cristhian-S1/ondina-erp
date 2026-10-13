@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore } from 'react'
-import { matchPath, Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import logo from '../assets/logo.jpg'
 import type { Role } from '../types'
@@ -32,7 +32,6 @@ function subscribeDesktop(onChange: () => void) {
 
 export default function DashboardLayout() {
   const { perfil, signOut } = useAuth()
-  const { pathname } = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const desktop = useSyncExternalStore(subscribeDesktop, isDesktop)
@@ -41,8 +40,6 @@ export default function DashboardLayout() {
   if (!perfil) return <Navigate to="/login" replace />
 
   const visibleNav = ALL_NAV.filter((item) => item.roles.includes(perfil.rol))
-  const current = ALL_NAV.find((item) => matchPath({ path: item.path, end: true, caseSensitive: false }, pathname))
-  if (current && !current.roles.includes(perfil.rol)) return <Navigate to="/" replace />
 
   function toggleSidebar() {
     if (window.matchMedia('(min-width: 1024px)').matches) {
