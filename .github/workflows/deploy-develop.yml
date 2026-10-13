@@ -24,6 +24,8 @@ concurrency:
 jobs:
   deploy:
     name: Deploy Vercel Desarrollo (develop)
+    # Guard de repositorio canónico (REV-5): no ejecutar deploys en forks.
+    if: github.repository == 'Cristhian-S1/ondina-erp'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -33,6 +35,10 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ inputs.ref || github.sha }}
+
+      - name: Resolver SHA desplegado
+        run: |
+          echo "SHA desplegado: $(git rev-parse HEAD)"
 
       - name: Setup Node (frontend/.nvmrc)
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0

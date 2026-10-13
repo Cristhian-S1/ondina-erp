@@ -82,7 +82,8 @@ jobs:
   deploy-develop:
     name: Deploy Vercel Desarrollo (develop)
     needs: [build, migrations-check]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    # Guard de repositorio canónico (REV-5): no ejecutar deploys en forks.
+    if: github.repository == 'Cristhian-S1/ondina-erp' && github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
