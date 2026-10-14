@@ -30,7 +30,7 @@ async function selectBranch(id = 's1') {
 }
 
 describe('Producción operational branch', () => {
-  it.each([null, 's1'])('requires an explicit administrator selection with profile branch %s', async (sucursal_id) => {
+  it.each([null])('requires an explicit administrator selection with profile branch %s', async (sucursal_id) => {
     renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id }) })
     expect(await screen.findByRole('combobox', { name: 'Sucursal' })).toHaveValue('')
     expect(screen.getByText(/selecciona una sucursal para trabajar/i)).toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('Producción operational branch', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
-  it('does not refresh the previous scope when a submitted write finishes after switching', async () => {
+  it('FX R2-07 · bloquea el selector hasta notificar el resultado de escritura', async () => {
     let resolve!: (value: string | null) => void
     vi.mocked(api.registrarProduccion).mockReturnValueOnce(new Promise(r => { resolve = r }))
     renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id: null }) })
@@ -75,11 +75,12 @@ describe('Producción operational branch', () => {
     fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
     await waitFor(() => expect(api.registrarProduccion).toHaveBeenCalledOnce())
-    await selectBranch('s2')
-    await screen.findByText('Nueva producción')
+    expect(screen.getByLabelText('Sucursal')).toBeDisabled()
     await act(async () => { resolve(null) })
-    expect(vi.mocked(api.obtenerProducciones).mock.calls.filter(([id]) => id === 's1')).toHaveLength(1)
-    expect(screen.queryByText(/Producción registrada/)).not.toBeInTheDocument()
+    expect(await screen.findByText(/Producción registrada/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Sucursal')).not.toBeDisabled()
+    await selectBranch('s2')
+    expect(await screen.findByLabelText('Cantidad')).toHaveValue('')
   })
 
   it('writes mermas to the chosen branch', async () => {
@@ -146,7 +147,7 @@ it('UX-12 · fallo de mutación conserva los campos y se cierra con Toast', asyn
   fireEvent.change(await screen.findByLabelText('Producto'), { target: { value: 'p1' } })
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
-  await screen.findByRole('alert')
+  await screen.findAllByRole('alert')
   expect(screen.getByLabelText('Cantidad')).toHaveValue('12')
   fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
@@ -191,13 +192,13 @@ it.each(['incidencia', 'merma'] as const)('UX-12 · fallo de %s usa Toast y cons
     fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Bidón dañado' } })
   }
   fireEvent.click(screen.getByRole('button', { name: tipo === 'incidencia' ? 'Registrar incidencia' : 'Registrar merma' }))
-  expect(await screen.findByRole('alert')).toHaveTextContent('No hay stock suficiente.')
+  expect((await screen.findAllByRole('alert'))[0]).toHaveTextContent('No hay stock suficiente.')
   expect(screen.getByLabelText(tipo === 'incidencia' ? 'Descripción de la incidencia' : 'Motivo')).toHaveValue(tipo === 'incidencia' ? 'Filtro detenido' : 'Bidón dañado')
   fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 })
 
-it('UX-12 · la notificación de validación desaparece automáticamente', async () => {
+it('FX R2-03 · el Toast se cierra automáticamente y la validación persiste', async () => {
   location.pathname = '/produccion/incidencias'
   renderWithProviders(<Produccion />)
   fireEvent.change(await screen.findByLabelText('Descripción de la incidencia'), { target: { value: 'Filtro detenido' } })
@@ -208,9 +209,10 @@ it('UX-12 · la notificación de validación desaparece automáticamente', async
     // Reabrir una notificación crea el temporizador del hook con el reloj simulado.
     fireEvent.change(screen.getByLabelText('Descripción de la incidencia'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrar incidencia' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('Describe la incidencia')
+    expect(screen.getAllByRole('alert')[0]).toHaveTextContent('Describe la incidencia')
     act(() => vi.advanceTimersByTime(4000))
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent('Describe la incidencia')
+    expect(screen.getByLabelText('Descripción de la incidencia')).toHaveAttribute('aria-invalid', 'true')
   } finally { vi.useRealTimers() }
 })
 
@@ -221,7 +223,7 @@ it('conserva el formulario al consultar otra sección y limpia la notificación 
   fireEvent.change(screen.getByLabelText('Observaciones (opcional)'), { target: { value: 'Turno de mañana' } })
   // Sin producto: validación pública, sin enviar una escritura.
   fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
-  await screen.findByRole('alert')
+  await screen.findAllByRole('alert')
   location.pathname = '/produccion/historial'
   rerender(<Produccion />)
   await screen.findByText('Historial de producción')
@@ -230,4 +232,60 @@ it('conserva el formulario al consultar otra sección y limpia la notificación 
   rerender(<Produccion />)
   expect(await screen.findByLabelText('Cantidad')).toHaveValue('12')
   expect(screen.getByLabelText('Observaciones (opcional)')).toHaveValue('Turno de mañana')
+})
+
+
+it('FX R2-01 · conserva el nodo de lista durante actualización pendiente', async () => {
+  vi.mocked(api.obtenerIncidencias).mockResolvedValueOnce([{ id: 'i1', sucursal_id: 'suc-1', produccion_id: null, descripcion: 'Turno visible', creado_por: 'u1', creado_en: '2026-10-13T12:00:00Z' }])
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  const fila = await screen.findByText('Turno visible')
+  vi.mocked(api.obtenerIncidencias).mockReturnValueOnce(new Promise(() => {}))
+  fireEvent.click(screen.getByRole('button', { name: /Actualizar/ }))
+  await waitFor(() => expect(api.obtenerIncidencias).toHaveBeenCalledTimes(2))
+  expect(screen.getByText('Turno visible')).toBe(fila)
+  expect(screen.getByText('Actualizando...')).toBeInTheDocument()
+})
+
+it.each([
+  ['registrar', 'Registrar producción', 'Producto'],
+  ['incidencias', 'Registrar incidencia', 'Descripción de la incidencia'],
+  ['incidencias', 'Registrar merma', 'Producto'],
+])('FX R2-03 · validación de %s queda asociada al campo después del Toast', async (seccion, boton, campo) => {
+  location.pathname = `/produccion/${seccion}`
+  renderWithProviders(<Produccion />)
+  await screen.findByRole('option', { name: 'Agua' })
+  fireEvent.click(screen.getByRole('button', { name: boton }))
+  expect(screen.getByLabelText(campo)).toHaveAttribute('aria-invalid', 'true')
+  const id = screen.getByLabelText(campo).getAttribute('aria-describedby')!
+  expect(document.getElementById(id)).toHaveAttribute('role', 'alert')
+  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(document.getElementById(id)).toBeVisible()
+})
+
+it('FX R2-06 · administrador inicia en su sucursal asignada', async () => {
+  renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id: 's1' }) })
+  await screen.findByRole('option', { name: 'Norte' })
+  expect(screen.getByLabelText('Sucursal')).toHaveValue('s1')
+  expect(api.obtenerProducciones).toHaveBeenCalledWith('s1')
+})
+
+
+it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el campo', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-describedby', 'error-merma-cantidad')
+  expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-invalid', 'true')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid')
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  expect(screen.getByLabelText('Motivo')).toHaveAttribute('aria-describedby', 'error-merma-motivo')
+  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(screen.getByRole('alert')).toHaveTextContent('Indica el motivo')
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Pérdida de producto' } })
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(api.registrarMerma).not.toHaveBeenCalled()
 })

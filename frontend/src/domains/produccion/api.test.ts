@@ -308,12 +308,12 @@ describe('obtenerHistorialProduccion', () => {
 
     expect(gteMock).toHaveBeenCalledWith(
       'creado_en',
-      '2026-08-01T00:00:00',
+      '2026-08-01T04:00:00.000Z',
     )
 
     expect(lteMock).toHaveBeenCalledWith(
       'creado_en',
-      '2026-08-12T23:59:59.999',
+      '2026-08-13T03:59:59.999Z',
     )
 
     expect(queryMock.limit).toHaveBeenCalledWith(100)
@@ -523,4 +523,23 @@ it('A1-07 · inicia stock de envases sin esperar el catálogo de empaques', asyn
   expect(returnsMock).toHaveBeenCalledOnce()
   resolve([{ id: 'e1', nombre: 'Bidón', categoria: 'retornable', activo: true }])
   expect(await consulta).toEqual([{ tipo_empaque_id: 'e1', nombre: 'Bidón', cantidad: 12, modificado_en: '2026-10-13' }])
+})
+
+
+it.each([
+  ['2026-10-12', '2026-10-12T03:00:00.000Z', '2026-10-13T02:59:59.999Z'],
+  ['2026-04-04', '2026-04-04T03:00:00.000Z', '2026-04-05T03:59:59.999Z'],
+  ['2026-09-06', '2026-09-06T04:00:00.000Z', '2026-09-07T02:59:59.999Z'],
+])('FX R2-02 · filtra la jornada Santiago %s con sus límites DST', async (fecha, inicio, fin) => {
+  gteMock.mockReturnValue(queryMock)
+  lteMock.mockReturnValue(queryMock)
+  returnsMock.mockResolvedValue({ data: [], error: null })
+  await obtenerHistorialProduccion({ sucursalId: 's1', desde: fecha, hasta: fecha })
+  expect(gteMock).toHaveBeenLastCalledWith('creado_en', inicio)
+  expect(lteMock).toHaveBeenLastCalledWith('creado_en', fin)
+  if (fecha === '2026-10-12') {
+    const registro = Date.parse('2026-10-13T01:00:00Z')
+    expect(registro).toBeGreaterThanOrEqual(Date.parse(inicio))
+    expect(registro).toBeLessThanOrEqual(Date.parse(fin))
+  }
 })

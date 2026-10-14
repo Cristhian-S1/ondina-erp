@@ -36,17 +36,18 @@ export default function IndicadoresProduccion({ sucursalId, productos, versionDa
     },
     retry: false,
   })
-  const cargando = consulta.isPending || consulta.isFetching
+  const cargando = consulta.isPending
   const error = consulta.error ? mensajeErrorSupabase(consulta.error) : null
   const resumen = useMemo(() => calcularResumenIndicadores(consulta.data ?? []), [consulta.data])
   const datoValido = !error && !cargando && consulta.isSuccess
 
-  return <section className="min-w-0 space-y-5">
+  return <section aria-busy={consulta.isFetching} className="min-w-0 space-y-5">
     <label className={`${labelCls} max-w-xs`}>Período
       <select className={inputCls} value={periodo} onChange={event => setPeriodo(event.target.value as Periodo)}>
         <option value="hoy">Hoy</option><option value="7dias">Últimos 7 días</option><option value="30dias">Últimos 30 días</option>
       </select>
     </label>
+    {consulta.isFetching && !consulta.isPending && <p role="status" className="text-sm text-slate-600">Actualizando...</p>}
     {cargando ? <EstadoVista variante="cargando" mensaje="Calculando indicadores..." />
       : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null}
     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
@@ -63,7 +64,7 @@ export default function IndicadoresProduccion({ sucursalId, productos, versionDa
       <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Totales por producto</h2>
       {resumen.porProducto.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay producción en el período." /> : <TablaProduccionResponsive
         columnas={[{ titulo: 'Producto' }, { titulo: 'Unidades', numerica: true }, { titulo: 'Registros', numerica: true }]}
-        filas={resumen.porProducto.map(item => ({ id: item.productoId, celdas: [productos.find(producto => producto.id === item.productoId)?.nombre ?? 'Producto', formatMiles(item.cantidad), formatMiles(item.registros)] }))}
+        filas={resumen.porProducto.map(item => ({ id: item.productoId, celdas: [productos.find(producto => producto.id === item.productoId)?.nombre ?? 'Nombre no disponible', formatMiles(item.cantidad), formatMiles(item.registros)] }))}
       />}
     </div>}
   </section>

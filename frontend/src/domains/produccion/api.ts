@@ -15,6 +15,28 @@ import type {
   IndicadorProduccionDiario,
 } from './types'
 
+const jornadaSantiago = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit' })
+
+function inicioJornada(fecha: string) {
+  const referencia = Date.parse(`${fecha}T00:00:00Z`)
+  let desde = referencia - 36 * 60 * 60 * 1000
+  let hasta = referencia + 36 * 60 * 60 * 1000
+  // Busca el primer instante del día local; cubre medianoches omitidas y horas repetidas.
+  while (desde < hasta) {
+    const medio = Math.floor((desde + hasta) / 2)
+    if (jornadaSantiago.format(medio) < fecha) desde = medio + 1
+    else hasta = medio
+  }
+  return desde
+}
+
+function limiteJornada(fecha: string, final: boolean) {
+  if (!final) return new Date(inicioJornada(fecha)).toISOString()
+  const siguiente = new Date(`${fecha}T12:00:00Z`)
+  siguiente.setUTCDate(siguiente.getUTCDate() + 1)
+  return new Date(inicioJornada(siguiente.toISOString().slice(0, 10)) - 1).toISOString()
+}
+
 export async function obtenerIndicadoresProduccion(
   sucursalId: string,
   desde: string,
@@ -64,8 +86,8 @@ export async function obtenerHistorialProduccion(filtros: FiltrosProduccion): Pr
       .limit(filtros.limite ?? 200)
 
     if (filtros.productoId) consulta = consulta.eq('producto_id', filtros.productoId)
-    if (filtros.desde) consulta = consulta.gte('creado_en', `${filtros.desde}T00:00:00`)
-    if (filtros.hasta) consulta = consulta.lte('creado_en', `${filtros.hasta}T23:59:59.999`)
+    if (filtros.desde) consulta = consulta.gte('creado_en', limiteJornada(filtros.desde, false))
+    if (filtros.hasta) consulta = consulta.lte('creado_en', limiteJornada(filtros.hasta, true))
 
     const { data, error } = await consulta.returns<Produccion[]>()
     if (error) throw new Error(mensajeErrorSupabase(error))

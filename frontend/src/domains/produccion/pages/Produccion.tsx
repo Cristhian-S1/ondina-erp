@@ -8,7 +8,7 @@ import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import { useDatosProduccion } from '../hooks/useDatosProduccion'
 import type { SeccionProduccion } from '../hooks/useDatosProduccion'
-import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, errorTextCls } from '../../../lib/ui'
 import { fmtFechaHora, formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import { registrarIncidencia, registrarMerma, registrarProduccion } from '../api'
 import { validarMerma, validarProduccion } from '../validacion'
@@ -31,10 +31,11 @@ export default function Produccion() {
   const { perfil } = useAuth()
   const { pathname } = useLocation()
   const seccion = secciones.find(item => item.id === pathname.split('/').filter(Boolean).at(-1)) ?? secciones[0]
-  const [seleccion, setSeleccion] = useState({ perfilId: perfil?.id, sucursalId: '' })
+  const [seleccion, setSeleccion] = useState({ perfilId: perfil?.id, sucursalId: perfil?.sucursal_id ?? '' })
+  const [ocupado, setOcupado] = useState(false)
   const esAdmin = perfil?.rol === 'administrador'
   const sucursalId = esAdmin
-    ? (seleccion.perfilId === perfil.id ? seleccion.sucursalId : '')
+    ? (seleccion.perfilId === perfil.id ? seleccion.sucursalId : perfil.sucursal_id ?? '')
     : perfil?.sucursal_id ?? ''
 
   return <div className="min-w-0 space-y-6">
@@ -42,16 +43,16 @@ export default function Produccion() {
       <h1 className="text-2xl font-bold text-slate-900">Producción · {seccion.titulo}</h1>
       <p className="mt-1 text-sm text-slate-500">{seccion.descripcion}</p>
     </header>
-    {esAdmin && <SucursalSelector value={sucursalId} onChange={id => setSeleccion({ perfilId: perfil.id, sucursalId: id })} />}
+    {esAdmin && <SucursalSelector disabled={ocupado} value={sucursalId} onChange={id => setSeleccion({ perfilId: perfil.id, sucursalId: id })} />}
     <nav aria-label="Secciones de producción" className="flex min-w-0 flex-wrap gap-2 lg:hidden">
       {secciones.map(item => <NavLink key={item.id} to={`/produccion/${item.id}`} className={({ isActive }) => `inline-flex min-h-11 items-center rounded-xl px-3 py-2 text-sm font-medium ${isActive ? 'bg-brand-800 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`}>{item.titulo}</NavLink>)}
     </nav>
-    {sucursalId && perfil ? <ProduccionSucursal key={`${perfil.id}:${sucursalId}`} sucursalId={sucursalId} seccion={seccion.id} />
+    {sucursalId && perfil ? <ProduccionSucursal key={`${perfil.id}:${sucursalId}`} sucursalId={sucursalId} seccion={seccion.id} setOcupado={setOcupado} />
       : <EstadoVista variante="vacio" mensaje={esAdmin ? 'Selecciona una sucursal para trabajar en producción.' : 'Para trabajar en producción debes tener una sucursal operativa asignada. Contacta al administrador.'} />}
   </div>
 }
 
-function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; seccion: SeccionProduccion }) {
+function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: string; seccion: SeccionProduccion; setOcupado: (valor: boolean) => void }) {
   const { perfil } = useAuth()
   const vigente = useRef(true)
   useEffect(() => {
@@ -69,14 +70,32 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
   const [productoId, setProductoId] = useState('')
   const [cantidad, setCantidad] = useState('')
   const [observaciones, setObservaciones] = useState('')
-  const [guardando, setGuardando] = useState(false)
+  const [guardando, actualizarGuardando] = useState(false)
+  function setGuardando(valor: boolean) {
+    actualizarGuardando(valor)
+    setOcupado(valor)
+  }
+  const [errores, setErrores] = useState<Record<string, string | undefined>>({})
+  function invalidar(campo: string, mensaje: string) {
+    setErrores(prev => ({ ...prev, [campo]: mensaje }))
+    mostrar(mensaje, 'error')
+  }
+  function corregir(campo: string) {
+    setErrores(prev => ({ ...prev, [campo]: undefined }))
+  }
+  function accesibilidad(campo: string) {
+    return { 'aria-invalid': errores[campo] ? true : undefined, 'aria-describedby': errores[campo] ? `error-${campo}` : undefined }
+  }
+  function errorCampo(campo: string) {
+    return errores[campo] ? <p id={`error-${campo}`} role="alert" className={errorTextCls}>{errores[campo]}</p> : null
+  }
   const [descripcionIncidencia, setDescripcionIncidencia] = useState('')
   const [productoMermaId, setProductoMermaId] = useState('')
   const [cantidadMerma, setCantidadMerma] = useState('')
   const [motivoMerma, setMotivoMerma] = useState('')
   const consulta = useDatosProduccion(perfil?.id ?? '', sucursalId, seccion)
   const productos = consulta.productos.data ?? []
-  const nombreProducto = (id: string) => productos.find(item => item.id === id)?.nombre ?? 'Producto'
+  const nombreProducto = (id: string) => productos.find(item => item.id === id)?.nombre ?? 'Nombre no disponible'
   const catalogoInvalido = !consulta.productos.isSuccess
 
   async function guardarProduccion(event: FormEvent) {
@@ -84,7 +103,7 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
     if (!perfil || !sucursalId) return
     const datos = { sucursal_id: sucursalId, producto_id: productoId, cantidad: parseMiles(cantidad), observaciones: observaciones.trim() || null, creado_por: perfil.id }
     const validacion = validarProduccion(datos)
-    if (validacion) return mostrar(validacion, 'error')
+    if (validacion) return invalidar(!productoId ? 'produccion-producto' : 'produccion-cantidad', validacion)
     setGuardando(true)
     cerrar()
     const mensaje = await registrarProduccion(datos)
@@ -101,7 +120,7 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
     event.preventDefault()
     if (!perfil || !sucursalId) return
     const descripcion = descripcionIncidencia.trim()
-    if (!descripcion || descripcion.length > 1000) return mostrar('Describe la incidencia en un máximo de 1000 caracteres.', 'error')
+    if (!descripcion || descripcion.length > 1000) return invalidar('incidencia-descripcion', 'Describe la incidencia en un máximo de 1000 caracteres.')
     setGuardando(true)
     cerrar()
     const mensaje = await registrarIncidencia({ sucursal_id: sucursalId, produccion_id: null, descripcion, creado_por: perfil.id })
@@ -118,7 +137,7 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
     if (!perfil || !sucursalId) return
     const datos = { sucursal_id: sucursalId, producto_id: productoMermaId, tipo_empaque_id: null, despacho_id: null, cantidad: parseMiles(cantidadMerma), motivo: motivoMerma.trim(), creado_por: perfil.id }
     const validacion = validarMerma(datos)
-    if (validacion) return mostrar(validacion, 'error')
+    if (validacion) return invalidar(!productoMermaId ? 'merma-producto' : (!Number.isInteger(datos.cantidad) || datos.cantidad <= 0) ? 'merma-cantidad' : 'merma-motivo', validacion)
     setGuardando(true)
     cerrar()
     const mensaje = await registrarMerma(datos)
@@ -135,14 +154,16 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
   const opcionesProducto = productos.filter(item => item.activo).map(item => <option key={item.id} value={item.id}>{item.nombre}</option>)
   return <div className="min-w-0 space-y-6">
     <Toast toast={toast} onClose={cerrar} />
-    <div className="flex justify-end"><button type="button" className={btnSecondary} onClick={() => void consulta.actualizar()}>Actualizar</button></div>
+    <div className="flex justify-end"><button type="button" className={btnSecondary} onClick={() => void consulta.actualizar()}>Actualizar lista</button></div>
     {seccion !== 'envases' && <EstadoConsulta consulta={consulta.productos} mensaje="No fue posible cargar los datos de producción. Reintenta el catálogo de productos." cargando="Cargando productos..." />}
 
     {seccion === 'registrar' && <div className={gridCls}>
       <form className={formCls} onSubmit={event => void guardarProduccion(event)}>
         <h2 className="font-semibold text-slate-900">Nueva producción</h2>
-        <label className={labelCls}>Producto<select className={controlCls} value={productoId} onChange={event => setProductoId(event.target.value)}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
-        <label className={labelCls}>Cantidad<input className={controlCls} type="text" inputMode="numeric" value={cantidad} onChange={event => setCantidad(formatMilesInput(event.target.value))} /></label>
+        <label className={labelCls}>Producto<select className={controlCls} value={productoId} {...accesibilidad('produccion-producto')} onChange={event => { corregir('produccion-producto'); setProductoId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
+        {errorCampo('produccion-producto')}
+        <label className={labelCls}>Cantidad<input className={controlCls} type="text" inputMode="numeric" value={cantidad} {...accesibilidad('produccion-cantidad')} onChange={event => { corregir('produccion-cantidad'); setCantidad(formatMilesInput(event.target.value)) }} /></label>
+        {errorCampo('produccion-cantidad')}
         <label className={labelCls}>Observaciones (opcional)<textarea className={controlCls} rows={3} maxLength={1000} value={observaciones} onChange={event => setObservaciones(event.target.value)} /></label>
         <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
       </form>
@@ -159,7 +180,8 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
         <form className={formCls} onSubmit={event => void guardarIncidencia(event)}>
           <h2 className="font-semibold text-slate-900">Incidencia descriptiva</h2>
           <p className="text-sm text-slate-500">Registra una observación del turno. Esta incidencia no cambia las existencias; si hubo pérdida, registra una merma en la sección siguiente.</p>
-          <label className={labelCls}>Descripción de la incidencia<textarea className={controlCls} rows={4} maxLength={1000} value={descripcionIncidencia} onChange={event => setDescripcionIncidencia(event.target.value)} /></label>
+          <label className={labelCls}>Descripción de la incidencia<textarea className={controlCls} rows={4} maxLength={1000} value={descripcionIncidencia} {...accesibilidad('incidencia-descripcion')} onChange={event => { corregir('incidencia-descripcion'); setDescripcionIncidencia(event.target.value) }} /></label>
+        {errorCampo('incidencia-descripcion')}
           <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar incidencia'}</button>
         </form>
         <section className={`${cardCls} min-w-0`}>
@@ -174,9 +196,12 @@ function ProduccionSucursal({ sucursalId, seccion }: { sucursalId: string; secci
       <div className={gridCls}>
         <form className={formCls} onSubmit={event => void guardarMerma(event)}>
           <div><h2 className="font-semibold text-slate-900">Registrar merma</h2><p className="mt-1 text-sm text-slate-500">Registra productos dañados o perdidos para descontarlos del stock de bodega.</p></div>
-          <label className={labelCls}>Producto<select className={controlCls} value={productoMermaId} onChange={event => setProductoMermaId(event.target.value)}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
-          <label className={labelCls}>Cantidad<input className={controlCls} type="text" inputMode="numeric" value={cantidadMerma} onChange={event => setCantidadMerma(formatMilesInput(event.target.value))} /></label>
-          <label className={labelCls}>Motivo<textarea className={controlCls} rows={4} maxLength={1000} value={motivoMerma} onChange={event => setMotivoMerma(event.target.value)} placeholder="Ej.: Bidón dañado durante producción" /></label>
+          <label className={labelCls}>Producto<select className={controlCls} value={productoMermaId} {...accesibilidad('merma-producto')} onChange={event => { corregir('merma-producto'); setProductoMermaId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
+        {errorCampo('merma-producto')}
+          <label className={labelCls}>Cantidad<input className={controlCls} type="text" inputMode="numeric" value={cantidadMerma} {...accesibilidad('merma-cantidad')} onChange={event => { corregir('merma-cantidad'); setCantidadMerma(formatMilesInput(event.target.value)) }} /></label>
+        {errorCampo('merma-cantidad')}
+          <label className={labelCls}>Motivo<textarea className={controlCls} rows={4} maxLength={1000} value={motivoMerma} {...accesibilidad('merma-motivo')} onChange={event => { corregir('merma-motivo'); setMotivoMerma(event.target.value) }} placeholder="Ej.: Bidón dañado durante producción" /></label>
+        {errorCampo('merma-motivo')}
           <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar merma'}</button>
         </form>
         <section className={`${cardCls} min-w-0`}>
@@ -207,7 +232,7 @@ function EstadoConsulta({ consulta, mensaje, cargando, children }: {
   cargando: string
   children?: ReactNode
 }) {
-  if (consulta.isFetching || consulta.isPending) return <EstadoVista variante="cargando" mensaje={cargando} />
+  if (consulta.isPending) return <EstadoVista variante="cargando" mensaje={cargando} />
   if (consulta.error) return <EstadoVista variante="error" mensaje={mensaje ?? 'No fue posible cargar la información. Inténtalo de nuevo.'} onReintentar={() => void consulta.refetch()} />
-  return children
+  return <div aria-busy={consulta.isFetching}>{consulta.isFetching && <p role="status" className="px-5 py-2 text-sm text-slate-600">Actualizando...</p>}{children}</div>
 }

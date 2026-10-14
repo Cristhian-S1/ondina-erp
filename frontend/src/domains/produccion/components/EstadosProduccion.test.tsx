@@ -92,3 +92,19 @@ it('UX-09 · los períodos usan días de Santiago aunque el navegador esté en U
     await waitFor(() => expect(obtenerIndicadoresProduccion).toHaveBeenLastCalledWith('s1', '2026-09-13', '2026-10-12'))
   } finally { vi.useRealTimers(); vi.unstubAllEnvs() }
 })
+
+
+it.each(['historial', 'indicadores'] as const)('FX R2-01 · %s mantiene datos y nodo mientras refetch está pendiente', async (seccion) => {
+  const { QueryClient, QueryClientProvider } = await import('@tanstack/react-query')
+  const { render, act } = await import('@testing-library/react')
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  vi.mocked(obtenerHistorialProduccion).mockResolvedValueOnce([{ id: 'r1', sucursal_id: 's1', producto_id: 'p1', cantidad: 783, observaciones: 'Turno anterior', anulado: false, creado_por: 'u1', creado_en: '2026-10-13T02:15:59Z' }]).mockReturnValueOnce(new Promise(() => {}))
+  vi.mocked(obtenerIndicadoresProduccion).mockResolvedValueOnce([{ sucursal_id: 's1', producto_id: 'p1', fecha: '2026-10-13', cantidad: 783, registros: 1 }]).mockReturnValueOnce(new Promise(() => {}))
+  render(<QueryClientProvider client={client}>{seccion === 'historial' ? <HistorialProduccion sucursalId="s1" productos={[]} /> : <IndicadoresProduccion sucursalId="s1" productos={[]} />}</QueryClientProvider>)
+  const nodos = await screen.findAllByText('783')
+  act(() => { void client.invalidateQueries({ queryKey: ['produccion', '', 's1', seccion] }) })
+  await screen.findByText('Actualizando...')
+  expect(screen.getAllByText('783')).toEqual(nodos)
+  expect(screen.queryByText('Cargando historial...')).not.toBeInTheDocument()
+  expect(screen.queryByText('Calculando indicadores...')).not.toBeInTheDocument()
+})
