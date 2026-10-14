@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import logo from '../assets/logo.jpg'
 import type { Role } from '../types'
 import type { NavItem } from '../types/module'
 import { domains } from '../domains'
-import { obtenerSucursalDashboard } from '../lib/dashboard'
 import { HomeIcon, LogOutIcon, MenuIcon } from './icons'
 
 const TODOS: Role[] = ['vendedor', 'bodega', 'produccion', 'administrador']
@@ -48,11 +46,20 @@ export default function DashboardLayout() {
   const { pathname } = useLocation()
   const modalAbierto = mobileOpen && !desktop
 
-  const { data: sucursal } = useQuery({
-    queryKey: ['dashboard-sucursal', perfil?.id, perfil?.sucursal_id],
-    queryFn: () => obtenerSucursalDashboard(perfil!.sucursal_id!),
-    enabled: modalAbierto && !!perfil?.sucursal_id,
-  })
+  const [sucursalNombre, setSucursalNombre] = useState<string | null>(null)
+  const sucursalId = perfil?.sucursal_id ?? null
+
+  // Nombre de sucursal para el drawer móvil. Import dinámico: el layout no debe
+  // instanciar el cliente Supabase al cargarse; un fallo deja el texto genérico.
+  useEffect(() => {
+    if (!modalAbierto || !sucursalId) return
+    let activo = true
+    import('../lib/dashboard')
+      .then((m) => m.obtenerSucursalDashboard(sucursalId))
+      .then((data) => { if (activo) setSucursalNombre(data?.nombre ?? null) })
+      .catch(() => {})
+    return () => { activo = false }
+  }, [modalAbierto, sucursalId])
 
   useEffect(() => {
     if (!modalAbierto) return
@@ -149,7 +156,7 @@ export default function DashboardLayout() {
               <p className="truncate font-semibold">{perfil.nombres} {perfil.apellidos}</p>
               <p className="text-xs text-slate-300">{rolEtiqueta[perfil.rol]}</p>
               <p className="truncate text-xs text-slate-300">
-                {perfil.sucursal_id ? (sucursal?.nombre ?? 'Sucursal asignada') : perfil.rol === 'administrador' ? 'Todas las sucursales' : 'Sin sucursal asignada'}
+                {perfil.sucursal_id ? (sucursalNombre ?? 'Sucursal asignada') : perfil.rol === 'administrador' ? 'Todas las sucursales' : 'Sin sucursal asignada'}
               </p>
             </div>
             <button

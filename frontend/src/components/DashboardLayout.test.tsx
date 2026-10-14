@@ -1,5 +1,4 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthContext } from '@/context/auth-context'
@@ -16,7 +15,7 @@ beforeEach(() => {
   Object.defineProperty(window, 'matchMedia', { configurable: true, value: vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })) })
 })
 function setup(path: string, role: Role) {
-  return render(<QueryClientProvider client={new QueryClient()}><AuthContext.Provider value={{ perfil: makePerfil({ rol: role }), loading: false, signIn: vi.fn(), signOut: vi.fn() }}>
+  return render(<><AuthContext.Provider value={{ perfil: makePerfil({ rol: role }), loading: false, signIn: vi.fn(), signOut: vi.fn() }}>
     <MemoryRouter initialEntries={[path]}><Routes>
       <Route element={<DashboardLayout />}>
         <Route path="/" element={<p>Home page</p>} />
@@ -24,7 +23,7 @@ function setup(path: string, role: Role) {
         <Route path="/reportes" element={<p>Reportes page</p>} />
       </Route>
     </Routes></MemoryRouter>
-  </AuthContext.Provider></QueryClientProvider>)
+  </AuthContext.Provider></>)
 }
 describe('Dashboard navigation', () => {
   it('makes the closed mobile sidebar inert and exposes its toggle state', () => {
