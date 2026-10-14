@@ -1,0 +1,660 @@
+[
+  {
+    "phase": "antes",
+    "view": "despachos",
+    "width": 412,
+    "height": 915,
+    "file": "despachos-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "despachos",
+    "width": 375,
+    "height": 812,
+    "file": "despachos-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "despachos",
+    "width": 768,
+    "height": 1024,
+    "file": "despachos-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "despachos",
+    "width": 1024,
+    "height": 1366,
+    "file": "despachos-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "despachos",
+    "width": 1280,
+    "height": 800,
+    "file": "despachos-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "devoluciones",
+    "width": 412,
+    "height": 915,
+    "file": "devoluciones-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "devoluciones",
+    "width": 375,
+    "height": 812,
+    "file": "devoluciones-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "devoluciones",
+    "width": 768,
+    "height": 1024,
+    "file": "devoluciones-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "devoluciones",
+    "width": 1024,
+    "height": 1366,
+    "file": "devoluciones-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "devoluciones",
+    "width": 1280,
+    "height": 800,
+    "file": "devoluciones-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "pageErrors": [],
+    "requestFailures": [
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_detalles",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/despacho_envases",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_productos",
+        "failure": "net::ERR_FAILED"
+      },
+      {
+        "path": "/rest/v1/devoluciones_envases",
+        "failure": "net::ERR_FAILED"
+      }
+    ],
+    "consoleErrors": [
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-00000000",
+      "Failed to load resource: net::ERR_FAILED",
+      "Access to fetch at 'http://127.0.0.1:54321/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-0000000002",
+      "Failed to load resource: net::ERR_FAILED"
+    ],
+    "failedApi": [],
+    "dispatchRequests": [
+      {
+        "url": "/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "despachos",
+    "width": 412,
+    "height": 915,
+    "file": "despachos-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "despachos",
+    "width": 375,
+    "height": 812,
+    "file": "despachos-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "despachos",
+    "width": 768,
+    "height": 1024,
+    "file": "despachos-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "despachos",
+    "width": 1024,
+    "height": 1366,
+    "file": "despachos-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "despachos",
+    "width": 1280,
+    "height": 800,
+    "file": "despachos-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "despachos",
+    "pageNavigation": true,
+    "secondRows": 20,
+    "secondFirstId": "e1b0de00-707c-4ad2-8e26-000000000280",
+    "secondLastId": "e1b0de00-707c-4ad2-8e26-000000000261"
+  },
+  {
+    "phase": "despues",
+    "view": "devoluciones",
+    "width": 412,
+    "height": 915,
+    "file": "devoluciones-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "devoluciones",
+    "width": 375,
+    "height": 812,
+    "file": "devoluciones-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "devoluciones",
+    "width": 768,
+    "height": 1024,
+    "file": "devoluciones-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "devoluciones",
+    "width": 1024,
+    "height": 1366,
+    "file": "devoluciones-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "devoluciones",
+    "width": 1280,
+    "height": 800,
+    "file": "devoluciones-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "pager": "Página 1 de 16 · 316 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "devoluciones",
+    "pageNavigation": true,
+    "secondRows": 20,
+    "secondFirstId": "e1b0de00-707c-4ad2-8e26-000000000280",
+    "secondLastId": "e1b0de00-707c-4ad2-8e26-000000000261"
+  },
+  {
+    "phase": "despues",
+    "pageErrors": [],
+    "requestFailures": [],
+    "consoleErrors": [],
+    "failedApi": [],
+    "dispatchRequests": [
+      {
+        "url": "/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&offset=0&limit=20",
+        "status": 206
+      },
+      {
+        "url": "/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&offset=20&limit=20",
+        "status": 206
+      },
+      {
+        "url": "/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&offset=0&limit=20",
+        "status": 206
+      },
+      {
+        "url": "/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&offset=20&limit=20",
+        "status": 206
+      }
+    ],
+    "childRequests": [
+      {
+        "url": "/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000300%2Ce1b0de00-707c-4ad2-8e26-000000000299%2Ce1b0de00-707c-4ad2-8e26-000000000298%2Ce1b0de00-707c-4ad2-8e26-000000000297%2Ce1b0de00-707c-4ad2-8e26-000000000296%2Ce1b0de00-707c-4ad2-8e26-000000000295%2Ce1b0de00-707c-4ad2-8e26-000000000294%2Ce1b0de00-707c-4ad2-8e26-000000000293%2Ce1b0de00-707c-4ad2-8e26-000000000292%2Ce1b0de00-707c-4ad2-8e26-000000000291%2Ce1b0de00-707c-4ad2-8e26-000000000290%2Ce1b0de00-707c-4ad2-8e26-000000000289%2Ce1b0de00-707c-4ad2-8e26-000000000288%2Ce1b0de00-707c-4ad2-8e26-000000000287%2Ce1b0de00-707c-4ad2-8e26-000000000286%2Ce1b0de00-707c-4ad2-8e26-000000000285%2Ce1b0de00-707c-4ad2-8e26-000000000284%2Ce1b0de00-707c-4ad2-8e26-000000000283%2Ce1b0de00-707c-4ad2-8e26-000000000282%2Ce1b0de00-707c-4ad2-8e26-000000000281%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/devoluciones_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29&anulado=eq.false",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_envases?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29",
+        "status": 200
+      },
+      {
+        "url": "/rest/v1/despacho_detalles?select=*&despacho_id=in.%28e1b0de00-707c-4ad2-8e26-000000000280%2Ce1b0de00-707c-4ad2-8e26-000000000279%2Ce1b0de00-707c-4ad2-8e26-000000000278%2Ce1b0de00-707c-4ad2-8e26-000000000277%2Ce1b0de00-707c-4ad2-8e26-000000000276%2Ce1b0de00-707c-4ad2-8e26-000000000275%2Ce1b0de00-707c-4ad2-8e26-000000000274%2Ce1b0de00-707c-4ad2-8e26-000000000273%2Ce1b0de00-707c-4ad2-8e26-000000000272%2Ce1b0de00-707c-4ad2-8e26-000000000271%2Ce1b0de00-707c-4ad2-8e26-000000000270%2Ce1b0de00-707c-4ad2-8e26-000000000269%2Ce1b0de00-707c-4ad2-8e26-000000000268%2Ce1b0de00-707c-4ad2-8e26-000000000267%2Ce1b0de00-707c-4ad2-8e26-000000000266%2Ce1b0de00-707c-4ad2-8e26-000000000265%2Ce1b0de00-707c-4ad2-8e26-000000000264%2Ce1b0de00-707c-4ad2-8e26-000000000263%2Ce1b0de00-707c-4ad2-8e26-000000000262%2Ce1b0de00-707c-4ad2-8e26-000000000261%29",
+        "status": 200
+      }
+    ]
+  }
+]
