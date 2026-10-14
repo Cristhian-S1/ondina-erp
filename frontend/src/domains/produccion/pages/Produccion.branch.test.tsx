@@ -280,7 +280,7 @@ it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el ca
   expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-describedby', 'error-merma-cantidad')
   expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-invalid', 'true')
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
-  expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid')
+  expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid', 'true')
   fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
   expect(screen.getByLabelText('Motivo')).toHaveAttribute('aria-describedby', 'error-merma-motivo')
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()

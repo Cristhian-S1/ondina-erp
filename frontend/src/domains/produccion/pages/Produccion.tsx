@@ -9,8 +9,10 @@ import { useToast } from '../../../components/toast-utils'
 import { useDatosProduccion } from '../hooks/useDatosProduccion'
 import type { SeccionProduccion } from '../hooks/useDatosProduccion'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, errorTextCls } from '../../../lib/ui'
-import { fmtFechaHora, formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { fmtFechaHora, formatMiles } from '../../../lib/format'
 import { registrarIncidencia, registrarMerma, registrarProduccion } from '../api'
+import InputNumerico from '../../../components/InputNumerico'
+import { limiteEnvases, mensajeLimiteEnvases } from '../calculos'
 import { validarMerma, validarProduccion } from '../validacion'
 import HistorialProduccion from '../components/HistorialProduccion'
 import IndicadoresProduccion from '../components/IndicadoresProduccion'
@@ -69,7 +71,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     }
   }, [seccion, cerrar])
   const [productoId, setProductoId] = useState('')
-  const [cantidad, setCantidad] = useState('')
+  const [cantidad, setCantidad] = useState<number | undefined>()
   const [observaciones, setObservaciones] = useState('')
   const [guardando, actualizarGuardando] = useState(false)
   function setGuardando(valor: boolean) {
@@ -98,18 +100,21 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
   }
   const [descripcionIncidencia, setDescripcionIncidencia] = useState('')
   const [productoMermaId, setProductoMermaId] = useState('')
-  const [cantidadMerma, setCantidadMerma] = useState('')
+  const [cantidadMerma, setCantidadMerma] = useState<number | undefined>()
   const [motivoMerma, setMotivoMerma] = useState('')
   const consulta = useDatosProduccion(perfil?.id ?? '', sucursalId, seccion)
   const productos = consulta.productos.data ?? []
   const nombreProducto = (id: string) => productos.find(item => item.id === id)?.nombre ?? 'Nombre no disponible'
+  const productoSeleccionado = productos.find(item => item.id === productoId)
+  const limite = limiteEnvases(productoSeleccionado?.tipo_empaque_id, consulta.envases.data ?? [])
+  const errorEnvases = mensajeLimiteEnvases(cantidad ?? 0, limite)
   const catalogoInvalido = !consulta.productos.isSuccess
 
   async function guardarProduccion(event: FormEvent) {
     event.preventDefault()
     if (!perfil || !sucursalId) return
-    const datos = { sucursal_id: sucursalId, producto_id: productoId, cantidad: parseMiles(cantidad), observaciones: observaciones.trim() || null, creado_por: perfil.id }
-    const validacion = validarProduccion(datos)
+    const datos = { sucursal_id: sucursalId, producto_id: productoId, cantidad: cantidad ?? 0, observaciones: observaciones.trim() || null, creado_por: perfil.id }
+    const validacion = validarProduccion(datos) ?? errorEnvases ?? null
     if (validacion) return invalidar(!productoId ? 'produccion-producto' : 'produccion-cantidad', validacion)
     setGuardando(true)
     cerrar()
@@ -117,7 +122,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     if (!vigente.current) return
     setGuardando(false)
     if (mensaje) return mostrar(mensaje, 'error')
-    setCantidad('')
+    setCantidad(undefined)
     setObservaciones('')
     mostrar('Producción registrada. Las existencias se actualizaron automáticamente.')
     await consulta.invalidar('producciones')
@@ -142,7 +147,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
   async function guardarMerma(event: FormEvent) {
     event.preventDefault()
     if (!perfil || !sucursalId) return
-    const datos = { sucursal_id: sucursalId, producto_id: productoMermaId, tipo_empaque_id: null, despacho_id: null, cantidad: parseMiles(cantidadMerma), motivo: motivoMerma.trim(), creado_por: perfil.id }
+    const datos = { sucursal_id: sucursalId, producto_id: productoMermaId, tipo_empaque_id: null, despacho_id: null, cantidad: cantidadMerma ?? 0, motivo: motivoMerma.trim(), creado_por: perfil.id }
     const validacion = validarMerma(datos)
     if (validacion) return invalidar(!productoMermaId ? 'merma-producto' : (!Number.isInteger(datos.cantidad) || datos.cantidad <= 0) ? 'merma-cantidad' : 'merma-motivo', validacion)
     setGuardando(true)
@@ -152,7 +157,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     setGuardando(false)
     if (mensaje) return mostrar(mensaje, 'error')
     setProductoMermaId('')
-    setCantidadMerma('')
+    setCantidadMerma(undefined)
     setMotivoMerma('')
     mostrar('Merma registrada correctamente. Las existencias fueron actualizadas.')
     await consulta.invalidar('mermas')
@@ -169,7 +174,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <h2 className="font-semibold text-slate-900">Nueva producción</h2>
         <label className={labelCls}>Producto<select className={controlCls} value={productoId} {...accesibilidad('produccion-producto')} onChange={event => { corregir('produccion-producto'); setProductoId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
         {errorCampo('produccion-producto')}
-        <label className={labelCls}>Cantidad<input className={controlCls} type="text" inputMode="numeric" value={cantidad} {...accesibilidad('produccion-cantidad')} onChange={event => { corregir('produccion-cantidad'); setCantidad(formatMilesInput(event.target.value)) }} /></label>
+        <div><label htmlFor="campo-produccion-cantidad" className={labelCls}>Cantidad</label><InputNumerico {...accesibilidad('produccion-cantidad')} className={controlCls} value={cantidad} error={errorEnvases} onChange={valor => { corregir('produccion-cantidad'); setCantidad(valor) }} /></div>
         {errorCampo('produccion-cantidad')}
         <label className={labelCls}>Observaciones (opcional)<textarea className={controlCls} rows={3} maxLength={1000} value={observaciones} onChange={event => setObservaciones(event.target.value)} /></label>
         <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
@@ -202,7 +207,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
           <div><h2 className="font-semibold text-slate-900">Registrar merma</h2><p className="mt-1 text-sm text-slate-500">Registra productos dañados o perdidos para descontarlos del stock de bodega.</p></div>
           <label className={labelCls}>Producto<select className={controlCls} value={productoMermaId} {...accesibilidad('merma-producto')} onChange={event => { corregir('merma-producto'); setProductoMermaId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
         {errorCampo('merma-producto')}
-          <label className={labelCls}>Cantidad<input className={controlCls} type="text" inputMode="numeric" value={cantidadMerma} {...accesibilidad('merma-cantidad')} onChange={event => { corregir('merma-cantidad'); setCantidadMerma(formatMilesInput(event.target.value)) }} /></label>
+          <div><label htmlFor="campo-merma-cantidad" className={labelCls}>Cantidad</label><InputNumerico {...accesibilidad('merma-cantidad')} className={controlCls} value={cantidadMerma} onChange={valor => { corregir('merma-cantidad'); setCantidadMerma(valor) }} /></div>
         {errorCampo('merma-cantidad')}
           <label className={labelCls}>Motivo<textarea className={controlCls} rows={4} maxLength={1000} value={motivoMerma} {...accesibilidad('merma-motivo')} onChange={event => { corregir('merma-motivo'); setMotivoMerma(event.target.value) }} placeholder="Ej.: Bidón dañado durante producción" /></label>
         {errorCampo('merma-motivo')}

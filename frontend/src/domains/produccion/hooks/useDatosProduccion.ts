@@ -13,7 +13,7 @@ const recursos: Record<RecursoProduccion, Consulta[]> = {
   incidencias_produccion: ['incidencias'],
 }
 const secciones: Record<SeccionProduccion, Consulta[]> = {
-  registrar: ['productos', 'producciones'],
+  registrar: ['productos', 'producciones', 'envases'],
   envases: ['envases'],
   historial: ['productos', 'historial'],
   indicadores: ['productos', 'indicadores'],
@@ -27,7 +27,7 @@ export function useDatosProduccion(perfilId: string, sucursalId: string, seccion
   const producciones = useQuery({ queryKey: key('producciones'), queryFn: () => obtenerProducciones(sucursalId), enabled: seccion === 'registrar', retry: false })
   const mermas = useQuery({ queryKey: key('mermas'), queryFn: () => obtenerMermas(sucursalId), enabled: seccion === 'incidencias', retry: false })
   const incidencias = useQuery({ queryKey: key('incidencias'), queryFn: () => obtenerIncidencias(sucursalId), enabled: seccion === 'incidencias', retry: false })
-  const envases = useQuery({ queryKey: key('envases'), queryFn: () => obtenerEnvasesDisponibles(sucursalId), enabled: seccion === 'envases', retry: false })
+  const envases = useQuery({ queryKey: key('envases'), queryFn: () => obtenerEnvasesDisponibles(sucursalId), enabled: seccion === 'envases' || seccion === 'registrar', retry: false })
 
   function invalidarConsultas(consultas: Consulta[]) {
     return Promise.all(consultas.map(recurso => queryClient.invalidateQueries({ queryKey: key(recurso) })))

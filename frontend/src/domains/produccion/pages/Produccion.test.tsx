@@ -127,3 +127,42 @@ it('F3 · el formulario no crece con la lista: columnas independientes y lista c
   expect(lista.className).toMatch(/xl:max-h-/)
   expect(formulario.contains(lista)).toBe(false)
 })
+
+describe('F3b · cantidad con InputNumerico', () => {
+  const producto = { id: 'p1', nombre: 'Bidón POL', tipo: 'agua', tipo_empaque_id: 'e1', precio_base: 1, activo: true, creado_en: '' } as never
+
+  it('rechaza texto y formatea miles en la cantidad de producción', async () => {
+    renderWithProviders(<Produccion />)
+    const campo = await screen.findByLabelText('Cantidad')
+    fireEvent.change(campo, { target: { value: 'abc' } })
+    expect(campo).toHaveValue('')
+    fireEvent.change(campo, { target: { value: '1234' } })
+    expect(campo).toHaveValue('1.234')
+    expect(campo).toHaveAttribute('placeholder', '0')
+  })
+
+  it('muestra en tiempo real el error si la cantidad supera los envases vacíos disponibles', async () => {
+    vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto])
+    vi.mocked(api.obtenerEnvasesDisponibles).mockResolvedValue([{ tipo_empaque_id: 'e1', nombre: 'Bidón', cantidad: 5, modificado_en: '2026-10-14T12:00:00Z' }])
+    renderWithProviders(<Produccion />)
+    await screen.findAllByRole('option', { name: 'Bidón POL' })
+    fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+    const campo = screen.getByLabelText('Cantidad')
+    fireEvent.change(campo, { target: { value: '9' } })
+    expect(await screen.findByText('Solo hay 5 envases vacíos disponibles para este producto.')).toBeInTheDocument()
+    expect(campo).toHaveAttribute('aria-invalid', 'true')
+    fireEvent.change(campo, { target: { value: '5' } })
+    expect(screen.queryByText(/envases vacíos disponibles para este producto/)).not.toBeInTheDocument()
+  })
+
+  it('bloquea el envío si la cantidad supera los envases disponibles', async () => {
+    vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto])
+    vi.mocked(api.obtenerEnvasesDisponibles).mockResolvedValue([{ tipo_empaque_id: 'e1', nombre: 'Bidón', cantidad: 5, modificado_en: '2026-10-14T12:00:00Z' }])
+    renderWithProviders(<Produccion />)
+    await screen.findAllByRole('option', { name: 'Bidón POL' })
+    fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+    fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '9' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
+    expect(api.registrarProduccion).not.toHaveBeenCalled()
+  })
+})
