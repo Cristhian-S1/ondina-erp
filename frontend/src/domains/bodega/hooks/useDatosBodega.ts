@@ -13,6 +13,7 @@ export function useDatosBodega(sucursalId: string, incluirStock: boolean) {
     queryKey: ['bodega', perfil?.id, perfil?.rol, perfil?.sucursal_id, sucursalId, incluirStock],
     enabled: !!perfil && !!sucursalId,
     retry: false,
+    staleTime: 30_000,
     queryFn: async () => {
       const [vendedores, productos, tiposEmpaque, despachosRaw, stockBodega, stockEnvases] = await Promise.all([
         obtenerVendedores(sucursalId), obtenerProductos(true), obtenerTiposEmpaque(),

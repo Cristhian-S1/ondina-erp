@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { corregirDevolucion, registrarDevolucion } from '../api'
-import { btnPrimary, cardCls, inputCls, tdCls, thCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls, inputCls, tdCls, thCls } from '../../../lib/ui'
 import { fmtFecha, fmtFechaHora } from '../../../lib/format'
 import EstadoVista from '../../../components/EstadoVista'
 import AmbitoBodega from '../components/AmbitoBodega'
@@ -36,10 +36,10 @@ const OPCIONES_DIA: Array<[FiltroDia, string]> = [
 const inputCompact = `${inputCls} !mt-0 w-20 text-right`
 
 export default function Devoluciones() {
-  return <AmbitoBodega>{(sucursalId) => <DevolucionesSucursal sucursalId={sucursalId} />}</AmbitoBodega>
+  return <AmbitoBodega>{(sucursalId, setOcupado) => <DevolucionesSucursal sucursalId={sucursalId} setOcupado={setOcupado} />}</AmbitoBodega>
 }
 
-function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
+function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; setOcupado: (ocupado: boolean) => void }) {
   const { perfil } = useAuth()
   const esAdmin = perfil?.rol === 'administrador'
 
@@ -58,7 +58,11 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
   const [envaseInputs, setEnvaseInputs] = useState<
     Record<string, { buenos: string; malos: string }>
   >({})
-  const [enviando, setEnviando] = useState(false)
+  const [enviando, actualizarEnviando] = useState(false)
+  function setEnviando(valor: boolean) {
+    actualizarEnviando(valor)
+    setOcupado(valor)
+  }
   const intento = useRef<{ contenido: string; clave: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -246,7 +250,7 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
     await load()
   }
 
-  if (datos.isError) return <EstadoVista variante="error" mensaje="No fue posible cargar los devoluciones. Inténtalo de nuevo." onReintentar={() => void load()} />
+  if (datos.isError && !datos.data) return <EstadoVista variante="error" mensaje="No fue posible cargar las devoluciones. Inténtalo de nuevo." onReintentar={() => void load()} />
   if (datos.isPending) return <EstadoVista variante="cargando" />
 
   const despachoSeleccionado = despachos.find((d) => d.id === seleccionado)
@@ -272,6 +276,7 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
 
       </div>
 
+      {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
       {error && (
         <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
       )}
@@ -381,7 +386,7 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
             <div role="status"><EstadoVista variante="vacio" mensaje="Selecciona un despacho para registrar su devolución." /></div>
           ) : (
             <div>
-              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
                 <div>
                   <h2 className="text-base font-semibold text-slate-900">
                     Devolución de {despachoSeleccionado.vendedorNombre}
@@ -405,33 +410,33 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
                     )}
                   </div>
                   <div role="region" aria-label="Productos del despacho" tabIndex={0} className="mt-2 max-w-full overflow-x-auto rounded-lg border border-slate-200">
-                    <table className="w-full">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className={thCls}>Producto</th>
-                          <th className={`${thCls} text-right`}>Despachado</th>
+                    <table role="table" className="block w-full sm:table [&_td]:!block [&_td]:!whitespace-normal [&_td]:text-left [&_td]:[overflow-wrap:anywhere] sm:[&_td]:!table-cell sm:[&_td]:text-right [&_td]:before:mb-1 [&_td]:before:block [&_td]:before:text-xs [&_td]:before:font-medium [&_td]:before:text-slate-600 [&_td]:before:content-[attr(data-etiqueta)] sm:[&_td]:before:hidden">
+                      <thead role="rowgroup" className="sr-only bg-slate-50 sm:not-sr-only sm:table-header-group">
+                        <tr role="row">
+                          <th role="columnheader" scope="col" className={thCls}>Producto</th>
+                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Despachado</th>
                           {estado === 'pendiente' && (
-                            <th className={`${thCls} text-right`}>Carga</th>
+                            <th role="columnheader" scope="col" className={`${thCls} text-right`}>Carga</th>
                           )}
-                          <th className={`${thCls} text-right`}>Devuelve</th>
+                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Devuelve</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody role="rowgroup" className="block divide-y divide-slate-100 sm:table-row-group">
                         {[...productosDespachados(seleccionado).entries()].map(
                           ([productoId, despachado]) => {
                             const producto = productos.find((p) => p.id === productoId)
                             return (
-                              <tr key={productoId}>
-                                <td className={tdCls}>{producto?.nombre ?? 'Producto'}</td>
-                                <td className={`${tdCls} text-right font-semibold`}>
+                              <tr role="row" className="block min-w-0 pb-3 sm:table-row sm:pb-0" key={productoId}>
+                                <td role="cell" data-etiqueta="Producto" className={tdCls}>{producto?.nombre ?? 'Producto'}</td>
+                                <td role="cell" data-etiqueta="Despachado" className={`${tdCls} text-right font-semibold`}>
                                   {despachado}
                                 </td>
                                 {estado === 'pendiente' && (
-                                  <td className={`${tdCls} text-right text-slate-500`}>
+                                  <td role="cell" data-etiqueta="Carga" className={`${tdCls} text-right text-slate-500`}>
                                     {cargaDeDespacho(seleccionado, productoId)}
                                   </td>
                                 )}
-                                <td className={`${tdCls} text-right`}>
+                                <td role="cell" data-etiqueta="Devuelve" className={`${tdCls} text-right`}>
                                   {editarProductos ? (
                                     <input
                                       aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
@@ -450,7 +455,7 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
                                       }
                                     />
                                   ) : (
-                                    <span className="font-medium text-amber-600">
+                                    <span className="font-medium text-amber-700">
                                       −{devueltoProductoDe(seleccionado, productoId)}
                                     </span>
                                   )}
@@ -479,30 +484,30 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
                     )}
                   </div>
                   <div role="region" aria-label="Envases del despacho" tabIndex={0} className="mt-2 max-w-full overflow-x-auto rounded-lg border border-slate-200">
-                    <table className="w-full">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className={thCls}>Envase</th>
-                          <th className={`${thCls} text-right`}>Despachadas</th>
-                          <th className={`${thCls} text-right`}>En bodega</th>
-                          <th className={`${thCls} text-right`}>Buenos</th>
-                          <th className={`${thCls} text-right`}>Malos</th>
+                    <table role="table" className="block w-full sm:table [&_td]:!block [&_td]:!whitespace-normal [&_td]:text-left [&_td]:[overflow-wrap:anywhere] sm:[&_td]:!table-cell sm:[&_td]:text-right [&_td]:before:mb-1 [&_td]:before:block [&_td]:before:text-xs [&_td]:before:font-medium [&_td]:before:text-slate-600 [&_td]:before:content-[attr(data-etiqueta)] sm:[&_td]:before:hidden">
+                      <thead role="rowgroup" className="sr-only bg-slate-50 sm:not-sr-only sm:table-header-group">
+                        <tr role="row">
+                          <th role="columnheader" scope="col" className={thCls}>Envase</th>
+                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Despachadas</th>
+                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>En bodega</th>
+                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Buenos</th>
+                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Malos</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody role="rowgroup" className="block divide-y divide-slate-100 sm:table-row-group">
                         {tiposEmpaqueDevolvibles.map((t) => {
                           const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
                           const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
                           return (
-                            <tr key={t.id}>
-                              <td className={tdCls}>{t.nombre}</td>
-                              <td className={`${tdCls} text-right font-semibold`}>
+                            <tr role="row" className="block min-w-0 pb-3 sm:table-row sm:pb-0" key={t.id}>
+                              <td role="cell" data-etiqueta="Envase" className={tdCls}>{t.nombre}</td>
+                              <td role="cell" data-etiqueta="Despachadas" className={`${tdCls} text-right font-semibold`}>
                                 {despachadas}
                               </td>
-                              <td className={`${tdCls} text-right text-slate-500`}>
+                              <td role="cell" data-etiqueta="En bodega" className={`${tdCls} text-right text-slate-500`}>
                                 {stockEnvaseDe(t.id)}
                               </td>
-                              <td className={`${tdCls} text-right`}>
+                              <td role="cell" data-etiqueta="Buenos" className={`${tdCls} text-right`}>
                                 {editarEnvases ? (
                                   <input
                                     aria-label={`Cantidad de envases buenos de ${t.nombre}`}
@@ -521,12 +526,12 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
                                     }
                                   />
                                 ) : (
-                                  <span className="font-medium text-emerald-600">
+                                  <span className="font-medium text-emerald-700">
                                     +{devueltoEnvaseBuenoDe(seleccionado, t.id)}
                                   </span>
                                 )}
                               </td>
-                              <td className={`${tdCls} text-right`}>
+                              <td role="cell" data-etiqueta="Malos" className={`${tdCls} text-right`}>
                                 {editarEnvases ? (
                                   <input
                                     aria-label={`Cantidad de envases malos de ${t.nombre}`}
@@ -545,7 +550,7 @@ function DevolucionesSucursal({ sucursalId }: { sucursalId: string }) {
                                     }
                                   />
                                 ) : (
-                                  <span className="font-medium text-amber-600">
+                                  <span className="font-medium text-amber-700">
                                     +{devueltoEnvaseMaloDe(seleccionado, t.id)}
                                   </span>
                                 )}

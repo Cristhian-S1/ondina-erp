@@ -69,10 +69,10 @@ function fmtHora(iso: string) {
 }
 
 export default function Despachos() {
-  return <AmbitoBodega>{(sucursalId) => <DespachosSucursal sucursalId={sucursalId} />}</AmbitoBodega>
+  return <AmbitoBodega>{(sucursalId, setOcupado) => <DespachosSucursal sucursalId={sucursalId} setOcupado={setOcupado} />}</AmbitoBodega>
 }
 
-function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
+function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; setOcupado: (ocupado: boolean) => void }) {
   const { perfil } = useAuth()
   const esAdmin = perfil?.rol === 'administrador'
   const navigate = useNavigate()
@@ -92,7 +92,11 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
   const [bandejasManual, setBandejasManual] = useState<{ hielo: number; valor: string } | null>(
     null,
   )
-  const [enviando, setEnviando] = useState(false)
+  const [enviando, actualizarEnviando] = useState(false)
+  function setEnviando(valor: boolean) {
+    actualizarEnviando(valor)
+    setOcupado(valor)
+  }
   const intento = useRef<{ contenido: string; clave: string } | null>(null)
 
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
@@ -289,7 +293,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
     return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
   }, [desvProducto, desvEnvase, despachos, despachosFiltrados, productos, tiposEmpaque])
 
-  if (datos.isError) return <EstadoVista variante="error" mensaje="No fue posible cargar los despachos. Inténtalo de nuevo." onReintentar={() => void load()} />
+  if (datos.isError && !datos.data) return <EstadoVista variante="error" mensaje="No fue posible cargar los despachos. Inténtalo de nuevo." onReintentar={() => void load()} />
   if (datos.isPending) return <EstadoVista variante="cargando" />
 
   return (
@@ -310,13 +314,14 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
           >
             Devoluciones
           </button>
-          <button type="button" className={btnPrimary} onClick={() => setModalOpen(true)}>
+          <button type="button" className={btnPrimary} onClick={() => { setError(null); setModalOpen(true) }}>
             Nuevo despacho
           </button>
         </div>
       </div>
 
-      {error && (
+      {!modalOpen && datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
+      {error && !modalOpen && (
         <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
       )}
 
@@ -324,7 +329,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
         <section className={`${cardCls} min-w-0`}>
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Últimos despachos</h2>
-            <span className="text-xs text-slate-400">{despachosFiltrados.length} registros</span>
+            <span className="text-xs text-slate-600">{despachosFiltrados.length} registros</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
@@ -404,6 +409,8 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                   >
                     <button
                       type="button"
+                      aria-expanded={expandido}
+                      aria-controls={`despacho-${d.id}`}
                       onClick={() => setDespachoExpandido(expandido ? null : d.id)}
                       className="flex min-w-0 w-full flex-col items-start gap-3 p-4 text-left sm:flex-row sm:items-center sm:justify-between"
                     >
@@ -421,12 +428,12 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                           {formatMiles(d.totalUnidades)} unid.
                         </span>
                         {llegada && (
-                          <span className="rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white">
+                          <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-xs font-semibold text-white">
                             Llegada {fmtHora(llegada)}
                           </span>
                         )}
                         <span
-                          className={`text-slate-400 transition-transform ${
+                          className={`text-slate-600 transition-transform ${
                             expandido ? 'rotate-180' : ''
                           }`}
                           aria-hidden="true"
@@ -437,7 +444,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                     </button>
 
                     {expandido && (
-                      <div className="space-y-3 border-t border-slate-100 px-4 py-3">
+                      <div id={`despacho-${d.id}`} className="space-y-3 border-t border-slate-100 px-4 py-3">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                             Productos despachados
@@ -514,7 +521,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                                     {productos.find((p) => p.id === dv.producto_id)?.nombre ??
                                       'Producto'}
                                   </span>
-                                  <span className="font-medium text-amber-600">−{formatMiles(dv.cantidad)}</span>
+                                  <span className="font-medium text-amber-700">−{formatMiles(dv.cantidad)}</span>
                                 </li>
                               ))}
                               {devs.envases.map((de) => (
@@ -529,8 +536,8 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                                   <span
                                     className={
                                       de.estado === 'bueno'
-                                        ? 'font-medium text-emerald-600'
-                                        : 'font-medium text-amber-600'
+                                        ? 'font-medium text-emerald-700'
+                                        : 'font-medium text-amber-700'
                                     }
                                   >
                                     +{formatMiles(de.cantidad)} {de.estado === 'bueno' ? 'buenas' : 'malas'}
@@ -586,7 +593,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                         </span>
                         <span
                           className={`shrink-0 font-medium ${
-                            l.tipo === 'producto' ? 'text-amber-600' : 'text-emerald-600'
+                            l.tipo === 'producto' ? 'text-amber-700' : 'text-emerald-700'
                           }`}
                         >
                           {l.tipo === 'producto' ? `−${formatMiles(l.cantidad)}` : `+${formatMiles(l.cantidad)}`}
@@ -601,7 +608,9 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
         </aside>
       </div>
 
-      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} title="Nuevo despacho">
+      <Dialog open={modalOpen} onClose={() => { if (!enviando) { setError(null); setModalOpen(false) } }} title="Nuevo despacho">
+            {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
+            {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
             <label className={labelCls}>
               Vendedor
               <select
@@ -651,7 +660,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                   className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_auto]"
                 >
                   <label className="block">
-                    <span className="sr-only">Producto</span>
+                    <span className={labelCls}>Producto</span>
                     <select
                       className={inputCls}
                       value={linea.producto_id}
@@ -692,7 +701,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                     )}
                   </label>
                   <label className="block">
-                    <span className="sr-only">Cantidad</span>
+                    <span className={labelCls}>Cantidad</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -732,7 +741,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
               ) : (
                 <>
                   <label className="block">
-                    <span className="sr-only">Bandejas</span>
+                    <span className={labelCls}>Bandejas</span>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -749,7 +758,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
                     Se completan solas: 1 bandeja cada {CAPACIDAD_BANDEJA} bolsas de hielo.
                   </p>
                   {totalHieloSolicitado > 0 && parseMiles(bandejasCantidad) !== bandejasSugeridas && (
-                    <p className="text-xs text-amber-600">Sugerido: {formatMiles(bandejasSugeridas)}</p>
+                    <p className="text-xs text-amber-700">Sugerido: {formatMiles(bandejasSugeridas)}</p>
                   )}
                 </>
               )}
@@ -759,7 +768,7 @@ function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
               <button
                 type="button"
                 className={btnSecondary}
-                onClick={() => setModalOpen(false)}
+                onClick={() => { if (!enviando) { setError(null); setModalOpen(false) } }}
               >
                 Cancelar
               </button>
