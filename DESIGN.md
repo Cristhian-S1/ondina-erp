@@ -17,7 +17,15 @@ sin archivo `tailwind.config.js`. Los design tokens viven en
 Token central del producto. Se usa en sidebar, botones primarios, enlaces activos
 y bordes de foco.
 
-| Token            | Hex       | Uso typical                                        |
+> **Propuesta pendiente de aprobación (D1).** Los valores de esta sección son
+> los vigentes en `index.css`. La escala `brand` no es monótona (50 y 100 más
+> oscuros que 200; 500 más apagado que 400) y blanco sobre `brand-600` mide
+> 4,06:1 (no cumple AA para texto normal). La propuesta con contrastes
+> calculados está en
+> `docs/archive/audits/2026-10-14/frontend-movil/D1-propuesta.md`. No cambies
+> estos valores hasta que se apruebe.
+
+| Token            | Hex       | Uso típico                                        |
 | ---------------- | --------- | -------------------------------------------------- |
 | `brand-50`       | `#cbebfc` | fondos tenues, badges                              |
 | `brand-100`      | `#a4dbf9` | avatar, acentos suaves                             |
@@ -39,15 +47,16 @@ Base para textos, fondos, bordes y tablas.
 | `slate-100` | fondo de página (`body`), badges, encabezados de tabla |
 | `slate-200` | bordes de tarjetas y dividers (`border-slate-200`)  |
 | `slate-300` | bordes de inputs (`border-slate-300`), bordes dashed |
-| `slate-400` | texto secundario, `tracking-wide`, iconos de toggle |
-| `slate-500` | descripciones, placeholders, estados vacíos         |
+| `slate-400` | **no usar para texto** (2,63:1 sobre blanco); sólo iconos/decorativos |
+| `slate-600` | texto secundario y encabezados de tabla (6,92:1 sobre `slate-100`) |
+| `slate-500` | placeholders y texto sobre blanco (4,76:1); sobre `slate-100` mide 4,35:1: usa `slate-600` |
 | `slate-700` | labels de formulario                                 |
 | `slate-900` | títulos y texto principal                           |
 | `slate-950` | overlays de modal (`bg-slate-950/60`)               |
 
 ### 1.3 Semánticos por rol (Dashboard)
 
-Cada roltiene un badge con fondo + texto:
+Cada rol tiene un badge con fondo + texto:
 
 | Rol            | Clase                                   |
 | -------------- | --------------------------------------- |
@@ -58,9 +67,10 @@ Cada roltiene un badge con fondo + texto:
 
 ### 1.4 Estados
 
-- Error / alerta: `bg-red-50 text-red-600` (inline), `bg-red-600` hover `bg-red-700` (botón danger), `bg-red-500` (punto de notificación).
-- Advertencia (devoluciones producto): `bg-amber-500`.
-- Éxito / devoluciones envase: `bg-emerald-500`.
+- Error / alerta: `errorBlockCls` (`bg-red-50 text-red-600`, ver nota D1), `errorTextCls` bajo campos, `inputErrorCls` en el borde del input, `bg-red-600` hover `bg-red-700` (botón danger).
+- Advertencia (devoluciones producto): badge `bg-amber-100 text-amber-700`; punto de estado `bg-amber-500`.
+- Éxito / devoluciones envase: badge `bg-emerald-100 text-emerald-700`; punto de estado `bg-emerald-500`.
+- Contrastes de estos pares y su propuesta: D1 (pendiente de aprobación).
 
 ---
 
@@ -74,9 +84,10 @@ Cada roltiene un badge con fondo + texto:
   botones), `text-base` (títulos de sección), `text-lg` (títulos de modal),
   `text-2xl` (h1 de página).
 - Transforma a mayúsculas con `uppercase` solo en cabeceras de tabla junto a
-  `tracking-wide text-slate-400`.
-- Localización de números/fechas: `toLocaleString('es-CL', ...)` — ver `fmtFecha`
-  en `lib/ui.ts`.
+  `tracking-wide text-slate-600`.
+- Localización de números/fechas: usa `lib/format.ts` (`formatMiles`,
+  `parseMiles`, `fmtFechaHora`, es-CL). `fmtFecha` de `lib/ui.ts` está
+  obsoleto (`@deprecated`); no lo uses en código nuevo.
 
 ### Body
 
@@ -109,8 +120,8 @@ body { @apply bg-slate-100 text-slate-800 antialiased; }
   texto `text-slate-300`/`text-white`, border `border-brand-800`. En móvil:
   `fixed` con overlay `bg-slate-950/60`.
 - **Header** sticky `top-0 z-20 h-16 bg-white/90 backdrop-blur`, border inferior
-  `border-slate-200`. Contiene botón de menú, notificaciones y avatar+nombre del
-  usuario.
+  `border-slate-200`. Contiene botón de menú y avatar+nombre del usuario (la campana de
+  notificaciones fue retirada).
 - **Main** `flex-1 p-4 sm:p-6` con padding lateral que se ajusta al colapso del
   sidebar (`lg:pl-64` / `lg:pl-16`).
 
@@ -141,9 +152,15 @@ reutilizar sin repetir Tailwind. Úsalos siempre que aplique.
 | `btnSecondary`   | borde `brand-200`, fondo blanco, texto `brand-800`             |
 | `btnDanger`      | fondo `red-600`, hover `red-700`                               |
 | `cardCls`        | `rounded-2xl border border-slate-200 bg-white shadow-sm`       |
-| `thCls`          | cabecera de tabla: `text-xs uppercase tracking-wide slate-400`|
+| `thCls`          | cabecera de tabla: `text-xs uppercase tracking-wide text-slate-600`|
 | `tdCls`          | celda: `text-sm text-slate-900`                                |
-| `fmtFecha(iso)`  | fecha local `'es-CL'` (día/mes + hora)                         |
+| `errorTextCls`   | texto de error de campo bajo un input (`text-xs text-red-600`) |
+| `errorBlockCls`  | bloque de error de mutación (`bg-red-50 text-red-600`)         |
+| `inputErrorCls`  | borde rojo para inputs inválidos                               |
+| `soloNumeros`    | handler de teclado para restringir a dígitos                   |
+
+Las fechas se formatean con `lib/format.ts`; `fmtFecha` de `lib/ui.ts` está
+obsoleto.
 
 ### Helper de catálogo (`lib/catalog.ts`)
 
@@ -158,10 +175,11 @@ consultar directo.
 Iconos SVG propios en `frontend/src/components/icons.tsx` (stroke, `viewBox 0 0
 24 24`, `strokeWidth=2`). Heredan de `IconProps = SVGProps<SVGSVGElement>`.
 
-Disponibles: `DropletIcon`, `MenuIcon`, `BellIcon`, `HomeIcon`, `UsersIcon`,
+Disponibles: `DropletIcon`, `MenuIcon`, `BellIcon` (sin uso: la campana se retiró), `HomeIcon`, `UsersIcon`,
 `ShoppingCartIcon`, `DollarIcon`, `TruckIcon`, `BoxIcon`, `AlertIcon`,
 `FactoryIcon`, `BarChartIcon`, `MapPinIcon`, `SettingsIcon`, `ShieldIcon`,
-`LogOutIcon`.
+`LogOutIcon`, `RecycleIcon`, `ClipboardListIcon`, `PlusCircleIcon`,
+`RefreshIcon`, `ChevronDownIcon`, `ChevronUpIcon`.
 
 Para nuevas necesidades, agrega un export siguiendo el mismo patrón `Svg`.
 
@@ -194,7 +212,7 @@ Para nuevas necesidades, agrega un export siguiendo el mismo patrón `Svg`.
 ```tsx
 <span className={cls.colorDot} /> // h-2 w-2 rounded-full
 <p className="truncate text-sm text-slate-900">{descripcion}</p>
-<span className="shrink-0 text-xs text-slate-400">{fmtFecha(fecha)}</span>
+<span className="shrink-0 text-xs text-slate-600">{fmtFechaHora(fecha)}</span>
 ```
 
 ### 7.3 Modal
@@ -217,12 +235,43 @@ Para nuevas necesidades, agrega un export siguiendo el mismo patrón `Svg`.
 ### 7.5 Formulario repetible (líneas de despacho)
 
 Grid `sm:grid-cols-[minmax(0,1fr)_7rem_auto]`, botón "Quitar" y "+ Agregar".
+Bajo 640 px cada línea es una tarjeta (ver 7.7).
 
 ### 7.6 Estado vacío y carga
 
-- Carga: `<p className="text-sm text-slate-500">Cargando...</p>`.
-- Vacío: `px-5 py-8 text-center text-sm text-slate-500` con mensaje en español.
-- Error inline: `<p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>`.
+Usa siempre `components/EstadoVista.tsx` (no repitas el marcado):
+
+```tsx
+<EstadoVista variante="cargando" mensaje="Cargando clientes..." />   // role="status"
+<EstadoVista variante="vacio" mensaje="Aún no hay clientes." accion={<button .../>} />
+<EstadoVista variante="error" mensaje={mensajeError(error)} onReintentar={() => void refetch()} /> // role="alert"
+```
+
+- Error inline de mutación: `<p className={errorBlockCls}>{error}</p>`.
+
+### 7.7 Campos numéricos y de formulario
+
+- **`components/InputNumerico.tsx`**: entero controlado con miles es-CL (usa
+  `formatMiles`/`parseMiles`), `min`/`max`, flechas ±1, `error` enlazado por
+  ARIA. `onChange` entrega `number | undefined`. Úsalo para cantidades y
+  montos; no reimplementes el formato.
+- **`domains/ventas/components/CampoFormulario.tsx`**: etiqueta + control +
+  mensaje de error con `id`/`aria-describedby`/`aria-invalid` ya conectados;
+  entrega `className` con `inputCls`/`inputErrorCls` al render prop.
+
+### 7.8 Tarjetas móviles (tabla → tarjeta)
+
+- Bajo 640 px (1024 px en tablas anchas) **una tarjeta por línea/registro**;
+  desde `sm:` (o `lg:`) vuelve la tabla.
+- **Un único árbol de controles** (React Hook Form): se cambia sólo con CSS
+  (`block sm:table-row`, `sr-only sm:not-sr-only`), nunca duplicando inputs
+  entre móvil y escritorio.
+- Ejemplos: `FilaProductoVenta.tsx`, `TablaProduccionResponsive.tsx`.
+  Convención completa en `docs/engineering/frontend.md`.
+
+### 7.9 Paginación
+
+La paginación compartida se documenta en `docs/engineering/frontend.md`.
 
 ---
 
@@ -248,10 +297,12 @@ Grid `sm:grid-cols-[minmax(0,1fr)_7rem_auto]`, botón "Quitar" y "+ Agregar".
 
 ## 9. Accesibilidad y toque
 
-- Inputs con `<label>` visible o `sr-only` cuando el Placeholder basta.
+- Inputs con `<label>` visible o `sr-only` cuando el placeholder basta.
+- Texto normal: contraste mínimo 4,5:1 (AA). No uses `slate-400` ni `slate-300`
+  para texto; usa `slate-600` o más oscuro.
 - `aria-label` en botones de icono (cerrar, alternar menú).
 - `aria-hidden="true"` en iconos decorativos.
-- Botones grandes (`px-4 py-2` mínimo) para pantallas táctiles.
+- Objetivos táctiles de al menos 44 px (`min-h-11`), como en `inputCls` y los botones de `lib/ui.ts`.
 
 ---
 
@@ -263,5 +314,6 @@ Grid `sm:grid-cols-[minmax(0,1fr)_7rem_auto]`, botón "Quitar" y "+ Agregar".
 3. Para nuevos iconos, agrega un `export function XxxIcon(props: IconProps)` en
    `components/icons.tsx`.
 4. Respeta el patrón de `DomainModule` (ver `types/module.ts`) al añadir rutas.
-5. Pruebas: Vitest + Testing Library con `vi.mock('@/lib/supabase')`, mensajes
+5. Mantine ya no forma parte del proyecto: no importes `@mantine/*`.
+6. Pruebas: Vitest + Testing Library con `vi.mock('@/lib/supabase')`, mensajes
    en español, patrón Arrange-Act-Assert.
