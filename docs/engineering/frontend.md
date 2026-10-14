@@ -116,3 +116,13 @@ Mantine (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) and `dayjs` were r
 ## Comments
 
 Explain non-obvious reasons with concise `//` comments and the related HU when useful. Reserve JSDoc/TSDoc for exported contracts that need it. Remove commented-out code and debugging logs; avoid restating readable implementation.
+
+## Server pagination
+
+Use the shared **Previous / Next** pattern (`components/Paginacion.tsx`, default export) for growing histories. The Spanish live region announces “Página X de Y · N registros”; both buttons have accessible labels, native disabled states and targets of at least 44×44 px. Controls wrap at narrow widths. Props: `pagina` (one-based), `total` (exact filtered count), `tamanoPagina` (default 20), `onCambiar(page)`, optional `cargando` (disables navigation and announces updating), and optional `etiqueta` (navigation landmark label). Empty results retain page 1 with both buttons disabled.
+
+`lib/paginacion.ts` exports `TAMANO_PAGINA = 20`, `Pagina<T> = { filas: T[]; total: number }`, `rangoPagina(page, size)` (inclusive zero-based PostgREST bounds) and `totalPaginas(total, size)`. Services apply filters before `.range(from, to)` and request `count: 'exact'`; order by timestamp and a unique ID for deterministic ties. Include identity, role, branch, filters and page in React Query keys. Use `keepPreviousData` while paging within the same scope and filters, show updating feedback, and reset page to 1 when a filter changes. Do not carry placeholders across identities, branches or filters. Clamp an obsolete last page after the count shrinks.
+
+Bodega splits `useDatosBodega` (catalog, authoritative stock/envases and seller load) from `usePaginaBodega` (filtered dispatch headers plus details, containers and returns for visible IDs only). Date bounds are Santiago civil days with an exclusive next-day upper bound. The returns selector is itself paginated; a separate ID-and-branch-scoped query pins its selected dispatch so paging does not drop the return draft. The returns panel on Despachos describes only the current page. No totals depend on adding paginated rows. Successful writes invalidate every cached Bodega page and resource in the current identity/branch, the stock view and seller load; failed writes do not invalidate or clear drafts.
+
+References: [Supabase range](https://supabase.com/docs/reference/javascript/range), [TanStack paginated queries](https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries).

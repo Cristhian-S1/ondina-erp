@@ -16,7 +16,10 @@ import { fmtFecha, fmtFechaHora, formatMiles, parseMiles } from '../../../lib/fo
 import EstadoVista from '../../../components/EstadoVista'
 import AmbitoBodega from '../components/AmbitoBodega'
 import { useDatosBodega } from '../hooks/useDatosBodega'
-import { fechaSantiago, inicioPeriodo, useJornadaSantiago } from '../hooks/useJornadaSantiago'
+import Paginacion from '../../../components/Paginacion'
+import { usePaginaBodega } from '../hooks/usePaginaBodega'
+import { filtrosHistorial } from '../hooks/filtrosHistorial'
+import { useJornadaSantiago } from '../hooks/useJornadaSantiago'
 
 interface LineaProducto {
   id: string
@@ -80,12 +83,10 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const esAdmin = perfil?.rol === 'administrador'
   const navigate = useNavigate()
 
-  const datos = useDatosBodega(sucursalId, true)
+  const recursos = useDatosBodega(sucursalId, true)
   const jornada = useJornadaSantiago()
-  const { vendedores = [], productos = [], tiposEmpaque = [], despachos = [],
-    despachoDetalles = [], despachoEnvases = [], desvProducto = [], desvEnvase = [],
-    stockEnvases = [], cargaVendedor = [], stockBodega = [] } = datos.data ?? {}
-  const load = datos.refetch
+  const { vendedores = [], productos = [], tiposEmpaque = [], stockEnvases = [], cargaVendedor = [], stockBodega = [] } = recursos.data ?? {}
+  const load = () => historial.actualizar()
   const productosActivos = productos.filter(producto => producto.activo)
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -107,6 +108,16 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
+  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedores)
+  const datos = { isPending: recursos.isPending || historial.isPending,
+    isError: recursos.isError || historial.isError, data: recursos.data && historial.data }
+  const despachosFiltrados = historial.data?.despachos ?? []
+  const paginaDatos = historial.data
+  const despachoDetalles = paginaDatos?.despachoDetalles ?? []
+  const despachoEnvases = paginaDatos?.despachoEnvases ?? []
+  const desvProducto = paginaDatos?.desvProducto ?? []
+  const desvEnvase = paginaDatos?.desvEnvase ?? []
+  const despachos = despachosFiltrados
 
   const [error, setError] = useState<string | null>(null)
   const [campoError, setCampoError] = useState({ id: '', intento: 0 })
@@ -274,21 +285,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
     return fechas.length > 0 ? fechas.sort().reverse()[0] : null
   }
 
-  const diaObjetivo = diaFiltro === 'fecha' ? fechaSeleccionada
-    : diaFiltro === 'todo' ? ''
-    : inicioPeriodo(jornada, diaFiltro === 'ayer' ? 1 : diaFiltro === '7d' ? 6 : 0)
-
-  const despachosFiltrados = useMemo(() => {
-    return despachos.filter((d) => {
-      if (vendedorFiltro && d.vendedor_id !== vendedorFiltro) return false
-      if (diaFiltro === 'todo') return true
-      const fechaDespacho = fechaSantiago(new Date(d.creado_en))
-      if (diaFiltro === '7d') return fechaDespacho >= diaObjetivo
-      return fechaDespacho === diaObjetivo
-    })
-  }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
-
-  const gruposDevolucion = useMemo<GrupoDevolucion[]>(() => {
+  const gruposDevolucion: GrupoDevolucion[] = (() => {
     const idsVisibles = new Set(despachosFiltrados.map((d) => d.id))
     const grupos = new Map<string, GrupoDevolucion>()
     const asegurar = (despachoId: string) => {
@@ -326,7 +323,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
       })
     }
     return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
-  }, [desvProducto, desvEnvase, despachos, despachosFiltrados, productos, tiposEmpaque])
+  })()
 
   if (datos.isError && !datos.data) return <EstadoVista variante="error" mensaje="No fue posible cargar los despachos. Inténtalo de nuevo." onReintentar={() => void load()} />
   if (datos.isPending) return <EstadoVista variante="cargando" />
@@ -365,7 +362,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
         <section className={`${cardCls} min-w-0`}>
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Últimos despachos</h2>
-            <span className="text-xs text-slate-600">{despachosFiltrados.length} registros</span>
+            <span className="text-xs text-slate-600">{historial.data?.total ?? 0} registros</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
@@ -423,9 +420,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
             </select>
           </div>
 
-          {despachos.length === 0 ? (
-            <div role="status"><EstadoVista variante="vacio" mensaje="Aún no hay despachos para esta sucursal." /></div>
-          ) : despachosFiltrados.length === 0 ? (
+          {despachosFiltrados.length === 0 ? (
             <div role="status"><EstadoVista variante="vacio" mensaje="No hay despachos para el día y vendedor seleccionados." /></div>
           ) : (
             <ul className="space-y-2 p-3">
@@ -598,16 +593,18 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
               })}
             </ul>
           )}
+          <Paginacion pagina={historial.pagina} total={historial.data?.total ?? 0}
+            onCambiar={historial.setPagina} cargando={historial.isFetching || enviando} etiqueta="Paginación de despachos" />
         </section>
 
         <aside className={`${cardCls} min-w-0`}>
           <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-semibold text-slate-900">Devoluciones</h2>
+            <h2 className="text-base font-semibold text-slate-900">Devoluciones de esta página</h2>
             <p className="text-sm text-slate-500">Agrupadas por despacho</p>
           </div>
 
           {gruposDevolucion.length === 0 ? (
-            <div role="status"><EstadoVista variante="vacio" mensaje="Aún no hay devoluciones para esta sucursal." /></div>
+            <div role="status"><EstadoVista variante="vacio" mensaje="No hay devoluciones en los despachos de esta página." /></div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {gruposDevolucion.map((g) => (

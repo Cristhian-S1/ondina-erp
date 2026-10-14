@@ -9,7 +9,10 @@ import Dialog from '../../../components/Dialog'
 import { disponibleParaDevolver } from '../validacion'
 import AmbitoBodega from '../components/AmbitoBodega'
 import { useDatosBodega } from '../hooks/useDatosBodega'
-import { fechaSantiago, inicioPeriodo, useJornadaSantiago } from '../hooks/useJornadaSantiago'
+import Paginacion from '../../../components/Paginacion'
+import { usePaginaBodega } from '../hooks/usePaginaBodega'
+import { filtrosHistorial } from '../hooks/filtrosHistorial'
+import { useJornadaSantiago } from '../hooks/useJornadaSantiago'
 
 type EstadoDespacho = 'pendiente' | 'productos' | 'envases' | 'completo'
 
@@ -46,18 +49,27 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   const { perfil } = useAuth()
   const esAdmin = perfil?.rol === 'administrador'
 
-  const datos = useDatosBodega(sucursalId, false)
+  const recursos = useDatosBodega(sucursalId, false)
   const jornada = useJornadaSantiago()
-  const { vendedores = [], productos = [], tiposEmpaque = [], despachos = [],
-    despachoDetalles = [], despachoEnvases = [], desvProducto = [], desvEnvase = [],
-    stockEnvases = [], cargaVendedor = [] } = datos.data ?? {}
-  const load = datos.refetch
+  const { vendedores = [], productos = [], tiposEmpaque = [], stockEnvases = [], cargaVendedor = [] } = recursos.data ?? {}
+  const load = () => historial.actualizar()
 
   const detalleTitulo = useRef<HTMLHeadingElement>(null)
   const [seleccionado, setSeleccionado] = useState('')
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
+  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedores, seleccionado)
+  const datos = { isPending: recursos.isPending || historial.isPending,
+    isError: recursos.isError || historial.isError, data: recursos.data && historial.data }
+  const despachosFiltrados = historial.data?.despachos ?? []
+  const paginaDatos = historial.data
+  const despachoDetalles = [...(paginaDatos?.despachoDetalles ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.despachoDetalles ?? [])]
+  const despachoEnvases = [...(paginaDatos?.despachoEnvases ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.despachoEnvases ?? [])]
+  const desvProducto = [...(paginaDatos?.desvProducto ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.desvProducto ?? [])]
+  const desvEnvase = [...(paginaDatos?.desvEnvase ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.desvEnvase ?? [])]
+  const despachos = [...despachosFiltrados.filter(d => d.id !== seleccionado || !historial.individual), ...(historial.individual?.despachos ?? [])]
+
   const [productoInputs, setProductoInputs] = useState<Record<string, string>>({})
   const [envaseInputs, setEnvaseInputs] = useState<
     Record<string, { buenos: string; malos: string }>
@@ -84,20 +96,6 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
     () => tiposEmpaque.filter((t) => t.categoria !== 'no_retornable'),
     [tiposEmpaque],
   )
-
-  const diaObjetivo = diaFiltro === 'fecha' ? fechaSeleccionada
-    : diaFiltro === 'todo' ? ''
-    : inicioPeriodo(jornada, diaFiltro === 'ayer' ? 1 : diaFiltro === '7d' ? 6 : 0)
-
-  const despachosFiltrados = useMemo(() => {
-    return despachos.filter((d) => {
-      if (vendedorFiltro && d.vendedor_id !== vendedorFiltro) return false
-      if (diaFiltro === 'todo') return true
-      const fechaDespacho = fechaSantiago(new Date(d.creado_en))
-      if (diaFiltro === '7d') return fechaDespacho >= diaObjetivo
-      return fechaDespacho === diaObjetivo
-    })
-  }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
 
   const estadoDe = (despachoId: string): EstadoDespacho => {
     const hasProductos = desvProducto.some((x) => x.despacho_id === despachoId && !x.anulado)
@@ -307,6 +305,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
       </div>
 
       {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
+      {historial.errorIndividual && <EstadoVista variante="error" mensaje="No fue posible actualizar el despacho seleccionado. Inténtalo de nuevo." onReintentar={() => void load()} />}
       {error && (
         <p id="error-devolucion" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
       )}
@@ -375,9 +374,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
             <p className="text-sm text-slate-500">Selecciona uno para registrar la devolución</p>
           </div>
 
-          {despachos.length === 0 ? (
-            <div role="status"><EstadoVista variante="vacio" mensaje="Aún no hay despachos para esta sucursal." /></div>
-          ) : despachosFiltrados.length === 0 ? (
+          {despachosFiltrados.length === 0 ? (
             <div role="status"><EstadoVista variante="vacio" mensaje="No hay despachos para el día y vendedor seleccionados." /></div>
           ) : (
             <ul className="space-y-2 p-3">
@@ -409,6 +406,8 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
               })}
             </ul>
           )}
+          <Paginacion pagina={historial.pagina} total={historial.data?.total ?? 0}
+            onCambiar={historial.setPagina} cargando={historial.isFetching || enviando} etiqueta="Paginación de despachos" />
         </aside>
 
         <section className={`${cardCls} min-w-0`}>
@@ -585,7 +584,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                     <button
                       type="button"
                       className={`${btnPrimary} w-full`}
-                      disabled={enviando}
+                      disabled={enviando || !!historial.errorIndividual}
                       onClick={() => void registrar()}
                     >
                       {enviando

@@ -23,6 +23,8 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
     corregirDevolucion: vi.fn(),
     obtenerVendedores: vi.fn(),
     obtenerDespachos: vi.fn(),
+    obtenerPaginaDespachos: vi.fn(),
+    obtenerDespacho: vi.fn(),
     obtenerDetallesDespacho: vi.fn(),
     obtenerEnvasesDespacho: vi.fn(),
     obtenerDevolucionesProducto: vi.fn(),
@@ -95,6 +97,14 @@ const detalle: DespachoDetalle = {
 }
 
 beforeEach(() => {
+  vi.mocked(api.obtenerPaginaDespachos).mockImplementation(async (sucursalId, opciones) => {
+    const filas = (await api.obtenerDespachos(sucursalId)).filter(d =>
+      (!opciones.vendedorId || d.vendedor_id === opciones.vendedorId) &&
+      (!opciones.desde || d.creado_en >= opciones.desde) && (!opciones.hasta || d.creado_en < opciones.hasta))
+    return { filas, total: filas.length }
+  })
+  vi.mocked(api.obtenerDespacho).mockImplementation(async (_sucursalId, id) => [{ ...makeDespachoHoy(), id }])
+
   // Reloj fijo: el filtro "Hoy" y los fixtures no deben depender de la medianoche local (TEST-02)
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-13T12:00:00'))
@@ -122,7 +132,7 @@ describe('HU-13 · Devoluciones', () => {
   it('muestra el estado vacío cuando no hay despachos para la sucursal', async () => {
     renderWithProviders(<Devoluciones />)
     await waitFor(() => {
-      expect(screen.getByText(/Aún no hay despachos para esta sucursal/i)).toBeInTheDocument()
+      expect(screen.getByText(/No hay despachos para el día y vendedor seleccionados/i)).toBeInTheDocument()
     })
   })
 
@@ -248,7 +258,7 @@ describe('B1 · aislamiento de sucursal y estados', () => {
   it('anuncia carga y vacío sin presentarlos como un error', async () => {
     renderWithProviders(<Devoluciones />)
     expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
-    const vacio = await screen.findByText(/Aún no hay despachos para esta sucursal/)
+    const vacio = await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
     expect(vacio.closest('[role="status"]')).not.toBeNull()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
@@ -272,7 +282,7 @@ describe('B1 · aislamiento de sucursal y estados', () => {
       vi.setSystemTime(new Date('2026-10-14T03:00:01Z'))
       fireEvent.focus(window)
     })
-    expect(await screen.findByText(/No hay despachos para el día/)).toBeInTheDocument()
+    expect(await screen.findByText(/No hay despachos para el día|No hay despachos para el día/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
   })
 })
@@ -309,7 +319,7 @@ it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
   await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
   await waitFor(() => expect(api.obtenerDespachos).toHaveBeenCalledTimes(2))
   rerender(contenido('segunda'))
-  await screen.findByText(/Aún no hay despachos para esta sucursal/)
+  await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
   await act(async () => { resolver([makeDespachoHoy()]) })
   expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
   expect(screen.queryByRole('textbox', { name: /Cantidad a devolver/ })).not.toBeInTheDocument()
@@ -451,4 +461,20 @@ it('F2 · corregir recupera el saldo anterior de productos y confirma envases ex
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmar y guardar corrección' }))
   await waitFor(() => expect(api.corregirDevolucion).toHaveBeenCalledTimes(1))
   expect(api.registrarDevolucion).not.toHaveBeenCalled()
+})
+
+it('P1 · conserva el despacho y borrador al navegar a otra página', async () => {
+  const primero = makeDespachoHoy()
+  const segundo = { ...primero, id: 'd-2' }
+  vi.mocked(api.obtenerPaginaDespachos).mockImplementation(async (_sucursal, { pagina }) => ({ filas: [pagina === 1 ? primero : segundo], total: 21 }))
+  vi.mocked(api.obtenerDetallesDespacho).mockImplementation(async ids => ids.includes(primero.id) ? [detalle] : [])
+  renderWithProviders(<Devoluciones />)
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
+  fireEvent.change(screen.getByLabelText('Cantidad a devolver de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Página siguiente' }))
+  await waitFor(() => expect(screen.getByRole('navigation', { name: 'Paginación de despachos' })).toHaveTextContent('Página 2 de 2'))
+  expect(screen.getByLabelText('Cantidad a devolver de Bidón POL')).toHaveValue('2')
+  expect(screen.getByText('Devolución de Ana López')).toBeInTheDocument()
+  expect(api.obtenerDetallesDespacho).toHaveBeenLastCalledWith(['d-2'])
+  await waitFor(() => expect(screen.queryByRole('button', { name: /#d-1/ })).not.toBeInTheDocument())
 })

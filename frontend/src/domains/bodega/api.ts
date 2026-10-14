@@ -1,3 +1,5 @@
+import { rangoPagina } from '../../lib/paginacion'
+import type { Pagina } from '../../lib/paginacion'
 import { supabase } from '../../lib/supabase'
 import { mensajeErrorSupabase } from '../../lib/errors'
 import type { Perfil } from '../../types'
@@ -69,6 +71,40 @@ export async function obtenerDespachos(sucursalId?: string): Promise<Despacho[]>
       .order('creado_en', { ascending: false })
       .returns<Despacho[]>()
     if (error) throw new Error('No fue posible cargar los despachos. Inténtalo de nuevo.')
+    return data ?? []
+  } catch (error: unknown) {
+    throw new Error(mensajeErrorSupabase(error), { cause: error })
+  }
+}
+
+export interface FiltrosDespachos {
+  vendedorId?: string
+  desde?: string
+  hasta?: string
+}
+
+export async function obtenerPaginaDespachos(sucursalId: string, opciones: FiltrosDespachos & { pagina: number; tamanoPagina?: number }): Promise<Pagina<Despacho>> {
+  if (!sucursalId) return { filas: [], total: 0 }
+  try {
+    let query = supabase.from('despachos').select('*', { count: 'exact' })
+      .eq('sucursal_id', sucursalId)
+      .order('creado_en', { ascending: false }).order('id', { ascending: false })
+    if (opciones.vendedorId) query = query.eq('vendedor_id', opciones.vendedorId)
+    if (opciones.desde) query = query.gte('creado_en', opciones.desde)
+    if (opciones.hasta) query = query.lt('creado_en', opciones.hasta)
+    const { data, count, error } = await query.range(...rangoPagina(opciones.pagina, opciones.tamanoPagina)).returns<Despacho[]>()
+    if (error) throw new Error('No fue posible cargar los despachos. Inténtalo de nuevo.')
+    return { filas: data ?? [], total: count ?? 0 }
+  } catch (error: unknown) {
+    throw new Error(mensajeErrorSupabase(error), { cause: error })
+  }
+}
+
+export async function obtenerDespacho(sucursalId: string, id: string): Promise<Despacho[]> {
+  try {
+    const { data, error } = await supabase.from('despachos').select('*')
+      .eq('sucursal_id', sucursalId).eq('id', id).returns<Despacho[]>()
+    if (error) throw new Error('No fue posible cargar el despacho. Inténtalo de nuevo.')
     return data ?? []
   } catch (error: unknown) {
     throw new Error(mensajeErrorSupabase(error), { cause: error })

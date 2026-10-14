@@ -21,6 +21,8 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
     ...actual,
     obtenerVendedores: vi.fn(),
     obtenerDespachos: vi.fn(),
+    obtenerPaginaDespachos: vi.fn(),
+    obtenerDespacho: vi.fn(),
     obtenerDetallesDespacho: vi.fn(),
     obtenerEnvasesDespacho: vi.fn(),
     obtenerDevolucionesProducto: vi.fn(),
@@ -124,6 +126,14 @@ const detalle: DespachoDetalle = {
 }
 
 beforeEach(() => {
+  vi.mocked(api.obtenerPaginaDespachos).mockImplementation(async (sucursalId, opciones) => {
+    const filas = (await api.obtenerDespachos(sucursalId)).filter(d =>
+      (!opciones.vendedorId || d.vendedor_id === opciones.vendedorId) &&
+      (!opciones.desde || d.creado_en >= opciones.desde) && (!opciones.hasta || d.creado_en < opciones.hasta))
+    return { filas, total: filas.length }
+  })
+  vi.mocked(api.obtenerDespacho).mockImplementation(async (_sucursalId, id) => [{ ...makeDespachoHoy(), id }])
+
   // Reloj fijo: el filtro "Hoy" y los fixtures no deben depender de la medianoche local (TEST-02)
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-13T12:00:00'))
@@ -152,7 +162,7 @@ describe('HU-13 · Despachos', () => {
   it('muestra el estado vacío cuando no hay despachos para la sucursal', async () => {
     renderWithProviders(<Despachos />)
     await waitFor(() => {
-      expect(screen.getByText(/Aún no hay despachos para esta sucursal/i)).toBeInTheDocument()
+      expect(screen.getByText(/No hay despachos para el día y vendedor seleccionados/i)).toBeInTheDocument()
     })
   })
 
@@ -171,7 +181,7 @@ describe('HU-13 · Nuevo despacho', () => {
   async function abrirModal() {
     renderWithProviders(<Despachos />)
     await waitFor(() => {
-      expect(screen.getByText(/Aún no hay despachos para esta sucursal/i)).toBeInTheDocument()
+      expect(screen.getByText(/No hay despachos para el día y vendedor seleccionados/i)).toBeInTheDocument()
     })
     fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
   }
@@ -347,7 +357,7 @@ describe('B1 · aislamiento de sucursal y estados', () => {
   it('anuncia carga y vacío sin presentarlos como un error', async () => {
     renderWithProviders(<Despachos />)
     expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
-    const vacio = await screen.findByText(/Aún no hay despachos para esta sucursal/)
+    const vacio = await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
     expect(vacio.closest('[role="status"]')).not.toBeNull()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
@@ -371,7 +381,7 @@ describe('B1 · aislamiento de sucursal y estados', () => {
       vi.setSystemTime(new Date('2026-10-14T03:00:01Z'))
       fireEvent.focus(window)
     })
-    expect(await screen.findByText(/No hay despachos para el día/)).toBeInTheDocument()
+    expect(await screen.findByText(/No hay despachos para el día|No hay despachos para el día/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
   })
 })
@@ -396,7 +406,7 @@ it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
   await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
   await waitFor(() => expect(api.obtenerDespachos).toHaveBeenCalledTimes(2))
   rerender(contenido('segunda'))
-  await screen.findByText(/Aún no hay despachos para esta sucursal/)
+  await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
   await act(async () => { resolver([makeDespachoHoy()]) })
   expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
