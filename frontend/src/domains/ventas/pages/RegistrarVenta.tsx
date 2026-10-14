@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 import { useAuth } from '../../../context/auth-context'
 import { useClientesRuta } from '../hooks/useClientesRuta'
@@ -17,6 +16,7 @@ import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import Dialog from '../../../components/Dialog'
 import EstadoVista from '../../../components/EstadoVista'
+import InputNumerico from '../../../components/InputNumerico'
 import { btnSecondary, cardCls, errorTextCls, thCls } from '../../../lib/ui'
 import { PlusCircleIcon } from '../../../components/icons'
 import CampoFormulario from '../components/CampoFormulario'
@@ -34,9 +34,6 @@ const STORAGE_PREFIX = 'ondina:draft-registrar-venta:'
 
 const PRODUCTOS_DEFAULT = ['Bidón POL', 'Bidón PET', 'Hielo CUBO']
 
-// HU-01: limite maximo de productos por venta
-const MAX_PRODUCTOS = 6
-
 const DETALLES_VACIOS: DetalleVentaDraft[] = PRODUCTOS_DEFAULT.map(() => ({
   productoId: '',
   cantidad: 0,
@@ -50,7 +47,7 @@ const draftSchema = registrarVentaSchema.extend({
     productoId: z.string(),
     cantidad: z.number().int().min(0),
     precioUnitario: z.number().min(0),
-  })).min(1).max(MAX_PRODUCTOS),
+  })).min(1),
 })
 
 function cargarDraft(key: string): RegistrarVentaForm | null {
@@ -81,7 +78,7 @@ function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVen
       metodoPago: 'efectivo',
       descuento: 0,
       observaciones: '',
-      detalles: PRODUCTOS_DEFAULT.map((nombre) => {
+      detalles: PRODUCTOS_DEFAULT.slice(0, productos.length).map((nombre) => {
         const p = productos.find((x) => x.nombre === nombre)
         return p
           ? { productoId: p.id, cantidad: 0, precioUnitario: p.precio_base }
@@ -128,6 +125,13 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
     resolver: zodResolver(registrarVentaSchema), defaultValues: draft ?? defaults,
   })
   const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
+  const maxProductos = productos.data?.length ?? 0
+  const limiteId = `${motivoBase}-limite-productos`
+  const motivoLimite = productos.isPending ? 'Cargando catálogo de productos...'
+    : productos.isError ? 'No fue posible cargar el catálogo. Reintenta para agregar productos.'
+    : maxProductos === 0 ? 'No hay productos activos en el catálogo.'
+    : fields.length >= maxProductos ? `Máximo ${maxProductos} productos por venta: ya agregaste todos los productos activos del catálogo.`
+    : undefined
   const didInitRef = useRef(false)
   useEffect(() => {
     if (!didInitRef.current && productos.data?.length) {
@@ -140,8 +144,14 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
         if (!getFieldState(producto).isDirty) setValue(producto, detalle.productoId)
         if (!getFieldState(precio).isDirty) setValue(precio, detalle.precioUnitario)
       })
+      // Si el catálogo tiene menos de tres productos, quitar sólo filas iniciales vacías.
+      if (!draft) {
+        const sobrantes = getValues('detalles').flatMap((detalle, index) =>
+          index >= productos.data!.length && !detalle.productoId && !detalle.cantidad && !detalle.precioUnitario ? [index] : [])
+        if (sobrantes.length) remove(sobrantes)
+      }
     }
-  }, [productos.data, defaults, draft, getValues, getFieldState, setValue])
+  }, [productos.data, defaults, draft, getValues, getFieldState, setValue, remove])
   useEffect(() => {
     if (!clientes.data) return
     const actual = getValues('clienteId')
@@ -199,6 +209,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
 
   function onSubmit(values: RegistrarVentaForm) {
     if (motivos.length) return
+    if (values.detalles.length > maxProductos) return setError('detalles', { type: 'catalogo', message: `El catálogo tiene ${maxProductos} productos activos. Quita las filas adicionales antes de confirmar.` })
     const limpio = { ...values, detalles: values.detalles.filter(item => item.productoId && item.cantidad > 0) }
     if (!limpio.detalles.length) return setError('detalles.0.cantidad', { type: 'validacion', message: 'Agrega al menos un producto con cantidad mayor a 0.' }, { shouldFocus: true })
     const errCarga = validarCarga(values)
@@ -252,8 +263,8 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
       <section className={`${cardCls} min-w-0`}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
           <h2 className="font-semibold">2 · Productos</h2>
-          <button type="button" className={btnSecondary} disabled={fields.length >= MAX_PRODUCTOS} onClick={() => append({ productoId: '', cantidad: 0, precioUnitario: 0 })}><PlusCircleIcon className="h-4 w-4" />Agregar producto</button>
-          {fields.length >= MAX_PRODUCTOS && <span className={errorTextCls}>Máximo {MAX_PRODUCTOS} productos por venta</span>}
+          <button type="button" className={btnSecondary} disabled={!!motivoLimite} aria-describedby={motivoLimite ? limiteId : undefined} onClick={() => append({ productoId: '', cantidad: 0, precioUnitario: 0 })}><PlusCircleIcon className="h-4 w-4" />Agregar producto</button>
+          {motivoLimite && <span id={limiteId} className={errorTextCls}>{motivoLimite}</span>}
         </div>
         <div className="min-w-0 sm:overflow-x-auto"><table role="table" className="block w-full sm:table">
           <thead role="rowgroup" className="sr-only sm:not-sr-only sm:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
@@ -268,7 +279,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
             {atributos => <select {...atributos} {...register('metodoPago')}>{METODOS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>}
           </CampoFormulario>
           <CampoFormulario etiqueta="Descuento (CLP)" error={errors.descuento?.message}>
-            {atributos => <Controller control={control} name="descuento" render={({ field }) => <input {...atributos} type="text" inputMode="numeric" placeholder="0" value={field.value ? formatMiles(Number(field.value)) : '0'} onChange={event => field.onChange(parseMiles(formatMilesInput(event.target.value)))} onBlur={field.onBlur} name={field.name} ref={field.ref} />} />}
+            {atributos => <Controller control={control} name="descuento" render={({ field }) => <InputNumerico {...atributos} {...field} value={Number(field.value) || 0} onChange={valor => field.onChange(valor ?? 0)} conFlechas={false} />} />}
           </CampoFormulario>
           <CampoFormulario etiqueta="Observaciones" error={errors.observaciones?.message}>
             {atributos => <input {...atributos} type="text" maxLength={500} placeholder="Opcional" {...register('observaciones')} />}

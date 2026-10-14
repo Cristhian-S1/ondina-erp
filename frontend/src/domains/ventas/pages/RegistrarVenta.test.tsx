@@ -145,25 +145,57 @@ describe('HU-01 · RegistrarVenta — cantidad 0', () => {
   })
 })
 
-describe('HU-01 · RegistrarVenta — máximo 6 productos', () => {
-  it('deshabilita el botón Agregar producto al llegar a 6 filas', async () => {
-    await renderForm()
-
-    // Empezamos con 3 filas (POL/PET/CUBO). Agregamos 3 más para llegar a 6.
-    const agregarBtn = screen.getByRole('button', { name: /Agregar producto/i })
-    expect((agregarBtn as HTMLButtonElement).disabled).toBe(false)
-
-    fireEvent.click(agregarBtn)
-    fireEvent.click(agregarBtn)
-    fireEvent.click(agregarBtn)
-
-    await waitFor(() => {
-      expect((agregarBtn as HTMLButtonElement).disabled).toBe(true)
-    })
-
-    // Debe mostrar el mensaje de límite
-    expect(screen.getByText(/Máximo 6 productos por venta/i)).toBeInTheDocument()
+describe('F1 · máximo dinámico de productos activos', () => {
+  it.each([7, 10])('adapta el límite a un catálogo de %i productos', async (total) => {
+    setup()
+    const catalogo = Array.from({ length: total }, (_, i) => ({ ...PRODUCTOS[i % 3], id: `p${i + 1}`, nombre: i < 3 ? PRODUCTOS[i].nombre : `Producto ${i + 1}` }))
+    vi.mocked(api.obtenerProductosVenta).mockResolvedValue(catalogo)
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Producto 7/ })
+    const agregar = screen.getByRole('button', { name: 'Agregar producto' })
+    for (let i = 3; i < total; i++) {
+      expect(agregar).toBeEnabled()
+      fireEvent.click(agregar)
+    }
+    expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(total)
+    expect(agregar).toBeDisabled()
+    expect(agregar).toHaveAccessibleDescription(`Máximo ${total} productos por venta: ya agregaste todos los productos activos del catálogo.`)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Quitar' })[total - 1])
+    expect(agregar).toBeEnabled()
   })
+
+  it('respeta un catálogo menor que las tres filas predeterminadas', async () => {
+    setup()
+    vi.mocked(api.obtenerProductosVenta).mockResolvedValue(PRODUCTOS.slice(0, 1))
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Bidón POL/ })
+    await waitFor(() => expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(1))
+    expect(screen.getByRole('button', { name: 'Agregar producto' })).toBeDisabled()
+  })
+
+  it('restaura borradores de diez productos sin el tope antiguo de seis', async () => {
+    setup()
+    const catalogo = Array.from({ length: 10 }, (_, i) => ({ ...PRODUCTOS[0], id: `p${i + 1}`, nombre: `Producto ${i + 1}` }))
+    vi.mocked(api.obtenerProductosVenta).mockResolvedValue(catalogo)
+    sessionStorage.setItem('ondina:draft-registrar-venta:vendedor-1', JSON.stringify({ clienteId: 'c1', metodoPago: 'efectivo', descuento: 0, detalles: catalogo.map(p => ({ productoId: p.id, cantidad: 2, precioUnitario: 1000 })) }))
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findByRole('option', { name: 'Doña María' })
+    expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(10)
+    expect(screen.getAllByRole('textbox', { name: /^Cantidad de/ })[9]).toHaveValue('2')
+  })
+})
+
+it('F1 · cantidad usa flechas y conserva el error de carga al incrementarla', async () => {
+  await renderForm()
+  const cantidad = screen.getByLabelText('Cantidad de Bidón POL')
+  fireEvent.change(cantidad, { target: { value: '1000' } })
+  fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar', exact: true })[0])
+  expect(cantidad).toHaveValue('1.001')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription('Excede tu carga')
+  fireEvent.keyDown(cantidad, { key: 'ArrowDown' })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(screen.getAllByRole('button', { name: 'Aumentar', exact: true })).toHaveLength(3)
 })
 
 describe('HU-01 · RegistrarVenta — Toast sin productos válidos', () => {

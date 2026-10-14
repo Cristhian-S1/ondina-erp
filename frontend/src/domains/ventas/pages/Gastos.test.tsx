@@ -129,7 +129,7 @@ it('UX-17 · historial y total muestran moneda chilena con símbolo y miles', as
 it('UX-17 · monto editable indica pesos y conserva miles al ingresar', async () => {
   await renderGastos()
   const monto = screen.getByLabelText('Monto (CLP)')
-  expect(monto.parentElement).toHaveTextContent('$')
+  expect(monto.closest('.relative')).toHaveTextContent('$')
   fireEvent.change(monto, { target: { value: '12500' } })
   expect(monto).toHaveValue('12.500')
 })
@@ -144,4 +144,14 @@ it('A1-13 · reintenta el historial sin reenviar gastos ni borrar el formulario'
   await screen.findByText('No has registrado gastos hoy.')
   expect(screen.getByPlaceholderText('Descripción breve')).toHaveValue('Bencina pendiente')
   expect(api.crearGasto).not.toHaveBeenCalled()
+})
+
+
+it('F1 · monto rechaza letras y pega dígitos formateados sin flechas', async () => {
+  await renderGastos()
+  const monto = screen.getByLabelText('Monto (CLP)')
+  expect(fireEvent.keyDown(monto, { key: 'a' })).toBe(false)
+  fireEvent.paste(monto, { clipboardData: { getData: () => '12.5a00' } })
+  expect(monto).toHaveValue('12.500')
+  expect(screen.queryByRole('button', { name: 'Aumentar' })).not.toBeInTheDocument()
 })

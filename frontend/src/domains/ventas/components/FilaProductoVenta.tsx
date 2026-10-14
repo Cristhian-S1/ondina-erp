@@ -3,8 +3,9 @@ import type { Control } from 'react-hook-form'
 import type { RegistrarVentaForm, RegistrarVentaFormInput } from '../schemas'
 import type { ProductoVenta } from '../types'
 import { btnDanger } from '../../../lib/ui'
-import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { formatMiles } from '../../../lib/format'
 import CampoFormulario from './CampoFormulario'
+import InputNumerico from '../../../components/InputNumerico'
 
 export default function FilaProductoVenta({ control, index, productos, seleccionados, carga, onQuitar, puedeQuitar }: {
   control: Control<RegistrarVentaFormInput, unknown, RegistrarVentaForm>
@@ -37,14 +38,14 @@ export default function FilaProductoVenta({ control, index, productos, seleccion
       </CampoFormulario>
     </td>
     <td role="cell" className={`col-span-2 ${celda} text-sm`}><span className="mr-2 text-xs text-slate-500 sm:hidden">Disponible</span><span className={excede ? 'text-red-600' : 'text-slate-700'}>{formatMiles(disponible)}</span></td>
-    <td role="cell" className={celda}>
+    <td role="cell" className={`${celda} sm:min-w-44`}>
       <CampoFormulario etiqueta={`Cantidad de ${nombre}`} error={cantidad.fieldState.error?.message ?? (excede ? 'Excede tu carga' : undefined)}>
-        {atributos => <input {...atributos} type="text" inputMode="numeric" name={cantidad.field.name} ref={cantidad.field.ref} onBlur={cantidad.field.onBlur} value={cantidad.field.value ? formatMiles(Number(cantidad.field.value)) : ''} onChange={event => cantidad.field.onChange(parseMiles(formatMilesInput(event.target.value)))} />}
+        {atributos => <InputNumerico {...atributos} {...cantidad.field} value={Number(cantidad.field.value) || 0} onChange={valor => cantidad.field.onChange(valor ?? 0)} />}
       </CampoFormulario>
     </td>
     <td role="cell" className={celda}>
       <CampoFormulario etiqueta={`Precio unitario de ${nombre}`} error={precio.fieldState.error?.message}>
-        {atributos => <input {...atributos} type="text" inputMode="numeric" name={precio.field.name} ref={precio.field.ref} onBlur={precio.field.onBlur} value={precio.field.value ? formatMiles(Number(precio.field.value)) : ''} onChange={event => precio.field.onChange(parseMiles(formatMilesInput(event.target.value)))} />}
+        {atributos => <InputNumerico {...atributos} {...precio.field} value={Number(precio.field.value) || 0} onChange={valor => precio.field.onChange(valor ?? 0)} conFlechas={false} />}
       </CampoFormulario>
     </td>
     <td role="cell" className={`${celda} text-sm font-semibold`}><span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Subtotal</span>$ {formatMiles(subtotal)}</td>

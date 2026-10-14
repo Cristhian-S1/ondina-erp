@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import CampoFormulario from '../components/CampoFormulario'
 import EstadoVista from '../../../components/EstadoVista'
+import InputNumerico from '../../../components/InputNumerico'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGastosHoy } from '../hooks/useGastosHoy'
@@ -9,7 +10,7 @@ import { crearGastoSchema, tipoGastoEnum } from '../schemas'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import { btnPrimary, cardCls } from '../../../lib/ui'
-import { fmtFechaHora, formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { fmtFechaHora, formatMiles } from '../../../lib/format'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 
 const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
@@ -85,10 +86,7 @@ export default function Gastos() {
           <CampoFormulario etiqueta="Monto (CLP)" error={errors.monto?.message}>
             {atributos => <Controller control={control} name="monto" render={({ field }) => <div className="relative">
               <span aria-hidden="true" className="pointer-events-none absolute top-[calc(50%+0.125rem)] left-3 -translate-y-1/2 text-sm text-slate-500">$</span>
-              <input {...atributos} className={`${atributos.className} pl-7`} type="text" inputMode="numeric" value={field.value ? formatMiles(Number(field.value)) : ''} onChange={event => {
-              const formatted = formatMilesInput(event.target.value)
-              field.onChange(formatted ? parseMiles(formatted) : undefined)
-            }} onBlur={field.onBlur} name={field.name} ref={field.ref} /></div>} />}
+              <InputNumerico {...atributos} {...field} className={`${atributos.className} pl-7`} value={field.value === undefined ? undefined : Number(field.value)} onChange={field.onChange} conFlechas={false} /></div>} />}
           </CampoFormulario>
           <CampoFormulario etiqueta="Motivo" error={errors.motivo?.message}>
             {atributos => <input {...atributos} type="text" maxLength={300} placeholder="Descripción breve" {...register('motivo')} />}
