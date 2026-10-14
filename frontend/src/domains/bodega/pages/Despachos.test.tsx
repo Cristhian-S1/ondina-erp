@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import Despachos from './Despachos'
+import { focusManager } from '@tanstack/react-query'
+import { AuthContext } from '@/context/auth-context'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('@/lib/catalog', async (importOriginal) => {
@@ -141,6 +143,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  focusManager.setFocused(undefined)
   vi.useRealTimers()
   vi.clearAllMocks()
 })
@@ -252,21 +255,32 @@ it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado
 })
 
 
-it('FE-05 · conserva el formulario de despacho tras un error de lectura y su reintento', async () => {
+it('B1 · limpia el borrador de despacho al cambiar de sucursal', async () => {
   vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal, { ...sucursal, id: 'suc-2', nombre: 'Sur' }])
   renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
   fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
   fireEvent.change(screen.getByLabelText('Producto'), { target: { value: producto.id } })
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
-  vi.mocked(api.obtenerDespachos).mockRejectedValue(new Error('Fallo de consulta'))
   fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-2' } })
-  await screen.findByRole('alert')
-  vi.mocked(api.obtenerDespachos).mockResolvedValue([])
-  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
-  expect(await screen.findByLabelText('Cantidad')).toHaveValue('7')
-  expect(screen.getByRole('combobox', { name: /Producto/ })).toHaveValue(producto.id)
-  expect(screen.getByLabelText('Sucursal')).toHaveValue('suc-2')
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('')
+  expect(screen.getByLabelText('Producto')).toHaveValue('')
+  expect(screen.getByLabelText('Vendedor')).toHaveValue('')
 })
+
+it('B1 · conserva el nodo y foco de la segunda línea al quitar la primera', async () => {
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.click(screen.getByRole('button', { name: '+ Agregar producto' }))
+  const segundaCantidad = screen.getAllByLabelText('Cantidad')[1]
+  fireEvent.change(segundaCantidad, { target: { value: '8' } })
+  segundaCantidad.focus()
+  fireEvent.click(screen.getAllByRole('button', { name: 'Quitar' })[0])
+  expect(screen.getByLabelText('Cantidad')).toBe(segundaCantidad)
+  expect(segundaCantidad).toHaveFocus()
+  expect(segundaCantidad).toHaveValue('8')
+})
+
 
 it('B3 · keeps dispatch key after failure and renews it after success', async () => {
   vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
@@ -300,4 +314,102 @@ describe('Accesibilidad · filtros de Despachos', () => {
     expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
     expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
   })
+})
+
+
+describe('B1 · aislamiento de sucursal y estados', () => {
+  it.each(['éxito', 'error'])('A→B→A descarta la respuesta B tardía de %s', async (resultado) => {
+    let resolver!: (data: Despacho[]) => void
+    let rechazar!: (error: Error) => void
+    const pendienteB = new Promise<Despacho[]>((res, rej) => { resolver = res; rechazar = rej })
+    vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal, { ...sucursal, id: 'suc-2', nombre: 'Sur' }])
+    vi.mocked(api.obtenerDespachos).mockImplementation((id) => id === 'suc-2' ? pendienteB : Promise.resolve([makeDespachoHoy()]))
+    vi.mocked(api.obtenerVendedores).mockImplementation((id) => Promise.resolve([{ ...vendedor, nombres: id === 'suc-2' ? 'Bruno' : 'Ana' }]))
+    renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+    await screen.findByRole('button', { name: /Ana López/ })
+    fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-2' } })
+    expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+    fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-1' } })
+    await screen.findByRole('button', { name: /Ana López/ })
+    await act(async () => {
+      if (resultado === 'éxito') resolver([{ ...makeDespachoHoy(), id: 'despacho-b', sucursal_id: 'suc-2' }])
+      else rechazar(new Error('Fallo B tardío'))
+    })
+    expect(screen.getByLabelText('Sucursal')).toHaveValue('suc-1')
+    expect(screen.getByRole('button', { name: /Ana López/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Bruno/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('anuncia carga y vacío sin presentarlos como un error', async () => {
+    renderWithProviders(<Despachos />)
+    expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+    const vacio = await screen.findByText(/Aún no hay despachos para esta sucursal/)
+    expect(vacio.closest('[role="status"]')).not.toBeNull()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('identifica un despacho cuyo vendedor ya no está disponible', async () => {
+    vi.mocked(api.obtenerVendedores).mockResolvedValue([])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([{ ...makeDespachoHoy(), id: 'abc12345-despacho' }])
+    renderWithProviders(<Despachos />)
+    const fila = await screen.findByRole('button', { name: /Vendedor no disponible/ })
+    expect(fila).toHaveTextContent('abc12345')
+    expect(fila).toHaveTextContent(/\d{2}:\d{2}/)
+    expect(screen.queryByText('Desconocido')).not.toBeInTheDocument()
+  })
+
+  it('Hoy cambia al reanudar después de medianoche en Santiago', async () => {
+    vi.setSystemTime(new Date('2026-10-14T02:59:59Z'))
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+    renderWithProviders(<Despachos />)
+    await screen.findByRole('button', { name: /Ana López/ })
+    await act(async () => {
+      vi.setSystemTime(new Date('2026-10-14T03:00:01Z'))
+      fireEvent.focus(window)
+    })
+    expect(await screen.findByText(/No hay despachos para el día/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+  })
+})
+
+
+it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  let resolver!: (data: Despacho[]) => void
+  const pendiente = new Promise<Despacho[]>((res) => { resolver = res })
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  const contenido = (id: string) => (
+    <AuthContext.Provider value={{ perfil: makePerfil({ id, rol: 'administrador' }), loading: false, signIn: async () => {}, signOut: async () => {} }}>
+      <Despachos />
+    </AuthContext.Provider>
+  )
+  const { rerender } = renderWithProviders(contenido('primera'))
+  await screen.findByRole('button', { name: /Ana López/ })
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
+  vi.mocked(api.obtenerDespachos).mockReturnValueOnce(pendiente).mockResolvedValue([])
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await waitFor(() => expect(api.obtenerDespachos).toHaveBeenCalledTimes(2))
+  rerender(contenido('segunda'))
+  await screen.findByText(/Aún no hay despachos para esta sucursal/)
+  await act(async () => { resolver([makeDespachoHoy()]) })
+  expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('')
+})
+
+
+it('B1 · conserva el borrador al reintentar una lectura de la misma sucursal', async () => {
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: producto.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
+  vi.mocked(api.obtenerDespachos).mockRejectedValueOnce(new Error('Lectura fallida')).mockResolvedValue([])
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await screen.findByRole('alert')
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByLabelText('Cantidad')).toHaveValue('7')
+  expect(screen.getByRole('combobox', { name: /Producto/ })).toHaveValue(producto.id)
 })

@@ -3,44 +3,20 @@
 // feature/ventas nació de develop y arrastró este componente compartido. En
 // un futuro queda en consideración aislar la navegación de despachos para
 // que no se mezcle con el menú del vendedor de ventas.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Dialog from '../../../components/Dialog'
 import { useAuth } from '../../../context/auth-context'
-import {
-  crearDespacho,
-  obtenerCargaVendedores,
-  obtenerDespachos,
-  obtenerDetallesDespacho,
-  obtenerDevolucionesEnvase,
-  obtenerDevolucionesProducto,
-  obtenerEnvasesDespacho,
-  obtenerStockBodega,
-  obtenerStockEnvases,
-  obtenerVendedores,
-} from '../api'
-import type { VendedorSucursal } from '../api'
-import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
-import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
-import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
-import type {
-  CargaVendedor,
-  Despacho,
-  DespachoDetalle,
-  DespachoEnvase,
-  DevolucionEnvase,
-  DevolucionProducto,
-  StockBodega,
-  StockEnvases,
-} from '../types'
-
-interface DespachoConTotal extends Despacho {
-  totalUnidades: number
-  vendedorNombre: string
-}
+import { crearDespacho } from '../api'
+import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls } from '../../../lib/ui'
+import { fmtFecha, fmtFechaHora, formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import EstadoVista from '../../../components/EstadoVista'
+import AmbitoBodega from '../components/AmbitoBodega'
+import { useDatosBodega } from '../hooks/useDatosBodega'
+import { fechaSantiago, inicioPeriodo, useJornadaSantiago } from '../hooks/useJornadaSantiago'
 
 interface LineaProducto {
+  id: string
   producto_id: string
   cantidad: string
 }
@@ -58,6 +34,10 @@ interface GrupoDevolucion {
 }
 
 type FiltroDia = 'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'
+
+function nuevaLinea(): LineaProducto {
+  return { id: crypto.randomUUID(), producto_id: '', cantidad: '' }
+}
 
 const CAPACIDAD_BANDEJA = 10
 
@@ -85,42 +65,28 @@ function AvatarNombre({ nombre }: { nombre: string }) {
 }
 
 function fmtHora(iso: string) {
-  return new Date(iso).toLocaleTimeString('es-CL', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function aaaammdd(fecha: Date): string {
-  const anio = fecha.getFullYear()
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
-  const dia = String(fecha.getDate()).padStart(2, '0')
-  return `${anio}-${mes}-${dia}`
+  return fmtFechaHora(iso).split(' ')[1]
 }
 
 export default function Despachos() {
+  return <AmbitoBodega>{(sucursalId) => <DespachosSucursal sucursalId={sucursalId} />}</AmbitoBodega>
+}
+
+function DespachosSucursal({ sucursalId }: { sucursalId: string }) {
   const { perfil } = useAuth()
   const esAdmin = perfil?.rol === 'administrador'
   const navigate = useNavigate()
 
-  const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
-  const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
-  const [despachoDetalles, setDespachoDetalles] = useState<DespachoDetalle[]>([])
-  const [despachoEnvases, setDespachoEnvases] = useState<DespachoEnvase[]>([])
-  const [desvProducto, setDesvProducto] = useState<DevolucionProducto[]>([])
-  const [desvEnvase, setDesvEnvase] = useState<DevolucionEnvase[]>([])
-  const [stockBodega, setStockBodega] = useState<StockBodega[]>([])
-  const [stockEnvases, setStockEnvases] = useState<StockEnvases[]>([])
-  const [cargaVendedor, setCargaVendedor] = useState<CargaVendedor[]>([])
-  const [cargando, setCargando] = useState(true)
+  const datos = useDatosBodega(sucursalId, true)
+  const jornada = useJornadaSantiago()
+  const { vendedores = [], productos = [], tiposEmpaque = [], despachos = [],
+    despachoDetalles = [], despachoEnvases = [], desvProducto = [], desvEnvase = [],
+    stockEnvases = [], cargaVendedor = [], stockBodega = [] } = datos.data ?? {}
+  const load = datos.refetch
 
   const [modalOpen, setModalOpen] = useState(false)
   const [vendedorId, setVendedorId] = useState('')
-  const [lineas, setLineas] = useState<LineaProducto[]>([{ producto_id: '', cantidad: '' }])
+  const [lineas, setLineas] = useState<LineaProducto[]>(() => [nuevaLinea()])
   // Bandejas: valor manual del usuario junto al total de hielo con que se
   // escribió. Si el hielo cambia, manda el auto-cálculo (1 cada CAPACIDAD_BANDEJA).
   const [bandejasManual, setBandejasManual] = useState<{ hielo: number; valor: string } | null>(
@@ -134,9 +100,6 @@ export default function Despachos() {
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
 
-  const [versionLectura, setVersionLectura] = useState(0)
-  const [errorLectura, setErrorLectura] = useState<string | null>(null)
-  const [errorSucursales, setErrorSucursales] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const bandejaTipo = useMemo(
@@ -160,79 +123,6 @@ export default function Despachos() {
     bandejasManual && bandejasManual.hielo === totalHieloSolicitado
       ? bandejasManual.valor
       : bandejasAuto
-
-  useEffect(() => {
-    async function init() {
-      const data = await obtenerSucursales()
-      setErrorSucursales(null)
-      setSucursales(data)
-      setSucursalId((actual) => actual || perfil?.sucursal_id || data[0]?.id || '')
-    }
-    void init().catch(() => {
-      setErrorSucursales('No fue posible cargar las sucursales. Inténtalo de nuevo.')
-      setCargando(false)
-    })
-  }, [perfil, versionLectura])
-
-  const load = useCallback(async () => {
-    try {
-      setErrorLectura(null)
-      const [vendedoresData, productosData, empaquesData, despachosRaw, stockRaw, envasesRaw] =
-        await Promise.all([
-          obtenerVendedores(sucursalId),
-          obtenerProductos(true),
-          obtenerTiposEmpaque(),
-          obtenerDespachos(sucursalId),
-          obtenerStockBodega(sucursalId),
-          obtenerStockEnvases(sucursalId),
-        ])
-
-      const ids = despachosRaw.map((d) => d.id)
-      const [detalles, envases, dProd, dEnv, cargaRaw] = await Promise.all([
-        obtenerDetallesDespacho(ids),
-        obtenerEnvasesDespacho(ids),
-        obtenerDevolucionesProducto(ids),
-        obtenerDevolucionesEnvase(ids),
-        obtenerCargaVendedores(vendedoresData.map((v) => v.id)),
-      ])
-
-      const nombreVendedor = (id: string) => {
-        const v = vendedoresData.find((x) => x.id === id)
-        return v ? `${v.nombres} ${v.apellidos}` : 'Desconocido'
-      }
-
-      setVendedores(vendedoresData)
-      setProductos(productosData)
-      setTiposEmpaque(empaquesData)
-      setDespachos(
-        despachosRaw.map((d) => ({
-          ...d,
-          totalUnidades: detalles
-            .filter((x) => x.despacho_id === d.id)
-            .reduce((sum, x) => sum + x.cantidad, 0),
-          vendedorNombre: nombreVendedor(d.vendedor_id),
-        })),
-      )
-      setDespachoDetalles(detalles)
-      setDespachoEnvases(envases)
-      setDesvProducto(dProd)
-      setDesvEnvase(dEnv)
-      setStockBodega(stockRaw)
-      setStockEnvases(envasesRaw)
-      setCargaVendedor(cargaRaw)
-    } catch {
-      setErrorLectura('No fue posible cargar los despachos. Inténtalo de nuevo.')
-    } finally {
-      setCargando(false)
-    }
-  }, [sucursalId])
-
-  useEffect(() => {
-    async function cargar() {
-      await load()
-    }
-    void cargar()
-  }, [load, versionLectura])
 
   async function registrarDespacho() {
     if (!perfil) return
@@ -311,7 +201,7 @@ export default function Despachos() {
     setEnviando(false)
     setModalOpen(false)
     setVendedorId('')
-    setLineas([{ producto_id: '', cantidad: '' }])
+    setLineas([nuevaLinea()])
     setBandejasManual(null)
     await load()
   }
@@ -345,26 +235,15 @@ export default function Despachos() {
     return fechas.length > 0 ? fechas.sort().reverse()[0] : null
   }
 
-  const diaObjetivo = useMemo(() => {
-    if (diaFiltro === 'fecha') return fechaSeleccionada
-    if (diaFiltro === 'todo') return ''
-    const hoy = new Date()
-    if (diaFiltro === 'hoy') return aaaammdd(hoy)
-    if (diaFiltro === 'ayer') {
-      const ayer = new Date(hoy)
-      ayer.setDate(hoy.getDate() - 1)
-      return aaaammdd(ayer)
-    }
-    const inicio = new Date(hoy)
-    inicio.setDate(hoy.getDate() - 6)
-    return aaaammdd(inicio)
-  }, [diaFiltro, fechaSeleccionada])
+  const diaObjetivo = diaFiltro === 'fecha' ? fechaSeleccionada
+    : diaFiltro === 'todo' ? ''
+    : inicioPeriodo(jornada, diaFiltro === 'ayer' ? 1 : diaFiltro === '7d' ? 6 : 0)
 
   const despachosFiltrados = useMemo(() => {
     return despachos.filter((d) => {
       if (vendedorFiltro && d.vendedor_id !== vendedorFiltro) return false
       if (diaFiltro === 'todo') return true
-      const fechaDespacho = aaaammdd(new Date(d.creado_en))
+      const fechaDespacho = fechaSantiago(new Date(d.creado_en))
       if (diaFiltro === '7d') return fechaDespacho >= diaObjetivo
       return fechaDespacho === diaObjetivo
     })
@@ -379,7 +258,7 @@ export default function Despachos() {
         const d = despachos.find((x) => x.id === despachoId)
         grupo = {
           despachoId,
-          vendedor: d?.vendedorNombre ?? 'Desconocido',
+          vendedor: d?.vendedorNombre ?? 'Vendedor no disponible',
           fecha: d?.creado_en ?? '',
           lineas: [],
         }
@@ -410,16 +289,8 @@ export default function Despachos() {
     return [...grupos.values()].sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
   }, [desvProducto, desvEnvase, despachos, despachosFiltrados, productos, tiposEmpaque])
 
-  if (errorSucursales || errorLectura) {
-    return (
-      <div className="space-y-3">
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorSucursales ?? errorLectura}</p>
-        <button type="button" className={btnSecondary} onClick={() => setVersionLectura((actual) => actual + 1)}>Reintentar</button>
-      </div>
-    )
-  }
-
-  if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
+  if (datos.isError) return <EstadoVista variante="error" mensaje="No fue posible cargar los despachos. Inténtalo de nuevo." onReintentar={() => void load()} />
+  if (datos.isPending) return <EstadoVista variante="cargando" />
 
   return (
     <div className="space-y-6">
@@ -432,26 +303,6 @@ export default function Despachos() {
         </div>
 
         <div className="flex flex-wrap items-end gap-3">
-          {perfil?.rol === 'administrador' && (
-            <label className={labelCls}>
-              Sucursal
-              <select
-                className={inputCls}
-                value={sucursalId}
-                onChange={(e) => {
-                  setSucursalId(e.target.value)
-                  setDespachoExpandido(null)
-                }}
-              >
-                {sucursales.length === 0 && <option value="">Sin sucursales</option>}
-                {sucursales.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
           <button
             type="button"
             className={btnSecondary}
@@ -466,11 +317,11 @@ export default function Despachos() {
       </div>
 
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
       )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className={cardCls}>
+        <section className={`${cardCls} min-w-0`}>
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Últimos despachos</h2>
             <span className="text-xs text-slate-400">{despachosFiltrados.length} registros</span>
@@ -515,7 +366,7 @@ export default function Despachos() {
 
             <select
               aria-label="Filtrar por vendedor"
-              className="min-h-11 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+              className="min-h-11 min-w-0 max-w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
               value={vendedorFiltro}
               onChange={(e) => {
                 setVendedorFiltro(e.target.value)
@@ -532,13 +383,9 @@ export default function Despachos() {
           </div>
 
           {despachos.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              Aún no hay despachos para esta sucursal.
-            </p>
+            <div role="status"><EstadoVista variante="vacio" mensaje="Aún no hay despachos para esta sucursal." /></div>
           ) : despachosFiltrados.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              No hay despachos para el día y vendedor seleccionados.
-            </p>
+            <div role="status"><EstadoVista variante="vacio" mensaje="No hay despachos para el día y vendedor seleccionados." /></div>
           ) : (
             <ul className="space-y-2 p-3">
               {despachosFiltrados.map((d) => {
@@ -558,7 +405,7 @@ export default function Despachos() {
                     <button
                       type="button"
                       onClick={() => setDespachoExpandido(expandido ? null : d.id)}
-                      className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                      className="flex min-w-0 w-full flex-col items-start gap-3 p-4 text-left sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <AvatarNombre nombre={d.vendedorNombre} />
@@ -566,10 +413,10 @@ export default function Despachos() {
                           <p className="truncate text-sm font-semibold text-slate-900">
                             {d.vendedorNombre}
                           </p>
-                          <p className="text-xs text-slate-500">{fmtFecha(d.creado_en)}</p>
+                          <p className="text-xs text-slate-500">{fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)}</p>
                         </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0">
                         <span className="rounded-full bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white">
                           {formatMiles(d.totalUnidades)} unid.
                         </span>
@@ -710,23 +557,21 @@ export default function Despachos() {
           )}
         </section>
 
-        <aside className={cardCls}>
+        <aside className={`${cardCls} min-w-0`}>
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Devoluciones</h2>
             <p className="text-sm text-slate-500">Agrupadas por despacho</p>
           </div>
 
           {gruposDevolucion.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              Aún no hay devoluciones para esta sucursal.
-            </p>
+            <div role="status"><EstadoVista variante="vacio" mensaje="Aún no hay devoluciones para esta sucursal." /></div>
           ) : (
             <ul className="divide-y divide-slate-100">
               {gruposDevolucion.map((g) => (
                 <li key={g.despachoId} className="px-4 py-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-semibold text-slate-900">{g.vendedor}</p>
-                    <span className="shrink-0 text-xs text-slate-400">{fmtFecha(g.fecha)}</span>
+                  <div className="flex min-w-0 flex-col items-start gap-1">
+                    <p className="max-w-full truncate text-sm font-semibold text-slate-900">{g.vendedor}</p>
+                    <span className="text-xs text-slate-500">{fmtFechaHora(g.fecha)} · #{g.despachoId.slice(0, 8)}</span>
                   </div>
                   <ul className="mt-2 space-y-1">
                     {g.lineas.map((l) => (
@@ -802,7 +647,7 @@ export default function Despachos() {
               <p className="text-sm font-semibold text-slate-700">Productos del despacho</p>
               {lineas.map((linea, index) => (
                 <div
-                  key={index}
+                  key={linea.id}
                   className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_auto]"
                 >
                   <label className="block">
@@ -874,7 +719,7 @@ export default function Despachos() {
               <button
                 type="button"
                 className={btnSecondary}
-                onClick={() => setLineas((prev) => [...prev, { producto_id: '', cantidad: '' }])}
+                onClick={() => setLineas((prev) => [...prev, nuevaLinea()])}
               >
                 + Agregar producto
               </button>

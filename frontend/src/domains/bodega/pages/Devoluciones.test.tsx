@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { makePerfil, renderWithProviders } from '@/test/render'
 import Devoluciones from './Devoluciones'
+import { focusManager } from '@tanstack/react-query'
+import { AuthContext } from '@/context/auth-context'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('@/lib/catalog', async (importOriginal) => {
@@ -111,6 +113,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  focusManager.setFocused(undefined)
   vi.useRealTimers()
   vi.clearAllMocks()
 })
@@ -213,4 +216,99 @@ describe('Accesibilidad · filtros de Devoluciones', () => {
     expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
     expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
   })
+})
+
+
+describe('B1 · aislamiento de sucursal y estados', () => {
+  it.each(['éxito', 'error'])('A→B→A descarta la respuesta B tardía de %s', async (resultado) => {
+    let resolver!: (data: Despacho[]) => void
+    let rechazar!: (error: Error) => void
+    const pendienteB = new Promise<Despacho[]>((res, rej) => { resolver = res; rechazar = rej })
+    vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal, { ...sucursal, id: 'suc-2', nombre: 'Sur' }])
+    vi.mocked(api.obtenerDespachos).mockImplementation((id) => id === 'suc-2' ? pendienteB : Promise.resolve([makeDespachoHoy()]))
+    vi.mocked(api.obtenerVendedores).mockImplementation((id) => Promise.resolve([{ ...vendedor, nombres: id === 'suc-2' ? 'Bruno' : 'Ana' }]))
+    renderWithProviders(<Devoluciones />, { perfil: makePerfil({ rol: 'administrador' }) })
+    await screen.findByRole('button', { name: /Ana López/ })
+    fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-2' } })
+    expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+    fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-1' } })
+    await screen.findByRole('button', { name: /Ana López/ })
+    await act(async () => {
+      if (resultado === 'éxito') resolver([{ ...makeDespachoHoy(), id: 'despacho-b', sucursal_id: 'suc-2' }])
+      else rechazar(new Error('Fallo B tardío'))
+    })
+    expect(screen.getByLabelText('Sucursal')).toHaveValue('suc-1')
+    expect(screen.getByRole('button', { name: /Ana López/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Bruno/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('anuncia carga y vacío sin presentarlos como un error', async () => {
+    renderWithProviders(<Devoluciones />)
+    expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+    const vacio = await screen.findByText(/Aún no hay despachos para esta sucursal/)
+    expect(vacio.closest('[role="status"]')).not.toBeNull()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('identifica un despacho cuyo vendedor ya no está disponible', async () => {
+    vi.mocked(api.obtenerVendedores).mockResolvedValue([])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([{ ...makeDespachoHoy(), id: 'abc12345-despacho' }])
+    renderWithProviders(<Devoluciones />)
+    const fila = await screen.findByRole('button', { name: /Vendedor no disponible/ })
+    expect(fila).toHaveTextContent('abc12345')
+    expect(fila).toHaveTextContent(/\d{2}:\d{2}/)
+    expect(screen.queryByText('Desconocido')).not.toBeInTheDocument()
+  })
+
+  it('Hoy cambia al reanudar después de medianoche en Santiago', async () => {
+    vi.setSystemTime(new Date('2026-10-14T02:59:59Z'))
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+    renderWithProviders(<Devoluciones />)
+    await screen.findByRole('button', { name: /Ana López/ })
+    await act(async () => {
+      vi.setSystemTime(new Date('2026-10-14T03:00:01Z'))
+      fireEvent.focus(window)
+    })
+    expect(await screen.findByText(/No hay despachos para el día/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+  })
+})
+
+it('B1 · permite recorrer las tablas del detalle en regiones con nombre', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  renderWithProviders(<Devoluciones />)
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
+  for (const nombre of ['Productos del despacho', 'Envases del despacho']) {
+    const region = screen.getByRole('region', { name: nombre })
+    expect(region).toHaveAttribute('tabindex', '0')
+    expect(region).toHaveClass('overflow-x-auto')
+  }
+})
+
+
+it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  let resolver!: (data: Despacho[]) => void
+  const pendiente = new Promise<Despacho[]>((res) => { resolver = res })
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  const contenido = (id: string) => (
+    <AuthContext.Provider value={{ perfil: makePerfil({ id, rol: 'administrador' }), loading: false, signIn: async () => {}, signOut: async () => {} }}>
+      <Devoluciones />
+    </AuthContext.Provider>
+  )
+  const { rerender } = renderWithProviders(contenido('primera'))
+  await screen.findByRole('button', { name: /Ana López/ })
+  fireEvent.click(screen.getByRole('button', { name: /Ana López/ }))
+  fireEvent.change(screen.getByRole('spinbutton', { name: /Cantidad a devolver/ }), { target: { value: '1' } })
+  vi.mocked(api.obtenerDespachos).mockReturnValueOnce(pendiente).mockResolvedValue([])
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await waitFor(() => expect(api.obtenerDespachos).toHaveBeenCalledTimes(2))
+  rerender(contenido('segunda'))
+  await screen.findByText(/Aún no hay despachos para esta sucursal/)
+  await act(async () => { resolver([makeDespachoHoy()]) })
+  expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+  expect(screen.queryByRole('spinbutton', { name: /Cantidad a devolver/ })).not.toBeInTheDocument()
 })
