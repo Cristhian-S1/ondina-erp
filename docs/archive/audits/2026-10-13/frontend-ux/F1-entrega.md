@@ -119,12 +119,12 @@ En las tres anchuras se comprobó edición intermedia con cursor, formato `1.000
 
 Capturas revisadas, todas por debajo de 135 kB:
 
-- [Registrar venta, 375](f1-registrar-venta-375.png)
-- [Registrar venta, 768](f1-registrar-venta-768.png)
-- [Registrar venta, 1280](f1-registrar-venta-1280.png)
-- [Gastos, 375](f1-gastos-375.png)
-- [Gastos, 768](f1-gastos-768.png)
-- [Gastos, 1280](f1-gastos-1280.png)
+- [Registrar venta, 375](capturas/f1-registrar-venta-375.png)
+- [Registrar venta, 768](capturas/f1-registrar-venta-768.png)
+- [Registrar venta, 1280](capturas/f1-registrar-venta-1280.png)
+- [Gastos, 375](capturas/f1-gastos-375.png)
+- [Gastos, 768](capturas/f1-gastos-768.png)
+- [Gastos, 1280](capturas/f1-gastos-1280.png)
 
 ## Commits y límites de la entrega
 
