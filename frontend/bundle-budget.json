@@ -1,10 +1,10 @@
 {
   "baseline": {
-    "date": "2026-10-13",
-    "commit": "059172a",
-    "entryJsGzipBytes": 95970,
-    "entryCssGzipBytes": 43502,
-    "largestJsChunkRawBytes": 301916
+    "date": "2026-10-14",
+    "commit": "cbe6e2b",
+    "entryJsGzipBytes": 107253,
+    "entryCssGzipBytes": 45754,
+    "largestJsChunkRawBytes": 341686
   },
   "headroomPercent": 10
 }
