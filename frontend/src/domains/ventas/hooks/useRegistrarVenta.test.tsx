@@ -14,7 +14,7 @@ const form: RegistrarVentaForm = { clienteId: 'c1', metodoPago: 'efectivo', desc
 function setup() {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  return renderHook(() => useRegistrarVenta(), { wrapper })
+  return { ...renderHook(() => useRegistrarVenta(), { wrapper }), client }
 }
 it('retains one key after a lost response and creates a new key after success', async () => {
   vi.mocked(registrarVenta).mockResolvedValueOnce({ id: null, error: 'No fue posible completar la operación. Inténtalo de nuevo.' }).mockResolvedValue({ id: 'sale', error: null })
@@ -36,4 +36,17 @@ it('starts another attempt when form contents or identity change', async () => {
   rerender()
   await act(async () => { await result.current.mutateAsync({ ...form, descuento: 10 }) })
   expect(new Set(vi.mocked(registrarVenta).mock.calls.map(([args]) => args.p_idempotency_key)).size).toBe(3)
+})
+
+
+it('A1-06 · éxito invalida comisión y carga una sola vez; error no invalida', async () => {
+  vi.mocked(registrarVenta).mockResolvedValueOnce({ id: null, error: 'fallo' }).mockResolvedValue({ id: 'sale', error: null })
+  const { result, client } = setup()
+  client.setQueryData(['mi-comision', 'u1', 's1'], [{ comision: 10 }])
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  await act(async () => { await result.current.mutateAsync(form) })
+  expect(invalidate).not.toHaveBeenCalled()
+  await act(async () => { await result.current.mutateAsync(form) })
+  expect(client.getQueryState(['mi-comision', 'u1', 's1'])?.isInvalidated).toBe(true)
+  expect(invalidate.mock.calls.filter(([arg]) => arg?.queryKey?.[1] === 'carga')).toHaveLength(1)
 })

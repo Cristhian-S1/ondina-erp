@@ -33,6 +33,7 @@ const mock = vi.hoisted(() => {
     },
     insertSpy,
     rpcSpy,
+    setResumen: (data: unknown[] | null) => { readResult = { data, error: null, count: null } },
     setReadResult: (error: boolean) => { readResult = { data: null, error: error ? { message: 'private SQL detail' } : null, count: null } },
     reset: () => {
       readResult = { data: [], error: null, count: 0 }
@@ -52,7 +53,7 @@ const mock = vi.hoisted(() => {
 
 vi.mock('@/lib/supabase', () => ({ supabase: mock.supabase }))
 
-import { crearCliente, crearGasto, registrarVenta, obtenerClientesRuta, obtenerVendedoresSucursal, obtenerProductosVenta, obtenerCargaVendedor, obtenerGastosHoy, obtenerMiComision, obtenerCantidadVentasJornada, obtenerRankingVendedores } from './api'
+import { obtenerResumenVenta, crearCliente, crearGasto, registrarVenta, obtenerClientesRuta, obtenerVendedoresSucursal, obtenerProductosVenta, obtenerCargaVendedor, obtenerGastosHoy, obtenerMiComision, obtenerCantidadVentasJornada, obtenerRankingVendedores } from './api'
 import type { Perfil } from '@/types'
 
 const perfil: Perfil = {
@@ -171,4 +172,14 @@ it('B3 · asks SQL for Santiago jornada without a browser-derived UTC range', as
   const count = await obtenerCantidadVentasJornada('user-1')
   expect(count).toBe(0)
   expect(mock.rpcSpy).toHaveBeenCalledWith('contar_ventas_jornada', { p_vendedor_id: 'user-1' })
+})
+
+
+it('UX-05 · lee sólo id y total de la venta confirmada', async () => {
+  mock.setResumen([{ id: 'venta-uuid', total: 1733 }])
+  expect(await obtenerResumenVenta('venta-uuid')).toEqual({ id: 'venta-uuid', total: 1733 })
+})
+it.each([true, false])('UX-05 · error o venta invisible no se confunde con total cero (%s)', async (error) => {
+  mock.setReadResult(error)
+  await expect(obtenerResumenVenta('no-visible')).rejects.toThrow('No fue posible cargar el resumen de la venta. Inténtalo de nuevo.')
 })

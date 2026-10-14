@@ -48,6 +48,7 @@ export function useRegistrarVenta() {
       }
       void queryClient.invalidateQueries({ queryKey: ['ventas', 'carga'] })
       void queryClient.invalidateQueries({ queryKey: ['ventas', 'historico'] })
+      void queryClient.invalidateQueries({ queryKey: ['mi-comision'] })
     },
   })
 }

@@ -291,3 +291,13 @@ export async function obtenerRankingVendedores(
     throw new Error(mensajeErrorSupabase(error), { cause: error })
   }
 }
+export async function obtenerResumenVenta(id: string): Promise<{ id: string; total: number }> {
+  try {
+    const { data, error } = await supabase.from('ventas').select('id, total').eq('id', id)
+      .returns<{ id: string; total: number }[]>()
+    if (error || !data?.[0]) throw error ?? new Error('Venta no disponible')
+    return data[0]
+  } catch (cause: unknown) {
+    throw new Error('No fue posible cargar el resumen de la venta. Inténtalo de nuevo.', { cause })
+  }
+}
