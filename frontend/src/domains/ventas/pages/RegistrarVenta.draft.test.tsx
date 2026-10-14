@@ -39,10 +39,22 @@ describe('Sale draft identity and completion', () => {
     expect(sessionStorage.getItem(key('user-2')) ?? '').not.toContain('Pedido anterior')
     expect(sessionStorage.getItem('ondina:draft-registrar-venta')).toBeNull()
   })
-  it('persists changes under the current user key', async () => {
+  it('persists changes under the current user key', () => {
     setup('user-2')
-    fireEvent.change(screen.getAllByRole('textbox').at(-1)!, { target: { value: 'Nuevo pedido' } })
-    await waitFor(() => expect(sessionStorage.getItem(key('user-2'))).toContain('Nuevo pedido'))
+    // Q1 (OND-c07.19): el debounce de 250 ms de PersistenciaBorradorVenta se valida
+    // con reloj simulado (mismo patrón que la prueba A1-03 del archivo) para no
+    // depender del muro de tiempo real bajo carga.
+    vi.useFakeTimers()
+    const guardar = vi.spyOn(Storage.prototype, 'setItem')
+    try {
+      fireEvent.change(screen.getAllByRole('textbox').at(-1)!, { target: { value: 'Nuevo pedido' } })
+      expect(guardar).not.toHaveBeenCalled()
+      act(() => vi.advanceTimersByTime(300))
+      expect(sessionStorage.getItem(key('user-2'))).toContain('Nuevo pedido')
+    } finally {
+      vi.useRealTimers()
+      guardar.mockRestore()
+    }
     expect(sessionStorage.getItem(key('user-1'))).toBeNull()
   })
   it.each(['{broken', JSON.stringify({ ...draft, detalles: [null] }), JSON.stringify({ ...draft, metodoPago: 'invalid' }), JSON.stringify({ ...draft, detalles: [{ ...draft.detalles[0], cantidad: 'abc' }] })])('discards a malformed draft: %s', (raw) => {

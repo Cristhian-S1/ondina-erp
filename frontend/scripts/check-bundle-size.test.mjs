@@ -102,7 +102,10 @@ it.each(['app', 'node'])('resuelve strict explícito en tsconfig.%s', (proyecto)
   expect(config.options.strict).toBe(true)
 })
 
-it('separa Supabase en un vendor precargado y mantiene la página como import dinámico', () => {
+it('separa Supabase en un vendor precargado y mantiene la página como import dinámico', { timeout: 30000 }, () => {
+  // Q1 (OND-c07.19): build de Vite real en un proceso hijo; medido 5,4 s bajo
+  // saturación (2026-10-14, loadavg ≈ 31) frente al muro de 5 s. Se da un
+  // presupuesto explícito de 30 s porque la latencia la domina el spawn, no la lógica.
   const root = temporal()
   const pack = join(root, 'node_modules/@supabase/supabase-js')
   mkdirSync(pack, { recursive: true })
