@@ -1,6 +1,6 @@
 # Frontend Conventions
 
-Updated 2026-10-14 after the frontend-ux round (findings A1/UX, delivery lots B1–B7). Delivery reports with per-commit evidence live in `docs/archive/audits/2026-10-13/frontend-ux/`.
+Updated 2026-10-14 after the frontend-ux round (findings A1/UX, delivery lots B1–B7, with B3 integrated). Delivery reports with per-commit evidence live in `docs/archive/audits/2026-10-13/frontend-ux/`.
 
 ## Structure and types
 
@@ -34,7 +34,7 @@ Rules:
 - Formatting is fixed to `es-CL` in the `America/Santiago` zone via `Intl.DateTimeFormat` with `formatToParts`. Never format a visible date with the browser's local zone: `2026-10-13T02:15:59Z` is `12-10-2026 23:15` for the user in Santiago.
 - "Today" and period arithmetic are also Santiago-based, not UTC: `mesActualSantiago()` in `domains/ventas/hooks/useRankingVendedores.ts` returns the current `AAAA-MM`, and `fechaSantiago()` / `useJornadaSantiago()` / `inicioPeriodo()` in `domains/bodega/hooks/useJornadaSantiago.ts` track the warehouse day (`useSyncExternalStore` with a 1-second clock plus `focus`/`visibilitychange` listeners). Late in a Chilean evening or month UTC is already on the next day/month, so compute in Santiago and let tests exercise the boundary.
 - Native `type="date"` inputs keep their own values and constraints; format only what is displayed.
-- `lib/ui.ts#fmtFecha` (legacy short format `dd-mm hh:mm`, browser zone) is `@deprecated`. Its last consumer is `domains/ventas/pages/Gastos.tsx`; migrate it to `lib/format` when that file is touched. New code must not import it.
+- `lib/ui.ts#fmtFecha` (legacy short format `dd-mm hh:mm`, browser zone) is `@deprecated` and currently has no consumers: `Gastos` and every other page now format through `lib/format`. Delete it on the next `lib/ui.ts` touch instead of importing it.
 
 ## Data loading: scoped query keys, `isPending` vs `isFetching`
 
@@ -50,7 +50,8 @@ Reads go through React Query with keys that carry the full identity scope, so on
 - Distinguish `isPending` from `isFetching`: `isPending` means "no data yet" (it is also true during the first load), `isFetching` means "a request is in flight". Gate the full `cargando` state on `isPending`/`isError` — as `domains/bodega/pages/Despachos.tsx` and `Devoluciones.tsx` do — so rows already fetched for the same context stay on screen during a revalidation. `domains/bodega/pages/Stock.tsx` adds an explicit refresh affordance on `isFetching` (`refrescando`): the button label becomes `Actualizando...` and the block shows `Actualizando stock...` while in flight. Data from a *previous* identity or sucursal must never remain on screen while the new context loads; that is what the scoped keys and the `AmbitoBodega` remount enforce.
 - `Stock` reads use `staleTime: 30_000` with `refetchOnWindowFocus: 'always'` (FE-07) so stock is fresh after movements made in other screens or sessions.
 - Read services (`api.ts`, `lib/catalog.ts`) throw user-safe Spanish errors instead of returning `[]`, so a failed read is not mistaken for an empty result (#49); pages surface the message and keep their retry path.
-- Domain modules route through `React.lazy` with a `Suspense` fallback, so each domain page loads on first visit (#50). The sale draft lives in `sessionStorage` under `ondina:draft-registrar-venta:<perfilId>`, is restored only for that identity and is cleared on logout (#36).
+- Domain modules route through `React.lazy` with a `Suspense` fallback, so each domain page loads on first visit (#50).
+- The sale draft lives in `sessionStorage` under `ondina:draft-registrar-venta:<perfilId>`, is restored only for that identity and is cleared on logout (#36). Persistence goes through `domains/ventas/components/PersistenciaBorradorVenta.tsx`: writes are debounced 250 ms, flushed on `pagehide`/`visibilitychange` and on unmount, and guarded so a flush never stores another identity's values. Keep heavy work out of render: B3 measured six consecutive `Observaciones` keystrokes going from 6 renders + 6 immediate writes to 0 renders + one grouped write this way.
 
 ## Feedback
 
@@ -63,9 +64,17 @@ Use `frontend/src/lib/ui.ts` instead of duplicating error styles:
 | `errorBlockCls` | Persistent mutation/error summary. |
 
 - Writes report through `useToast` / `components/Toast.tsx`: `exito` (green, `role="status"`, `aria-live="polite"`) for success and `error` (red, `role="alert"`, `aria-live="assertive"`) for failed mutations or business validation. The toast auto-dismisses after 4 s (shared timer in `components/toast-utils.ts`), can be closed with a 44×44 button (`aria-label="Cerrar notificación"`), spans the width on mobile (`left-2 right-2`) and floats `sm:right-4` from that breakpoint. Do not create a second notification system.
-- Field validation errors are persistent text under the field (`errorTextCls` with `errors.<field>.message` from React Hook Form), and invalid inputs get `inputErrorCls`. Validation problems are never communicated as toasts; if a submit is rejected, fields keep their values so the user can fix and resubmit.
-- `pages/Login.tsx` sets the accessible pattern for field errors: `aria-invalid` plus `aria-describedby` pointing at an element with `role="alert"` (the `login-error` summary). Domain forms currently render the persistent error text but do not yet set these attributes on their inputs; wire `aria-invalid`/`aria-describedby` whenever you touch them, following the Login pattern.
-- Failed reads/mutations that need a persistent summary use `errorBlockCls`. Translate technical backend errors into useful Spanish feedback.
+- Labeled fields with validation go through `domains/ventas/components/CampoFormulario.tsx` (see the next section): validation errors are persistent text under the field, never toasts, and fields keep their values so the user can fix and resubmit.
+- `pages/Login.tsx` wires the same attributes directly (`aria-invalid`, `aria-describedby="login-error"`, summary with `role="alert"`); keep that wiring intact when restyling.
+- Failed reads/mutations that need a persistent summary use `errorBlockCls` (Login) or an equivalent `role="alert"` red block, as the bodega pages render inline today; prefer the `lib/ui.ts` constant over re-typing those classes when touching those files. Translate technical backend errors into useful Spanish feedback.
+
+## Accessible fields and the confirmed-sale summary
+
+- `domains/ventas/components/CampoFormulario.tsx` is the accessible field pattern (A1-12): a stable `useId` id with `<label htmlFor>`, the control receiving `{ id, className, 'aria-invalid', 'aria-describedby' }` (`inputCls` plus `inputErrorCls` when invalid), and the error as `<p id="{id}-error" className={errorTextCls}>` so assistive tech links input and message. `RegistrarVenta`, `RegistrarCliente`, `Gastos` and the sale product rows (`FilaProductoVenta`) use it; RHF keeps refs and focus. Reserve inline `errorTextCls` for list-level messages (`Máximo 6 productos por venta`) and form-level errors (`errors.detalles`).
+- `RegistrarVenta` success does not navigate: it renders `domains/ventas/components/ResumenVentaConfirmada.tsx` in place (UX-05). The summary keeps the full folio (read-only input plus a `Copiar folio` button), shows the client, and reads the database-confirmed total with `obtenerResumenVenta` (query key `['ventas', 'resumen', perfilId, id]`, `retry: false`). The form's total is only orientative: the definitive total, discount and stock movements belong to the database.
+- `Reintentar` in that summary refetches only the confirmed total — never re-submits the sale; the B3 verification counted exactly 1 `registrar_venta` POST and read-only retries after a simulated failure.
+- `Registrar otra venta` resets the form in place; leaving the page is an explicit `Ir a Ventas` link. A late catalog response fills only untouched fields instead of resetting client, quantities or observations.
+- On success, invalidation happens only in `hooks/useRegistrarVenta.ts` (`['ventas', 'carga']`, `['ventas', 'historico']` and the `['mi-comision']` prefix for A1-06); failed mutations invalidate nothing, and pages do not call `invalidateQueries` directly.
 
 ## Modals, drawer and page title
 
