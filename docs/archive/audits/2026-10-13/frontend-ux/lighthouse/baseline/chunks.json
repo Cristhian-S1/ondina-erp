@@ -1,9 +1,9 @@
 {
   "chunks": [
     {
-      "archivo": "index-BqzvV4LJ.js",
+      "archivo": "index-BfzN8EfA.js",
       "raw": 312573,
-      "gzip": 98985
+      "gzip": 98993
     },
     {
       "archivo": "index-q6VLNRSs.css",
@@ -11,84 +11,84 @@
       "gzip": 43002
     },
     {
-      "archivo": "supabase-DrbKsUnY.js",
-      "raw": 224499,
+      "archivo": "supabase-DPIA31R_.js",
+      "raw": 224500,
       "gzip": 58141
     },
     {
-      "archivo": "RankingVendedores-Bt_EvVeM.js",
+      "archivo": "RankingVendedores-BnSS_LyV.js",
       "raw": 179139,
       "gzip": 53480
     },
     {
-      "archivo": "toast-utils-ClScOSSu.js",
+      "archivo": "toast-utils-B1_QWf9N.js",
       "raw": 110911,
-      "gzip": 32666
+      "gzip": 32667
     },
     {
-      "archivo": "Produccion-CNG8Uqty.js",
+      "archivo": "Produccion-BBKRv1S8.js",
       "raw": 23342,
-      "gzip": 5158
+      "gzip": 5159
     },
     {
-      "archivo": "Despachos-D4cIzU73.js",
+      "archivo": "Despachos-mIx3VAwb.js",
       "raw": 19158,
-      "gzip": 5094
+      "gzip": 5093
     },
     {
-      "archivo": "Devoluciones-BwyCmVft.js",
+      "archivo": "Devoluciones-C4yIIWbk.js",
       "raw": 14779,
-      "gzip": 4321
+      "gzip": 4323
     },
     {
-      "archivo": "RegistrarVenta-Cg22Ww9K.js",
+      "archivo": "RegistrarVenta-CqY6xM6g.js",
       "raw": 14236,
-      "gzip": 4225
+      "gzip": 4226
     },
     {
-      "archivo": "Clientes-B62RmOym.js",
+      "archivo": "Clientes-Bkw_8WRJ.js",
       "raw": 11772,
-      "gzip": 3305
+      "gzip": 3308
     },
     {
-      "archivo": "Stock-jWOQL4b1.js",
+      "archivo": "Stock-lHmxhoxv.js",
       "raw": 5748,
-      "gzip": 1929
+      "gzip": 1928
     },
     {
-      "archivo": "Gastos-BLYAvNYx.js",
+      "archivo": "Gastos-DNNuqt1t.js",
       "raw": 4541,
-      "gzip": 1833
+      "gzip": 1836
     },
     {
-      "archivo": "Ventas-JzLVgFUc.js",
+      "archivo": "Ventas-J8CzOqqZ.js",
       "raw": 4349,
       "gzip": 1146
     },
     {
-      "archivo": "api-Dz4DpKo6.js",
+      "archivo": "api-BOph1J5E.js",
       "raw": 4002,
-      "gzip": 1255
+      "gzip": 1257
     },
     {
-      "archivo": "MiComision-BuLWHH_u.js",
+      "archivo": "MiComision-LI-1ABwi.js",
       "raw": 3620,
       "gzip": 1228
     },
     {
-      "archivo": "api-D9TNfvBA.js",
+      "archivo": "api-BHc78xVC.js",
       "raw": 3533,
-      "gzip": 690
+      "gzip": 692
     },
     {
-      "archivo": "Carga-gAYOe-39.js",
+      "archivo": "Carga-Bzaxv1j8.js",
       "raw": 2302,
-      "gzip": 927
+      "gzip": 924
     },
     {
-      "archivo": "Dialog-BsH76OYh.js",
+      "archivo": "Dialog-DcgZtJtd.js",
       "raw": 1311,
-      "gzip": 745
+      "gzip": 743
     },
     {
       "archivo": "ui-ChAMBGnF.js",
@@ -96,19 +96,19 @@
       "gzip": 505
     },
     {
-      "archivo": "SucursalSelector-BayBGox4.js",
+      "archivo": "SucursalSelector-COgYWMnB.js",
       "raw": 1118,
-      "gzip": 577
+      "gzip": 576
     },
     {
-      "archivo": "catalog-B-4Y52ZF.js",
+      "archivo": "catalog-CqM8LO2h.js",
       "raw": 731,
-      "gzip": 323
+      "gzip": 325
     },
     {
-      "archivo": "ModulePage-BKb1oGpU.js",
+      "archivo": "ModulePage-yerSgJdq.js",
       "raw": 570,
-      "gzip": 345
+      "gzip": 343
     },
     {
       "archivo": "format-fDalZHv_.js",
@@ -116,39 +116,39 @@
       "gzip": 257
     },
     {
-      "archivo": "useClientesRuta-BieCtDLt.js",
+      "archivo": "useClientesRuta-cpm1a4k7.js",
       "raw": 326,
-      "gzip": 269
+      "gzip": 268
     },
     {
-      "archivo": "Administracion-DvUu2gaI.js",
+      "archivo": "Administracion-DtPNrVdk.js",
       "raw": 234,
-      "gzip": 213
+      "gzip": 210
     },
     {
-      "archivo": "Ubicaciones-D0yppRq2.js",
+      "archivo": "Ubicaciones-DloZOFvg.js",
       "raw": 229,
-      "gzip": 207
+      "gzip": 206
     },
     {
-      "archivo": "useCargaVendedor-VZp-SSO3.js",
+      "archivo": "useCargaVendedor-uJtbuz9O.js",
       "raw": 228,
-      "gzip": 202
+      "gzip": 201
     },
     {
-      "archivo": "Auditoria-CtKvwRbs.js",
+      "archivo": "Auditoria-CS6fANkt.js",
       "raw": 226,
-      "gzip": 207
+      "gzip": 205
     },
     {
-      "archivo": "Reportes-PD-rZMWV.js",
+      "archivo": "Reportes-DJvWPquh.js",
       "raw": 223,
-      "gzip": 200
+      "gzip": 198
     }
   ],
   "totales": {
-    "jsRaw": 945376,
-    "jsGzip": 278433,
+    "jsRaw": 945377,
+    "jsGzip": 278438,
     "cssRaw": 290723,
     "cssGzip": 43002,
     "archivos": 29
@@ -156,9 +156,9 @@
   "bootSet": {
     "files": [
       {
-        "archivo": "index-BqzvV4LJ.js",
+        "archivo": "index-BfzN8EfA.js",
         "raw": 312573,
-        "gzip": 98985
+        "gzip": 98993
       },
       {
         "archivo": "index-q6VLNRSs.css",
@@ -166,28 +166,28 @@
         "gzip": 43002
       },
       {
-        "archivo": "supabase-DrbKsUnY.js",
-        "raw": 224499,
+        "archivo": "supabase-DPIA31R_.js",
+        "raw": 224500,
         "gzip": 58141
       }
     ],
-    "rawBytes": 827795,
-    "gzipBytes": 200128
+    "rawBytes": 827796,
+    "gzipBytes": 200136
   },
   "extrasPorRuta": [
     {
       "ruta": "/ranking-vendedores",
       "dominio": "ventas",
       "pagina": "RankingVendedores",
-      "extraGzip": 54735,
+      "extraGzip": 54737,
       "archivos": [
         {
-          "archivo": "RankingVendedores-Bt_EvVeM.js",
+          "archivo": "RankingVendedores-BnSS_LyV.js",
           "gzip": 53480
         },
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         }
       ]
     },
@@ -195,39 +195,39 @@
       "ruta": "/clientes",
       "dominio": "ventas",
       "pagina": "Clientes",
-      "extraGzip": 39645,
+      "extraGzip": 39649,
       "archivos": [
         {
-          "archivo": "toast-utils-ClScOSSu.js",
-          "gzip": 32666
+          "archivo": "toast-utils-B1_QWf9N.js",
+          "gzip": 32667
         },
         {
-          "archivo": "Clientes-B62RmOym.js",
-          "gzip": 3305
+          "archivo": "Clientes-Bkw_8WRJ.js",
+          "gzip": 3308
         },
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         },
         {
-          "archivo": "Dialog-BsH76OYh.js",
-          "gzip": 745
+          "archivo": "Dialog-DcgZtJtd.js",
+          "gzip": 743
         },
         {
-          "archivo": "SucursalSelector-BayBGox4.js",
-          "gzip": 577
+          "archivo": "SucursalSelector-COgYWMnB.js",
+          "gzip": 576
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
-          "archivo": "useClientesRuta-BieCtDLt.js",
-          "gzip": 269
+          "archivo": "useClientesRuta-cpm1a4k7.js",
+          "gzip": 268
         }
       ]
     },
@@ -235,35 +235,35 @@
       "ruta": "/ventas/registrar",
       "dominio": "ventas",
       "pagina": "RegistrarVenta",
-      "extraGzip": 39379,
+      "extraGzip": 39381,
       "archivos": [
         {
-          "archivo": "toast-utils-ClScOSSu.js",
-          "gzip": 32666
+          "archivo": "toast-utils-B1_QWf9N.js",
+          "gzip": 32667
         },
         {
-          "archivo": "RegistrarVenta-Cg22Ww9K.js",
-          "gzip": 4225
+          "archivo": "RegistrarVenta-CqY6xM6g.js",
+          "gzip": 4226
         },
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "useClientesRuta-BieCtDLt.js",
-          "gzip": 269
+          "archivo": "useClientesRuta-cpm1a4k7.js",
+          "gzip": 268
         },
         {
           "archivo": "format-fDalZHv_.js",
           "gzip": 257
         },
         {
-          "archivo": "useCargaVendedor-VZp-SSO3.js",
-          "gzip": 202
+          "archivo": "useCargaVendedor-uJtbuz9O.js",
+          "gzip": 201
         }
       ]
     },
@@ -271,19 +271,19 @@
       "ruta": "/gastos",
       "dominio": "ventas",
       "pagina": "Gastos",
-      "extraGzip": 36516,
+      "extraGzip": 36522,
       "archivos": [
         {
-          "archivo": "toast-utils-ClScOSSu.js",
-          "gzip": 32666
+          "archivo": "toast-utils-B1_QWf9N.js",
+          "gzip": 32667
         },
         {
-          "archivo": "Gastos-BLYAvNYx.js",
-          "gzip": 1833
+          "archivo": "Gastos-DNNuqt1t.js",
+          "gzip": 1836
         },
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         },
         {
           "archivo": "ui-ChAMBGnF.js",
@@ -299,27 +299,27 @@
       "ruta": "/despachos",
       "dominio": "bodega",
       "pagina": "Despachos",
-      "extraGzip": 7614,
+      "extraGzip": 7615,
       "archivos": [
         {
-          "archivo": "Despachos-D4cIzU73.js",
-          "gzip": 5094
+          "archivo": "Despachos-mIx3VAwb.js",
+          "gzip": 5093
         },
         {
-          "archivo": "Dialog-BsH76OYh.js",
-          "gzip": 745
+          "archivo": "Dialog-DcgZtJtd.js",
+          "gzip": 743
         },
         {
-          "archivo": "api-D9TNfvBA.js",
-          "gzip": 690
+          "archivo": "api-BHc78xVC.js",
+          "gzip": 692
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -331,23 +331,23 @@
       "ruta": "/produccion",
       "dominio": "produccion",
       "pagina": "Produccion",
-      "extraGzip": 6820,
+      "extraGzip": 6822,
       "archivos": [
         {
-          "archivo": "Produccion-CNG8Uqty.js",
-          "gzip": 5158
+          "archivo": "Produccion-BBKRv1S8.js",
+          "gzip": 5159
         },
         {
-          "archivo": "SucursalSelector-BayBGox4.js",
-          "gzip": 577
+          "archivo": "SucursalSelector-COgYWMnB.js",
+          "gzip": 576
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -359,23 +359,23 @@
       "ruta": "/produccion/envases",
       "dominio": "produccion",
       "pagina": "Produccion",
-      "extraGzip": 6820,
+      "extraGzip": 6822,
       "archivos": [
         {
-          "archivo": "Produccion-CNG8Uqty.js",
-          "gzip": 5158
+          "archivo": "Produccion-BBKRv1S8.js",
+          "gzip": 5159
         },
         {
-          "archivo": "SucursalSelector-BayBGox4.js",
-          "gzip": 577
+          "archivo": "SucursalSelector-COgYWMnB.js",
+          "gzip": 576
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -387,23 +387,23 @@
       "ruta": "/produccion/historial",
       "dominio": "produccion",
       "pagina": "Produccion",
-      "extraGzip": 6820,
+      "extraGzip": 6822,
       "archivos": [
         {
-          "archivo": "Produccion-CNG8Uqty.js",
-          "gzip": 5158
+          "archivo": "Produccion-BBKRv1S8.js",
+          "gzip": 5159
         },
         {
-          "archivo": "SucursalSelector-BayBGox4.js",
-          "gzip": 577
+          "archivo": "SucursalSelector-COgYWMnB.js",
+          "gzip": 576
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -415,23 +415,23 @@
       "ruta": "/produccion/indicadores",
       "dominio": "produccion",
       "pagina": "Produccion",
-      "extraGzip": 6820,
+      "extraGzip": 6822,
       "archivos": [
         {
-          "archivo": "Produccion-CNG8Uqty.js",
-          "gzip": 5158
+          "archivo": "Produccion-BBKRv1S8.js",
+          "gzip": 5159
         },
         {
-          "archivo": "SucursalSelector-BayBGox4.js",
-          "gzip": 577
+          "archivo": "SucursalSelector-COgYWMnB.js",
+          "gzip": 576
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -443,23 +443,23 @@
       "ruta": "/produccion/incidencias",
       "dominio": "produccion",
       "pagina": "Produccion",
-      "extraGzip": 6820,
+      "extraGzip": 6822,
       "archivos": [
         {
-          "archivo": "Produccion-CNG8Uqty.js",
-          "gzip": 5158
+          "archivo": "Produccion-BBKRv1S8.js",
+          "gzip": 5159
         },
         {
-          "archivo": "SucursalSelector-BayBGox4.js",
-          "gzip": 577
+          "archivo": "SucursalSelector-COgYWMnB.js",
+          "gzip": 576
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -471,23 +471,23 @@
       "ruta": "/devoluciones",
       "dominio": "bodega",
       "pagina": "Devoluciones",
-      "extraGzip": 5839,
+      "extraGzip": 5845,
       "archivos": [
         {
-          "archivo": "Devoluciones-BwyCmVft.js",
-          "gzip": 4321
+          "archivo": "Devoluciones-C4yIIWbk.js",
+          "gzip": 4323
         },
         {
-          "archivo": "api-D9TNfvBA.js",
-          "gzip": 690
+          "archivo": "api-BHc78xVC.js",
+          "gzip": 692
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         }
       ]
     },
@@ -495,23 +495,23 @@
       "ruta": "/stock",
       "dominio": "bodega",
       "pagina": "Stock",
-      "extraGzip": 3704,
+      "extraGzip": 3707,
       "archivos": [
         {
-          "archivo": "Stock-jWOQL4b1.js",
-          "gzip": 1929
+          "archivo": "Stock-lHmxhoxv.js",
+          "gzip": 1928
         },
         {
-          "archivo": "api-D9TNfvBA.js",
-          "gzip": 690
+          "archivo": "api-BHc78xVC.js",
+          "gzip": 692
         },
         {
           "archivo": "ui-ChAMBGnF.js",
           "gzip": 505
         },
         {
-          "archivo": "catalog-B-4Y52ZF.js",
-          "gzip": 323
+          "archivo": "catalog-CqM8LO2h.js",
+          "gzip": 325
         },
         {
           "archivo": "format-fDalZHv_.js",
@@ -523,14 +523,14 @@
       "ruta": "/ventas",
       "dominio": "ventas",
       "pagina": "Ventas",
-      "extraGzip": 3365,
+      "extraGzip": 3366,
       "archivos": [
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         },
         {
-          "archivo": "Ventas-JzLVgFUc.js",
+          "archivo": "Ventas-J8CzOqqZ.js",
           "gzip": 1146
         },
         {
@@ -542,8 +542,8 @@
           "gzip": 257
         },
         {
-          "archivo": "useCargaVendedor-VZp-SSO3.js",
-          "gzip": 202
+          "archivo": "useCargaVendedor-uJtbuz9O.js",
+          "gzip": 201
         }
       ]
     },
@@ -551,15 +551,15 @@
       "ruta": "/carga",
       "dominio": "ventas",
       "pagina": "Carga",
-      "extraGzip": 3146,
+      "extraGzip": 3144,
       "archivos": [
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         },
         {
-          "archivo": "Carga-gAYOe-39.js",
-          "gzip": 927
+          "archivo": "Carga-Bzaxv1j8.js",
+          "gzip": 924
         },
         {
           "archivo": "ui-ChAMBGnF.js",
@@ -570,8 +570,8 @@
           "gzip": 257
         },
         {
-          "archivo": "useCargaVendedor-VZp-SSO3.js",
-          "gzip": 202
+          "archivo": "useCargaVendedor-uJtbuz9O.js",
+          "gzip": 201
         }
       ]
     },
@@ -579,14 +579,14 @@
       "ruta": "/mi-comision",
       "dominio": "ventas",
       "pagina": "MiComision",
-      "extraGzip": 2483,
+      "extraGzip": 2485,
       "archivos": [
         {
-          "archivo": "api-Dz4DpKo6.js",
-          "gzip": 1255
+          "archivo": "api-BOph1J5E.js",
+          "gzip": 1257
         },
         {
-          "archivo": "MiComision-BuLWHH_u.js",
+          "archivo": "MiComision-LI-1ABwi.js",
           "gzip": 1228
         }
       ]
@@ -595,15 +595,15 @@
       "ruta": "/administracion",
       "dominio": "administracion",
       "pagina": "Administracion",
-      "extraGzip": 558,
+      "extraGzip": 553,
       "archivos": [
         {
-          "archivo": "ModulePage-BKb1oGpU.js",
-          "gzip": 345
+          "archivo": "ModulePage-yerSgJdq.js",
+          "gzip": 343
         },
         {
-          "archivo": "Administracion-DvUu2gaI.js",
-          "gzip": 213
+          "archivo": "Administracion-DtPNrVdk.js",
+          "gzip": 210
         }
       ]
     },
@@ -611,15 +611,15 @@
       "ruta": "/ubicaciones",
       "dominio": "administracion",
       "pagina": "Ubicaciones",
-      "extraGzip": 552,
+      "extraGzip": 549,
       "archivos": [
         {
-          "archivo": "ModulePage-BKb1oGpU.js",
-          "gzip": 345
+          "archivo": "ModulePage-yerSgJdq.js",
+          "gzip": 343
         },
         {
-          "archivo": "Ubicaciones-D0yppRq2.js",
-          "gzip": 207
+          "archivo": "Ubicaciones-DloZOFvg.js",
+          "gzip": 206
         }
       ]
     },
@@ -627,15 +627,15 @@
       "ruta": "/auditoria",
       "dominio": "administracion",
       "pagina": "Auditoria",
-      "extraGzip": 552,
+      "extraGzip": 548,
       "archivos": [
         {
-          "archivo": "ModulePage-BKb1oGpU.js",
-          "gzip": 345
+          "archivo": "ModulePage-yerSgJdq.js",
+          "gzip": 343
         },
         {
-          "archivo": "Auditoria-CtKvwRbs.js",
-          "gzip": 207
+          "archivo": "Auditoria-CS6fANkt.js",
+          "gzip": 205
         }
       ]
     },
@@ -643,15 +643,15 @@
       "ruta": "/reportes",
       "dominio": "administracion",
       "pagina": "Reportes",
-      "extraGzip": 545,
+      "extraGzip": 541,
       "archivos": [
         {
-          "archivo": "ModulePage-BKb1oGpU.js",
-          "gzip": 345
+          "archivo": "ModulePage-yerSgJdq.js",
+          "gzip": 343
         },
         {
-          "archivo": "Reportes-PD-rZMWV.js",
-          "gzip": 200
+          "archivo": "Reportes-DJvWPquh.js",
+          "gzip": 198
         }
       ]
     }
@@ -661,8 +661,8 @@
       "metrica": "JS de entrada (gzip)",
       "baseBytes": 95970,
       "limiteBytes": 105567,
-      "actualBytes": 99169,
-      "deltaPct": 3.33,
+      "actualBytes": 99176,
+      "deltaPct": 3.34,
       "estado": "OK"
     },
     {
