@@ -95,6 +95,19 @@ describe('fechas es-CL · America/Santiago', () => {
     expect(fmtFechaHora('2026-07-15T12:05:00Z')).toBe('15-07-2026 08:05')
   })
 
+  it('R3-03: una fecha civil AAAA-MM-DD no se desplaza por la zona horaria', () => {
+    expect(fmtFecha('2026-01-15')).toBe('15-01-2026')
+    expect(fmtFecha('2026-07-15')).toBe('15-07-2026')
+    expect(fmtFecha('2024-02-29')).toBe('29-02-2024')
+    expect(fmtFecha('2026-01-01')).toBe('01-01-2026')
+    expect(fmtFecha('2026-02-30')).toBe('—')
+  })
+
+  it('R3-03: fmtFechaHora con fecha civil no inventa hora ni cambia el día', () => {
+    expect(fmtFechaHora('2026-01-15')).toBe('15-01-2026')
+    expect(fmtFechaHora('2026-07-15')).toBe('15-07-2026')
+  })
+
   it('devuelve — con valores vacíos o inválidos', () => {
     expect(fmtFecha(null)).toBe('—')
     expect(fmtFecha(undefined)).toBe('—')

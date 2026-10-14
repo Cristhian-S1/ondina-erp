@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthContext } from '@/context/auth-context'
 import { makePerfil } from '@/test/render'
 import type { Role } from '@/types'
 import DashboardLayout from './DashboardLayout'
+import { obtenerSucursalDashboard } from '@/lib/dashboard'
 
 vi.mock('@/domains', () => ({ domains: [{ nav: [
   { path: '/stock', label: 'Stock', roles: ['bodega', 'administrador'], icon: () => null },
@@ -114,5 +115,31 @@ describe('Dashboard navigation', () => {
   it('actualiza document.title según la ruta', () => {
     setup('/stock', 'bodega')
     expect(document.title).toBe('Stock · Ondina')
+  })
+
+  it('R3-02: al cambiar de sucursal y fallar la lectura nueva no conserva el nombre anterior', async () => {
+    const mocked = vi.mocked(obtenerSucursalDashboard)
+    mocked.mockResolvedValueOnce({ id: 'suc-1', nombre: 'Sucursal A' } as never)
+    mocked.mockRejectedValueOnce(new Error('falla'))
+    const tree = (sucursal: string) => (
+      <AuthContext.Provider value={{ perfil: makePerfil({ rol: 'bodega', sucursal_id: sucursal }), loading: false, signIn: vi.fn(), signOut: vi.fn() }}>
+        <MemoryRouter initialEntries={['/']}><Routes>
+          <Route element={<DashboardLayout />}><Route path="/" element={<p>Home page</p>} /></Route>
+        </Routes></MemoryRouter>
+      </AuthContext.Provider>
+    )
+    const { rerender } = render(tree('suc-1'))
+    fireEvent.click(screen.getByRole('button', { name: 'Alternar menú lateral' }))
+    expect(await screen.findByText('Sucursal A')).toBeInTheDocument()
+    rerender(tree('suc-2'))
+    await waitFor(() => expect(mocked).toHaveBeenCalledWith('suc-2'))
+    expect(screen.queryByText('Sucursal A')).not.toBeInTheDocument()
+    expect(screen.getByText('Sucursal asignada')).toBeInTheDocument()
+  })
+
+  it('R3-05: "Cerrar sesión" conserva nombre accesible explícito al colapsar la barra', () => {
+    setup('/', 'bodega')
+    fireEvent.click(screen.getByRole('button', { name: 'Alternar menú lateral' }))
+    expect(screen.getByRole('button', { name: 'Cerrar sesión' })).toHaveAttribute('aria-label', 'Cerrar sesión')
   })
 })

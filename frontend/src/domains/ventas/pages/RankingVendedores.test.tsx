@@ -64,6 +64,27 @@ describe('RankingVendedores', () => {
     expect(screen.getByRole('option', { name: 'Octubre' })).toBeEnabled()
   })
 
+  it('R3-04: permite períodos históricos anteriores a cuatro años', async () => {
+    vi.mocked(obtenerRankingVendedores).mockResolvedValue([])
+    renderWithProviders(<RankingVendedores />)
+    await screen.findByText(/No hay ventas/)
+    expect(screen.getByRole('option', { name: '2022' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Año'), { target: { value: '2022' } })
+    fireEvent.change(screen.getByLabelText('Mes'), { target: { value: '12' } })
+    await waitFor(() => expect(obtenerRankingVendedores).toHaveBeenCalledWith('2022-12'))
+    expect(screen.getByRole('option', { name: 'Diciembre' })).toBeEnabled()
+  })
+
+  it('R3-04: al volver al año actual ajusta diciembre al mes actual', async () => {
+    vi.mocked(obtenerRankingVendedores).mockResolvedValue([])
+    renderWithProviders(<RankingVendedores />)
+    await screen.findByText(/No hay ventas/)
+    fireEvent.change(screen.getByLabelText('Año'), { target: { value: '2022' } })
+    fireEvent.change(screen.getByLabelText('Mes'), { target: { value: '12' } })
+    fireEvent.change(screen.getByLabelText('Año'), { target: { value: '2026' } })
+    await waitFor(() => expect(obtenerRankingVendedores).toHaveBeenCalledWith('2026-10'))
+  })
+
   it('destaca a la usuaria actual y conserva nombres largos truncados', async () => {
     const largo = 'Nombre extremadamente largo '.repeat(6)
     vi.mocked(obtenerRankingVendedores).mockResolvedValue([fila(1), fila(2, { vendedor: largo }), fila(3), fila(4), fila(5, { vendedor_id: 'user-1' })])

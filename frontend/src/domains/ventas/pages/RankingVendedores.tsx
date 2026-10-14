@@ -9,7 +9,9 @@ const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
-const ANIOS_ATRAS = 3
+// Primer año ofrecido: rango amplio y fijo para no recortar el histórico respecto
+// del selector anterior (sin minDate); no requiere consultar el primer dato (R3-04).
+const ANIO_INICIAL = 2020
 
 const formatearMoneda = (valor: number): string => `$${formatMiles(valor)}`
 
@@ -21,7 +23,7 @@ export default function RankingVendedores() {
 
   const [anioActual, mesNumeroActual] = mesActual.split('-').map(Number)
   const [anio, mesNumero] = mesSeleccionado.split('-').map(Number)
-  const anios = Array.from({ length: ANIOS_ATRAS + 1 }, (_, i) => anioActual - i)
+  const anios = Array.from({ length: Math.max(anioActual - ANIO_INICIAL + 1, 1) }, (_, i) => anioActual - i)
   const maxMes = anio === anioActual ? mesNumeroActual : 12
 
   function cambiar(nuevoAnio: number, nuevoMes: number) {

@@ -46,8 +46,12 @@ export default function DashboardLayout() {
   const { pathname } = useLocation()
   const modalAbierto = mobileOpen && !desktop
 
-  const [sucursalNombre, setSucursalNombre] = useState<string | null>(null)
+  // El nombre se guarda junto al ámbito (perfil + sucursal) al que pertenece: si
+  // el perfil cambia y la lectura nueva falla, no se muestra la sucursal anterior.
+  const [sucursalLeida, setSucursalLeida] = useState<{ clave: string; nombre: string } | null>(null)
   const sucursalId = perfil?.sucursal_id ?? null
+  const claveSucursal = sucursalId ? `${perfil?.id ?? ''}:${sucursalId}` : null
+  const sucursalNombre = sucursalLeida && sucursalLeida.clave === claveSucursal ? sucursalLeida.nombre : null
 
   // Nombre de sucursal para el drawer móvil. Import dinámico: el layout no debe
   // instanciar el cliente Supabase al cargarse; un fallo deja el texto genérico.
@@ -56,10 +60,12 @@ export default function DashboardLayout() {
     let activo = true
     import('../lib/dashboard')
       .then((m) => m.obtenerSucursalDashboard(sucursalId))
-      .then((data) => { if (activo) setSucursalNombre(data?.nombre ?? null) })
+      .then((data) => {
+        if (activo && claveSucursal) setSucursalLeida(data?.nombre ? { clave: claveSucursal, nombre: data.nombre } : null)
+      })
       .catch(() => {})
     return () => { activo = false }
-  }, [modalAbierto, sucursalId])
+  }, [modalAbierto, sucursalId, claveSucursal])
 
   useEffect(() => {
     if (!modalAbierto) return
@@ -201,6 +207,8 @@ export default function DashboardLayout() {
           <button
             type="button"
             onClick={() => void signOut().catch(() => {})}
+            aria-label="Cerrar sesión"
+            title={collapsed ? 'Cerrar sesión' : undefined}
             className={`flex min-h-11 min-w-11 w-full items-center gap-3 rounded-lg py-2.5 text-sm text-slate-300 transition-colors hover:bg-red-500/10 hover:text-red-400 ${
               collapsed ? 'lg:justify-center lg:px-0' : 'px-4'
             }`}
