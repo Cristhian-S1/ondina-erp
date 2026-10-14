@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { makePerfil, renderWithProviders } from '@/test/render'
 import Devoluciones from './Devoluciones'
 import { focusManager } from '@tanstack/react-query'
@@ -148,9 +148,9 @@ describe('HU-13 · Devoluciones', () => {
       expect(screen.getByText(/Devolución de Ana López/i)).toBeInTheDocument()
     })
     expect(screen.getByText('Bidón POL')).toBeInTheDocument()
-    expect(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' })).toBeInTheDocument()
-    expect(screen.getByRole('spinbutton', { name: `Cantidad de envases buenos de ${empaque.nombre}` })).toBeInTheDocument()
-    expect(screen.getByRole('spinbutton', { name: `Cantidad de envases malos de ${empaque.nombre}` })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Cantidad a devolver de Bidón POL' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: `Cantidad de envases buenos de ${empaque.nombre}` })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: `Cantidad de envases malos de ${empaque.nombre}` })).toBeInTheDocument()
   })
 })
 
@@ -165,13 +165,14 @@ it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado
 })
 
 it('B3 · sends products and containers together and keeps the key after failure', async () => {
+  vi.mocked(api.obtenerEnvasesDespacho).mockResolvedValue([{ id: 'de-1', despacho_id: 'd-1', tipo_empaque_id: empaque.id, cantidad: 1, es_ajuste: false, creado_en: '2026-01-01T00:00:00Z' }])
   vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
   vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
   vi.mocked(api.registrarDevolucion).mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.' }).mockResolvedValue({ error: null })
   renderWithProviders(<Devoluciones />)
   fireEvent.click(await screen.findByRole('button', { name: /Ana López/i }))
-  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
-  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad de envases buenos de Bandeja' }), { target: { value: '1' } })
+  fireEvent.change(screen.getByRole('textbox', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
+  fireEvent.change(screen.getByRole('textbox', { name: 'Cantidad de envases buenos de Bandeja' }), { target: { value: '1' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
   await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
   fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
@@ -180,8 +181,8 @@ it('B3 · sends products and containers together and keeps the key after failure
   expect(first.lineas_producto).toEqual([{ producto_id: 'p-1', cantidad: 2 }])
   expect(first.lineas_envase).toEqual([{ tipo_empaque_id: 'te-1', cantidad: 1, estado: 'bueno' }])
   expect(second.idempotency_key).toBe(first.idempotency_key)
-  await waitFor(() => expect(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' })).toHaveValue(null))
-  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
+  await waitFor(() => expect(screen.getByRole('textbox', { name: 'Cantidad a devolver de Bidón POL' })).toHaveValue(''))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '2' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
   await waitFor(() => expect(api.registrarDevolucion).toHaveBeenCalledTimes(3))
   expect(vi.mocked(api.registrarDevolucion).mock.calls[2][0].idempotency_key).not.toBe(first.idempotency_key)
@@ -198,7 +199,7 @@ it('RB-11 · la corrección reenvía la misma clave tras un fallo sin usar el fl
     .mockResolvedValue({ error: null })
   renderWithProviders(<Devoluciones />, { perfil: makePerfil({ rol: 'administrador' }) })
   fireEvent.click(await screen.findByRole('button', { name: /Ana López/i }))
-  fireEvent.change(screen.getByRole('spinbutton', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '1' } })
+  fireEvent.change(screen.getByRole('textbox', { name: 'Cantidad a devolver de Bidón POL' }), { target: { value: '1' } })
   fireEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }))
   await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
   fireEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }))
@@ -302,7 +303,7 @@ it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
   const { rerender } = renderWithProviders(contenido('primera'))
   await screen.findByRole('button', { name: /Ana López/ })
   fireEvent.click(screen.getByRole('button', { name: /Ana López/ }))
-  fireEvent.change(screen.getByRole('spinbutton', { name: /Cantidad a devolver/ }), { target: { value: '1' } })
+  fireEvent.change(screen.getByRole('textbox', { name: /Cantidad a devolver/ }), { target: { value: '1' } })
   vi.mocked(api.obtenerDespachos).mockReturnValueOnce(pendiente).mockResolvedValue([])
   vi.setSystemTime(new Date(Date.now() + 31000))
   await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
@@ -311,7 +312,7 @@ it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
   await screen.findByText(/Aún no hay despachos para esta sucursal/)
   await act(async () => { resolver([makeDespachoHoy()]) })
   expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
-  expect(screen.queryByRole('spinbutton', { name: /Cantidad a devolver/ })).not.toBeInTheDocument()
+  expect(screen.queryByRole('textbox', { name: /Cantidad a devolver/ })).not.toBeInTheDocument()
 })
 
 
@@ -329,7 +330,7 @@ it('FX R1-02/13 · conserva detalle y borrador tras fallo; tarjeta usa el mismo 
   await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
   await screen.findByText(/No fue posible actualizar/)
   expect(screen.getByLabelText('Cantidad a devolver de Bidón POL')).toBe(campo)
-  expect(campo).toHaveValue(2)
+  expect(campo).toHaveValue('2')
   expect(screen.getAllByLabelText('Cantidad a devolver de Bidón POL')).toHaveLength(1)
 })
 
@@ -362,4 +363,92 @@ it('FX2 R4-09 · ayuda neutra describe la cantidad sin error antes de ingresar d
   fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
   expect(await screen.findByRole('alert')).toHaveTextContent('No puedes devolver más de 5')
   expect(campo).toHaveAttribute('aria-invalid','true')
+})
+
+async function abrirDevolucionF2(admin = false) {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  renderWithProviders(<Devoluciones />, { perfil: makePerfil({ rol: admin ? 'administrador' : 'bodega' }) })
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/i }))
+}
+
+it('F2 · devolución de producto valida el saldo en tiempo real y rechaza letras', async () => {
+  await abrirDevolucionF2()
+  const cantidad = screen.getByLabelText('Cantidad a devolver de Bidón POL')
+  expect(fireEvent.keyDown(cantidad, { key: 'e' })).toBe(false)
+  fireEvent.change(cantidad, { target: { value: '6' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription(/No puedes devolver más de 5/)
+  fireEvent.keyDown(cantidad, { key: 'ArrowDown' })
+  expect(cantidad).toHaveValue('5')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(api.registrarDevolucion).not.toHaveBeenCalled()
+})
+
+it('F2 · advertencia suma buenos y malos, no usa tope de stock y exige confirmar', async () => {
+  vi.mocked(api.obtenerEnvasesDespacho).mockResolvedValue([{ id: 'de-1', despacho_id: 'd-1', tipo_empaque_id: empaque.id, cantidad: 2, es_ajuste: false, creado_en: '2026-01-01T00:00:00Z' }])
+  vi.mocked(api.registrarDevolucion).mockResolvedValue({ error: null })
+  await abrirDevolucionF2()
+  const buenos = screen.getByLabelText('Cantidad de envases buenos de Bandeja')
+  const malos = screen.getByLabelText('Cantidad de envases malos de Bandeja')
+  expect(fireEvent.keyDown(buenos, { key: 'a' })).toBe(false)
+  expect(fireEvent.keyDown(malos, { key: '-' })).toBe(false)
+  fireEvent.change(buenos, { target: { value: '2' } })
+  expect(buenos).not.toHaveAttribute('aria-describedby')
+  fireEvent.change(malos, { target: { value: '1' } })
+  expect(buenos).toHaveAccessibleDescription(/pueden venir de clientes/i)
+  expect(malos).toHaveAccessibleDescription(/pueden venir de clientes/i)
+  expect(buenos).toHaveAttribute('aria-invalid', 'false')
+  expect(screen.getByRole('button', { name: 'Registrar devolución' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  let dialogo = screen.getByRole('dialog', { name: 'Confirmar devolución de envases' })
+  expect(dialogo).toHaveAccessibleDescription(/pueden venir de clientes/i)
+  expect(api.registrarDevolucion).not.toHaveBeenCalled()
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Volver a revisar' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(buenos).toHaveValue('2')
+  expect(malos).toHaveValue('1')
+  fireEvent.change(malos, { target: { value: '1000' } })
+  expect(malos).toHaveValue('1.000')
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  dialogo = screen.getByRole('dialog')
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Confirmar y registrar' }))
+  await waitFor(() => expect(api.registrarDevolucion).toHaveBeenCalledTimes(1))
+  expect(vi.mocked(api.registrarDevolucion).mock.calls[0][0].lineas_envase).toEqual([
+    { tipo_empaque_id: 'te-1', cantidad: 2, estado: 'bueno' },
+    { tipo_empaque_id: 'te-1', cantidad: 1000, estado: 'malo' },
+  ])
+})
+
+it('F2 · un tipo sin envases despachados avisa y Escape conserva el formulario y foco', async () => {
+  await abrirDevolucionF2()
+  const buenos = screen.getByLabelText('Cantidad de envases buenos de Bandeja')
+  fireEvent.change(buenos, { target: { value: '1' } })
+  expect(buenos).toHaveAccessibleDescription(/se despacharon 0/)
+  const registrar = screen.getByRole('button', { name: 'Registrar devolución' })
+  registrar.focus()
+  fireEvent.click(registrar)
+  fireEvent(screen.getByRole('dialog'), new Event('cancel', { bubbles: true, cancelable: true }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(registrar).toHaveFocus()
+  expect(buenos).toHaveValue('1')
+  expect(api.registrarDevolucion).not.toHaveBeenCalled()
+})
+
+it('F2 · corregir recupera el saldo anterior de productos y confirma envases excedentes', async () => {
+  vi.mocked(api.obtenerDevolucionesProducto).mockResolvedValue([{ id: 'dev-1', despacho_id: 'd-1', producto_id: 'p-1', cantidad: 2, anulado: false, creado_por: 'user-1', creado_en: '2026-01-01T00:00:00Z' }])
+  vi.mocked(api.corregirDevolucion).mockResolvedValue({ error: null })
+  await abrirDevolucionF2(true)
+  const cantidad = screen.getByLabelText('Cantidad a devolver de Bidón POL')
+  fireEvent.change(cantidad, { target: { value: '5' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  fireEvent.change(cantidad, { target: { value: '6' } })
+  expect(cantidad).toHaveAccessibleDescription(/No puedes devolver más de 5/)
+  fireEvent.change(cantidad, { target: { value: '5' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de envases buenos de Bandeja'), { target: { value: '1234' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar corrección' }))
+  expect(api.corregirDevolucion).not.toHaveBeenCalled()
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirmar y guardar corrección' }))
+  await waitFor(() => expect(api.corregirDevolucion).toHaveBeenCalledTimes(1))
+  expect(api.registrarDevolucion).not.toHaveBeenCalled()
 })

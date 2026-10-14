@@ -2,8 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { corregirDevolucion, registrarDevolucion } from '../api'
 import { btnPrimary, btnSecondary, cardCls, inputCls, tdCls, thCls } from '../../../lib/ui'
-import { fmtFecha, fmtFechaHora } from '../../../lib/format'
+import { fmtFecha, fmtFechaHora, formatMiles } from '../../../lib/format'
 import EstadoVista from '../../../components/EstadoVista'
+import InputNumerico from '../../../components/InputNumerico'
+import Dialog from '../../../components/Dialog'
+import { disponibleParaDevolver } from '../validacion'
 import AmbitoBodega from '../components/AmbitoBodega'
 import { useDatosBodega } from '../hooks/useDatosBodega'
 import { fechaSantiago, inicioPeriodo, useJornadaSantiago } from '../hooks/useJornadaSantiago'
@@ -33,7 +36,7 @@ const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['todo', 'Todo'],
 ]
 
-const inputCompact = `${inputCls} !mt-0 w-20 text-right`
+const inputCompact = `${inputCls} !mt-0 text-right`
 
 export default function Devoluciones() {
   return <AmbitoBodega>{(sucursalId, setOcupado) => <DevolucionesSucursal sucursalId={sucursalId} setOcupado={setOcupado} />}</AmbitoBodega>
@@ -59,8 +62,11 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   const [envaseInputs, setEnvaseInputs] = useState<
     Record<string, { buenos: string; malos: string }>
   >({})
+  const [confirmarEnvases, setConfirmarEnvases] = useState(false)
   const [enviando, actualizarEnviando] = useState(false)
+  const enviandoRef = useRef(false)
   function setEnviando(valor: boolean) {
+    enviandoRef.current = valor
     actualizarEnviando(valor)
     setOcupado(valor)
   }
@@ -94,8 +100,8 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
 
   const estadoDe = (despachoId: string): EstadoDespacho => {
-    const hasProductos = desvProducto.some((x) => x.despacho_id === despachoId)
-    const hasEnvases = desvEnvase.some((x) => x.despacho_id === despachoId)
+    const hasProductos = desvProducto.some((x) => x.despacho_id === despachoId && !x.anulado)
+    const hasEnvases = desvEnvase.some((x) => x.despacho_id === despachoId && !x.anulado)
     if (hasProductos && hasEnvases) return 'completo'
     if (hasProductos) return 'productos'
     if (hasEnvases) return 'envases'
@@ -133,7 +139,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
 
   const devueltoProductoDe = (despachoId: string, productoId: string) =>
     desvProducto
-      .filter((x) => x.despacho_id === despachoId && x.producto_id === productoId)
+      .filter((x) => x.despacho_id === despachoId && x.producto_id === productoId && !x.anulado)
       .reduce((sum, x) => sum + x.cantidad, 0)
 
   const devueltoEnvaseBuenoDe = (despachoId: string, tipoEmpaqueId: string) =>
@@ -142,7 +148,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
         (x) =>
           x.despacho_id === despachoId &&
           x.tipo_empaque_id === tipoEmpaqueId &&
-          x.estado === 'bueno',
+          x.estado === 'bueno' && !x.anulado,
       )
       .reduce((sum, x) => sum + x.cantidad, 0)
 
@@ -152,7 +158,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
         (x) =>
           x.despacho_id === despachoId &&
           x.tipo_empaque_id === tipoEmpaqueId &&
-          x.estado === 'malo',
+          x.estado === 'malo' && !x.anulado,
       )
       .reduce((sum, x) => sum + x.cantidad, 0)
 
@@ -178,13 +184,33 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   }
 
   function seleccionar(despachoId: string) {
+    setConfirmarEnvases(false)
     setSeleccionado(despachoId)
     prellenarInputs(despachoId)
     setError(null)
   }
 
-  async function registrar() {
-    if (!perfil || !seleccionado) return
+  const despachoSeleccionado = despachos.find((d) => d.id === seleccionado)
+  const estado = seleccionado ? estadoDe(seleccionado) : null
+  const productosPendientes = estado === 'pendiente' || estado === 'envases'
+  const envasesPendientes = estado === 'pendiente' || estado === 'productos'
+  const hayProductosRegistrados = desvProducto.some((x) => x.despacho_id === seleccionado)
+  const hayEnvasesRegistrados = desvEnvase.some((x) => x.despacho_id === seleccionado)
+  const editarProductos = productosPendientes || (esAdmin && hayProductosRegistrados)
+  const editarEnvases = envasesPendientes || (esAdmin && hayEnvasesRegistrados)
+  const esCorreccion = esAdmin && (hayProductosRegistrados || hayEnvasesRegistrados)
+  const soloLectura = !esAdmin && estado === 'completo'
+
+  const advertenciasEnvases = editarEnvases && seleccionado ? tiposEmpaqueDevolvibles.flatMap(tipo => {
+    const valores = envaseInputs[tipo.id]
+    const cantidad = (Number(valores?.buenos) || 0) + (Number(valores?.malos) || 0)
+    const despachadas = envasesDespachados(seleccionado).get(tipo.id) ?? 0
+    return cantidad > despachadas ? [{ tipoId: tipo.id, nombre: tipo.nombre, cantidad, despachadas,
+      mensaje: `Devuelves ${formatMiles(cantidad)} envases de ${tipo.nombre} y se despacharon ${formatMiles(despachadas)}. Pueden venir de clientes; revisa las cantidades antes de registrar.` }] : []
+  }) : []
+
+  async function registrar(confirmado = false) {
+    if (enviandoRef.current || !perfil || !seleccionado) return
     setError(null)
     const estado = estadoDe(seleccionado)
 
@@ -220,16 +246,22 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
 
     const despachados = productosDespachados(seleccionado)
     for (const l of lineasProducto) {
-      const max = despachados.get(l.producto_id) ?? 0
+      const max = disponibleParaDevolver(despachados.get(l.producto_id) ?? 0, devueltoProductoDe(seleccionado, l.producto_id), esCorreccion)
       if (l.cantidad > max) {
         const p = productos.find((x) => x.id === l.producto_id)
         setError(
-          `No puedes devolver más de ${max} ${p?.nombre ?? 'del producto'} (despachado).`,
+          `No puedes devolver más de ${max} ${p?.nombre ?? 'del producto'} (disponible para devolver).`,
         )
+        document.getElementById(`devolucion-producto-${l.producto_id}`)?.focus()
         return
       }
     }
 
+    if (advertenciasEnvases.length && !confirmado) {
+      setConfirmarEnvases(true)
+      return
+    }
+    setConfirmarEnvases(false)
     setEnviando(true)
     const payload = {
       despacho_id: seleccionado,
@@ -261,16 +293,6 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   if (datos.isError && !datos.data) return <EstadoVista variante="error" mensaje="No fue posible cargar las devoluciones. Inténtalo de nuevo." onReintentar={() => void load()} />
   if (datos.isPending) return <EstadoVista variante="cargando" />
 
-  const despachoSeleccionado = despachos.find((d) => d.id === seleccionado)
-  const estado = seleccionado ? estadoDe(seleccionado) : null
-  const productosPendientes = estado === 'pendiente' || estado === 'envases'
-  const envasesPendientes = estado === 'pendiente' || estado === 'productos'
-  const hayProductosRegistrados = desvProducto.some((x) => x.despacho_id === seleccionado)
-  const hayEnvasesRegistrados = desvEnvase.some((x) => x.despacho_id === seleccionado)
-  const editarProductos = productosPendientes || (esAdmin && hayProductosRegistrados)
-  const editarEnvases = envasesPendientes || (esAdmin && hayEnvasesRegistrados)
-  const esCorreccion = esAdmin && (hayProductosRegistrados || hayEnvasesRegistrados)
-  const soloLectura = !esAdmin && estado === 'completo'
 
   return (
     <div className="space-y-6">
@@ -433,6 +455,9 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                         {[...productosDespachados(seleccionado).entries()].map(
                           ([productoId, despachado]) => {
                             const producto = productos.find((p) => p.id === productoId)
+                            const disponible = disponibleParaDevolver(despachado, devueltoProductoDe(seleccionado, productoId), esCorreccion)
+                            const errorCantidad = Number(productoInputs[productoId]) > disponible
+                              ? `No puedes devolver más de ${disponible} ${producto?.nombre ?? 'del producto'} (disponible para devolver).` : undefined
                             return (
                               <tr role="row" className="block min-w-0 pb-3 sm:table-row sm:pb-0" key={productoId}>
                                 <td role="cell" data-etiqueta="Producto" className={tdCls}>{producto?.nombre ?? 'Producto'}</td>
@@ -444,26 +469,16 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                                     {cargaDeDespacho(seleccionado, productoId)}
                                   </td>
                                 )}
-                                <td role="cell" data-etiqueta="Devuelve" className={`${tdCls} text-right`}>
+                                <td role="cell" data-etiqueta="Devuelve" className={`${tdCls} text-right sm:min-w-44`}>
                                   {editarProductos ? (
-                                    <input
+                                    <InputNumerico id={`devolucion-producto-${productoId}`}
                                       aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
-                                      aria-invalid={Number(productoInputs[productoId]) > despachado || undefined}
-                                      aria-describedby={`ayuda-devolucion-cantidad${error && Number(productoInputs[productoId]) > despachado ? ' error-devolucion' : ''}`}
-                                      type="number"
-                                      inputMode="numeric"
-                                      min={0}
-                                      max={despachado}
-                                      placeholder="0"
-                                      className={inputCompact}
-                                      value={productoInputs[productoId] ?? ''}
-                                      onChange={(e) =>
-                                        setProductoInputs((prev) => ({
-                                          ...prev,
-                                          [productoId]: e.target.value,
-                                        }))
-                                      }
-                                    />
+                                      aria-describedby="ayuda-devolucion-cantidad"
+                                      className={inputCompact} value={productoInputs[productoId] ?? ''} error={errorCantidad}
+                                      onChange={valor => {
+                                        setError(null)
+                                        setProductoInputs(prev => ({ ...prev, [productoId]: valor === undefined ? '' : String(valor) }))
+                                      }} />
                                   ) : (
                                     <span className="font-medium text-amber-700">
                                       −{devueltoProductoDe(seleccionado, productoId)}
@@ -477,9 +492,9 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                       </tbody>
                     </table>
                   </div>
-                  {productosPendientes && (
+                  {editarProductos && (
                     <p id="ayuda-devolucion-cantidad" className="mt-1 text-xs text-slate-500">
-                      La devolución de cada producto tiene como límite la cantidad despachada.
+                      La devolución de cada producto tiene como límite lo despachado menos lo ya devuelto. En una corrección se reemplazan las cantidades anteriores.
                     </p>
                   )}
                 </div>
@@ -508,6 +523,8 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                         {tiposEmpaqueDevolvibles.map((t) => {
                           const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
                           const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
+                          const advertencia = advertenciasEnvases.find(item => item.tipoId === t.id)
+                          const advertenciaId = `advertencia-envase-${t.id}`
                           return (
                             <tr role="row" className="block min-w-0 pb-3 sm:table-row sm:pb-0" key={t.id}>
                               <td role="cell" data-etiqueta="Envase" className={tdCls}>{t.nombre}</td>
@@ -517,48 +534,35 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                               <td role="cell" data-etiqueta="En bodega" className={`${tdCls} text-right text-slate-500`}>
                                 {stockEnvaseDe(t.id)}
                               </td>
-                              <td role="cell" data-etiqueta="Buenos" className={`${tdCls} text-right`}>
+                              <td role="cell" data-etiqueta="Buenos" className={`${tdCls} text-right sm:min-w-44`}>
                                 {editarEnvases ? (
-                                  <input
-                                    aria-label={`Cantidad de envases buenos de ${t.nombre}`}
-                                    type="number"
-                                    inputMode="numeric"
-                                    min={0}
-                                    max={despachadas}
-                                    placeholder="0"
-                                    className={inputCompact}
-                                    value={input.buenos}
-                                    onChange={(e) =>
-                                      setEnvaseInputs((prev) => ({
-                                        ...prev,
-                                        [t.id]: { ...input, buenos: e.target.value },
-                                      }))
-                                    }
-                                  />
+                                  <div>
+                                    <InputNumerico aria-label={`Cantidad de envases buenos de ${t.nombre}`}
+                                      aria-describedby={advertencia ? advertenciaId : undefined}
+                                      className={inputCompact} value={input.buenos}
+                                      onChange={valor => {
+                                        setError(null)
+                                        setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, buenos: valor === undefined ? '' : String(valor) } }))
+                                      }} />
+                                    {advertencia && <p id={advertenciaId} role="status" className="mt-1 text-left text-xs text-amber-800">{advertencia.mensaje}</p>}
+                                  </div>
                                 ) : (
                                   <span className="font-medium text-emerald-700">
                                     +{devueltoEnvaseBuenoDe(seleccionado, t.id)}
                                   </span>
                                 )}
                               </td>
-                              <td role="cell" data-etiqueta="Malos" className={`${tdCls} text-right`}>
+                              <td role="cell" data-etiqueta="Malos" className={`${tdCls} text-right sm:min-w-44`}>
                                 {editarEnvases ? (
-                                  <input
-                                    aria-label={`Cantidad de envases malos de ${t.nombre}`}
-                                    type="number"
-                                    inputMode="numeric"
-                                    min={0}
-                                    max={despachadas - (Number(input.buenos) || 0)}
-                                    placeholder="0"
-                                    className={inputCompact}
-                                    value={input.malos}
-                                    onChange={(e) =>
-                                      setEnvaseInputs((prev) => ({
-                                        ...prev,
-                                        [t.id]: { ...input, malos: e.target.value },
-                                      }))
-                                    }
-                                  />
+                                  <div>
+                                    <InputNumerico aria-label={`Cantidad de envases malos de ${t.nombre}`}
+                                      aria-describedby={advertencia ? advertenciaId : undefined}
+                                      className={inputCompact} value={input.malos}
+                                      onChange={valor => {
+                                        setError(null)
+                                        setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, malos: valor === undefined ? '' : String(valor) } }))
+                                      }} />
+                                  </div>
                                 ) : (
                                   <span className="font-medium text-amber-700">
                                     +{devueltoEnvaseMaloDe(seleccionado, t.id)}
@@ -597,6 +601,17 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
           )}
         </section>
       </div>
+      <Dialog open={confirmarEnvases} onClose={() => { if (!enviando) setConfirmarEnvases(false) }}
+        title="Confirmar devolución de envases"
+        description="La cantidad de algunos envases supera lo despachado. Pueden venir de clientes y está permitido registrarlos; confirma que las cantidades son correctas.">
+        <ul className="space-y-2 text-sm text-slate-700">{advertenciasEnvases.map(item => <li key={item.tipoId}>{item.mensaje}</li>)}</ul>
+        <div className="flex flex-wrap justify-end gap-3">
+          <button type="button" className={btnSecondary} onClick={() => setConfirmarEnvases(false)}>Volver a revisar</button>
+          <button type="button" className={btnPrimary} disabled={enviando} onClick={() => void registrar(true)}>
+            {esCorreccion ? 'Confirmar y guardar corrección' : 'Confirmar y registrar'}
+          </button>
+        </div>
+      </Dialog>
     </div>
   )
 }
