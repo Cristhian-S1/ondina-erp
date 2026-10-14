@@ -1,5 +1,48 @@
 # Mobile and tablet performance
 
+## Presupuesto del conjunto inicial — base del 2026-10-13
+
+Desde B6, `npm run size` muestra cinco métricas. Se comprime cada archivo de forma independiente con `node:zlib.gzipSync` (nivel predeterminado), y después se suman sus bytes comprimidos; no se comprime una concatenación artificial. Las cifras históricas obtenidas con `gzip -9` más abajo conservan su método y no se comparan como si usaran exactamente la misma compresión.
+
+| Métrica | Qué cuenta | Base | Límite (+10 %) |
+| --- | --- | ---: | ---: |
+| JS de entrada (gzip) | Primer script de módulo de `dist/index.html`, comprimido individualmente. | 95.970 B | 105.567 B |
+| CSS de entrada (gzip) | Primera hoja `rel="stylesheet"` de `dist/index.html`, comprimida individualmente. | 43.502 B | 47.853 B |
+| Chunk JS más grande (sin comprimir) | Mayor archivo `.js` de todo `dist/`, incluidas las rutas diferidas. | 301.916 B | 332.108 B |
+| **JS inicial total (gzip)** | Scripts de módulo de entrada y todos los `link rel="modulepreload"` declarados en `dist/index.html`, sin duplicar archivos. No incluye páginas que sólo se descargan mediante import dinámico. | **158.877 B** | **174.765 B** |
+| **CSS inicial total (gzip)** | Todas las hojas `link rel="stylesheet"` declaradas en `dist/index.html`, sin duplicar archivos. | **43.684 B** | **48.053 B** |
+
+Las primeras tres bases y sus límites permanecen iguales a los de `059172a`; las nuevas bases se midieron el **2026-10-13** sobre `0f503a2` (base integrada `371eec4`, con la regla B6 aplicada). `initialDate`/`initialCommit` registran esa procedencia por separado y `headroomPercent: 10` sigue siendo común a las cinco métricas. Cada límite es `ceil(base × 1,10)`.
+
+La medición exige un `frontend/.env.local` real apuntando a Supabase local. Sin URL/clave pública válidas, `lib/supabase.ts` lanza durante la inicialización y el bundler puede eliminar código inalcanzable de Supabase: ese build no es una base representativa. No se deben usar datos ni claves de producción para medir.
+
+B5 introdujo una combinación de imports del shell que hizo que Supabase se fusionara en el entry. B6 establece un grupo `vendor-supabase` para `@supabase/*` y sus dependencias mediante [`build.rolldownOptions.output.codeSplitting`](https://vite.dev/guide/build#chunking-strategy), con [`includeDependenciesRecursively`](https://rolldown.rs/reference/TypeAlias.CodeSplittingGroup). La API se verificó con Vite 8.2.0 y los tipos de Rolldown instalados. Así se conserva un vendor precargado sin agrupar todas las dependencias ni retirar la carga por ruta.
+
+Comparación con la misma configuración local y `gzipSync`:
+
+| Medición | Antes de B6 | Después de B6 | Diferencia |
+| --- | ---: | ---: | ---: |
+| JS de entrada | 155.892 B | 102.511 B | −53.381 B |
+| Chunk JS máximo sin comprimir | 533.027 B | 325.362 B | −207.665 B |
+| **JS inicial total** | **159.156 B** | **158.877 B** | **−279 B (−0,175 %)** |
+| CSS inicial total | 43.684 B | 43.684 B | 0 B |
+
+El ahorro de entry no equivale a eliminar Supabase de la primera descarga: se traslada a un vendor que se precarga. La nueva métrica evita aceptar una regresión que sólo mueve bytes del entry a un preload. Las 15 páginas de dominio siguen como entradas dinámicas; `RankingVendedores`, los formularios y sus dependencias adicionales permanecen fuera del conjunto inicial de `/login`.
+
+Pruebas reproducibles, desde `frontend/`:
+
+```sh
+npm run build
+npm run size
+npx vitest run scripts/check-bundle-size.test.mjs
+npx tsc -p tsconfig.app.json --showConfig
+npx tsc -p tsconfig.node.json --showConfig
+```
+
+Las pruebas crean `dist` sintéticos en directorios temporales: crecimiento de preload aunque baje entry, segunda hoja CSS, archivos repetidos, recurso ausente, límite exacto y presupuesto incompleto. Además ejecutan un build mínimo con la configuración real para comprobar vendor precargado y página diferida; no dependen de un `dist/` previo. Ambos proyectos TypeScript declaran `strict: true` explícitamente.
+
+Las mediciones históricas que siguen se conservan como evidencia fechada y no sustituyen estas cinco comprobaciones del build actual.
+
 This page records the manual mobile/tablet measurements requested by issue [#50](https://github.com/Cristhian-S1/ondina-erp/issues/50) (Beads OND-683): first load of `/login` with Lighthouse on a throttled connection, and the extra JS/CSS that each domain downloads on its first navigation after login. CI enforces the bundle budget (see [Deployment](deployment.md#bundle-budget)); this measurement stays manual because Lighthouse numbers depend on the machine and the network emulation.
 
 Measured on 2026-10-13 from commit `fed03ea` (branch `Cristhian-S1/test-t1-rendimiento`), built against a local Supabase stack of this repository.

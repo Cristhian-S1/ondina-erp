@@ -4,7 +4,11 @@
     "commit": "059172a",
     "entryJsGzipBytes": 95970,
     "entryCssGzipBytes": 43502,
-    "largestJsChunkRawBytes": 301916
+    "largestJsChunkRawBytes": 301916,
+    "initialDate": "2026-10-13",
+    "initialCommit": "0f503a2",
+    "initialJsGzipBytes": 158877,
+    "initialCssGzipBytes": 43684
   },
   "headroomPercent": 10
 }
