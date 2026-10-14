@@ -27,3 +27,11 @@ Fecha: 2026-10-14 · Rama de worktree `Cristhian-S1/fux-f3-produccion` · Base `
 | incidencias | 375 / 768 / 1280 | ✔ en los tres | 365 / 325 / 345 px (varía solo por el ancho del texto) |
 
 Capturas: `capturas/f3-registrar-{375,768,1280}.png`, `capturas/f3-incidencias-{375,768,1280}.png`.
+
+## F3b · InputNumerico en Producción (ítem 3)
+
+- `Produccion.tsx`: cantidad de producción y cantidad de merma usan `components/InputNumerico` (solo dígitos, miles con punto, placeholder `0`, flechas ±1). Las etiquetas se enlazan por `htmlFor` y el foco por error de envío se conserva.
+- **Validación en tiempo real**: `calculos.ts` (`limiteEnvases`, `mensajeLimiteEnvases`) toma el `tipo_empaque_id` del producto elegido y los envases vacíos retornables de la sucursal (misma consulta de la sección Envases, ahora también activa en Registrar). Si la cantidad los supera se muestra bajo el input «Solo hay N envases vacíos disponibles para este producto.»; no se usa `max` para no recortar en silencio (patrón de Registrar venta) y el envío queda bloqueado con el mismo mensaje. Sin envase retornable conocido no hay límite. La merma no tiene límite de disponibilidad conocido en esta pantalla, por lo que solo adopta el componente.
+- Pruebas: rechazo de texto y formato de miles, error en tiempo real, envío bloqueado (`Produccion.test.tsx`); ajuste de `aria-invalid` en `Produccion.branch.test.tsx`.
+- Verificación: lint, build, size (5 métricas OK) y test (54 archivos, 713 pruebas) verdes. Visual 375/768/1280 en registrar e incidencias sin desborde (scrollWidth = innerWidth); con 99.999 aparece el error de envases y `12a34` en merma queda `1.234`.
+- Capturas: `capturas/f3b-registrar-{375,1280}.png`, `capturas/f3b-incidencias-{375,768}.png`.
