@@ -117,3 +117,13 @@ it('FE-05 · conserva cantidad y observaciones si falla Actualizar', async () =>
   expect(screen.getByLabelText('Cantidad')).toHaveValue('12')
   expect(screen.getByLabelText('Observaciones (opcional)')).toHaveValue('Turno de mañana')
 })
+
+it('F3 · el formulario no crece con la lista: columnas independientes y lista con alto propio', async () => {
+  renderWithProviders(<Produccion />)
+  const formulario = (await screen.findByText('Nueva producción')).closest('form')!
+  expect(formulario.className).toMatch(/self-start/)
+  expect(formulario.parentElement!.className).toMatch(/items-start/)
+  const lista = await screen.findByTestId('lista-produccion-reciente')
+  expect(lista.className).toMatch(/xl:max-h-/)
+  expect(formulario.contains(lista)).toBe(false)
+})

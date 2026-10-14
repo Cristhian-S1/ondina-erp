@@ -131,7 +131,7 @@ it.each(['registrar', 'envases', 'historial', 'indicadores', 'incidencias'])('UX
 
 it('UX-12 · éxito de producción utiliza una notificación cerrable', async () => {
   renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   fireEvent.change(await screen.findByLabelText('Producto'), { target: { value: 'p1' } })
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
@@ -143,7 +143,7 @@ it('UX-12 · éxito de producción utiliza una notificación cerrable', async ()
 it('UX-12 · fallo de mutación conserva los campos y se cierra con Toast', async () => {
   vi.mocked(api.registrarProduccion).mockResolvedValueOnce('No hay envases vacíos suficientes.')
   renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   fireEvent.change(await screen.findByLabelText('Producto'), { target: { value: 'p1' } })
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
@@ -184,7 +184,7 @@ it.each(['incidencia', 'merma'] as const)('UX-12 · fallo de %s usa Toast y cons
   if (tipo === 'incidencia') vi.mocked(api.registrarIncidencia).mockResolvedValueOnce('No hay stock suficiente.')
   else vi.mocked(api.registrarMerma).mockResolvedValueOnce('No hay stock suficiente.')
   renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   if (tipo === 'incidencia') fireEvent.change(screen.getByLabelText('Descripción de la incidencia'), { target: { value: 'Filtro detenido' } })
   else {
     fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
@@ -218,7 +218,7 @@ it('FX R2-03 · el Toast se cierra automáticamente y la validación persiste', 
 
 it('conserva el formulario al consultar otra sección y limpia la notificación anterior', async () => {
   const { rerender } = renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
   fireEvent.change(screen.getByLabelText('Observaciones (opcional)'), { target: { value: 'Turno de mañana' } })
   // Sin producto: validación pública, sin enviar una escritura.
@@ -254,7 +254,7 @@ it.each([
 ])('FX2 R4-11 · validación de %s persiste en campo sin Toast', async (seccion, boton, campo) => {
   location.pathname = `/produccion/${seccion}`
   renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   fireEvent.click(screen.getByRole('button', { name: boton }))
   expect(screen.getByLabelText(campo)).toHaveAttribute('aria-invalid', 'true')
   const id = screen.getByLabelText(campo).getAttribute('aria-describedby')!
@@ -274,7 +274,7 @@ it('FX R2-06 · administrador inicia en su sucursal asignada', async () => {
 it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el campo', async () => {
   location.pathname = '/produccion/incidencias'
   renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
   expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-describedby', 'error-merma-cantidad')
@@ -297,7 +297,7 @@ it.each([
 ])('FX2 R4-11 · %s enfoca el campo inválido sin repetir la validación en Toast', async (boton, nombre) => {
   location.pathname = '/produccion/incidencias'
   renderWithProviders(<Produccion />)
-  await screen.findByRole('option', { name: 'Agua' })
+  await screen.findAllByRole('option', { name: 'Agua' })
   const campo = screen.getByLabelText(nombre)
   screen.getByRole('button', { name: boton }).focus()
   fireEvent.click(screen.getByRole('button', { name: boton }))

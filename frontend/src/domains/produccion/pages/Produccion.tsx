@@ -14,6 +14,7 @@ import { registrarIncidencia, registrarMerma, registrarProduccion } from '../api
 import { validarMerma, validarProduccion } from '../validacion'
 import HistorialProduccion from '../components/HistorialProduccion'
 import IndicadoresProduccion from '../components/IndicadoresProduccion'
+import ProduccionReciente from '../components/ProduccionReciente'
 import TablaProduccionResponsive from '../components/TablaProduccionResponsive'
 
 const secciones: { id: SeccionProduccion; titulo: string; descripcion: string }[] = [
@@ -23,8 +24,8 @@ const secciones: { id: SeccionProduccion; titulo: string; descripcion: string }[
   { id: 'indicadores', titulo: 'Indicadores', descripcion: 'Revisa las unidades y registros de producción del período en America/Santiago.' },
   { id: 'incidencias', titulo: 'Incidencias', descripcion: 'Registra incidencias del turno y mermas de productos. Horas de America/Santiago.' },
 ]
-const formCls = `${cardCls} min-w-0 space-y-4 p-5`
-const gridCls = 'grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]'
+const formCls = `${cardCls} min-w-0 space-y-4 self-start p-5`
+const gridCls = 'grid min-w-0 grid-cols-1 gap-6 items-start xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]'
 const controlCls = `${inputCls} min-w-0 max-w-full`
 
 export default function Produccion() {
@@ -173,12 +174,9 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <label className={labelCls}>Observaciones (opcional)<textarea className={controlCls} rows={3} maxLength={1000} value={observaciones} onChange={event => setObservaciones(event.target.value)} /></label>
         <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
       </form>
-      <section className={`${cardCls} min-w-0`}>
-        <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Producción reciente</h2>
-        {!catalogoInvalido && <EstadoConsulta consulta={consulta.producciones} cargando="Cargando producción reciente...">
-          {!consulta.producciones.data?.length ? <EstadoVista variante="vacio" mensaje="No hay producciones registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha y hora (America/Santiago)', sinSalto: true }, { titulo: 'Producto' }, { titulo: 'Cantidad', numerica: true }]} filas={consulta.producciones.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), nombreProducto(item.producto_id), formatMiles(item.cantidad)] }))} />}
-        </EstadoConsulta>}
-      </section>
+      {!catalogoInvalido && <EstadoConsulta consulta={consulta.producciones} cargando="Cargando producción reciente...">
+        <ProduccionReciente perfilId={perfil?.id ?? ''} sucursalId={sucursalId} productos={productos} recientes={consulta.producciones.data ?? []} />
+      </EstadoConsulta>}
     </div>}
 
     {seccion === 'incidencias' && <div className="min-w-0 space-y-6">
@@ -192,11 +190,11 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         </form>
         <section className={`${cardCls} min-w-0`}>
           <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Incidencias recientes</h2>
-          <EstadoConsulta consulta={consulta.incidencias} cargando="Cargando incidencias...">
+          <div className="min-w-0 xl:max-h-[28rem] xl:overflow-y-auto"><EstadoConsulta consulta={consulta.incidencias} cargando="Cargando incidencias...">
             {!consulta.incidencias.data?.length ? <EstadoVista variante="vacio" mensaje="No hay incidencias registradas." /> : <ul className="divide-y divide-slate-100">{consulta.incidencias.data.map(item => <li key={item.id} className="min-w-0 space-y-1 px-5 py-4 [overflow-wrap:anywhere]">
               <p className="text-xs text-slate-500">{fmtFechaHora(item.creado_en)}</p><p className="whitespace-pre-wrap text-sm">{item.descripcion}</p>
             </li>)}</ul>}
-          </EstadoConsulta>
+          </EstadoConsulta></div>
         </section>
       </div>
       <div className={gridCls}>
@@ -212,9 +210,9 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         </form>
         <section className={`${cardCls} min-w-0`}>
           <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Mermas recientes</h2>
-          <EstadoConsulta consulta={consulta.mermas} cargando="Cargando mermas...">
+          <div className="min-w-0 xl:max-h-[28rem] xl:overflow-y-auto"><EstadoConsulta consulta={consulta.mermas} cargando="Cargando mermas...">
             {!consulta.mermas.data?.length ? <EstadoVista variante="vacio" mensaje="No hay mermas registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha', sinSalto: true }, { titulo: 'Producto' }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Motivo' }]} filas={consulta.mermas.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), item.producto_id ? nombreProducto(item.producto_id) : 'Producto', formatMiles(item.cantidad), item.motivo] }))} />}
-          </EstadoConsulta>
+          </EstadoConsulta></div>
         </section>
       </div>
     </div>}

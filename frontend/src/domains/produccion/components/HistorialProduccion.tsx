@@ -1,8 +1,11 @@
 import TablaProduccionResponsive from './TablaProduccionResponsive'
-import { useId, useState } from 'react'
+import FiltrosProduccion from './FiltrosProduccion'
+import { filtrosVacios, rangoInvertido } from './filtros'
+import type { ValoresFiltros } from './filtros'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import EstadoVista from '../../../components/EstadoVista'
-import { btnSecondary, cardCls, inputCls, labelCls } from '../../../lib/ui'
+import { cardCls } from '../../../lib/ui'
 import { fmtFechaHora, formatMiles } from '../../../lib/format'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 import type { Producto } from '../../../types'
@@ -16,11 +19,9 @@ interface HistorialProduccionProps {
 }
 
 export default function HistorialProduccion({ sucursalId, productos, versionDatos = 0, perfilId = '' }: HistorialProduccionProps) {
-  const [productoId, setProductoId] = useState('')
-  const [desde, setDesde] = useState('')
-  const [hasta, setHasta] = useState('')
-  const errorRangoId = useId()
-  const rangoInvalido = !!desde && !!hasta && desde > hasta
+  const [filtros, setFiltros] = useState<ValoresFiltros>(filtrosVacios)
+  const { productoId, desde, hasta } = filtros
+  const rangoInvalido = rangoInvertido(filtros)
   const consulta = useQuery({
     queryKey: ['produccion', perfilId, sucursalId, 'historial', productoId, desde, hasta, versionDatos],
     queryFn: () => obtenerHistorialProduccion({ sucursalId, productoId, desde, hasta, limite: 200 }),
@@ -31,37 +32,8 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
   const cargando = !rangoInvalido && consulta.isPending
   const error = consulta.error ? mensajeErrorSupabase(consulta.error) : null
 
-  function limpiarFiltros() {
-    setProductoId('')
-    setDesde('')
-    setHasta('')
-  }
-
   return <section aria-busy={!rangoInvalido && consulta.isFetching} className="min-w-0 space-y-4">
-    <div className={`${cardCls} min-w-0 grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4`}>
-      <label className={`${labelCls} min-w-0`}>
-        Producto
-        <select
-          className={`${inputCls} min-w-0 max-w-full`}
-          value={productoId}
-          onChange={(event) => setProductoId(event.target.value)}
-        >
-          <option value="">Todos</option>
-
-          {productos
-            .filter((producto) => producto.activo)
-            .map((producto) => (
-              <option key={producto.id} value={producto.id}>
-                {producto.nombre}
-              </option>
-            ))}
-        </select>
-      </label>
-      <label className={`${labelCls} min-w-0`}>Desde<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={desde} aria-invalid={rangoInvalido || undefined} aria-describedby={rangoInvalido ? errorRangoId : undefined} max={hasta || undefined} onChange={(event) => setDesde(event.target.value)} /></label>
-      <label className={`${labelCls} min-w-0`}>Hasta<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={hasta} aria-invalid={rangoInvalido || undefined} aria-describedby={rangoInvalido ? errorRangoId : undefined} min={desde || undefined} onChange={(event) => setHasta(event.target.value)} /></label>
-      {rangoInvalido && <p id={errorRangoId} role="alert" className="text-sm text-red-600 sm:col-span-2">Desde debe ser anterior o igual a Hasta.</p>}
-      <div className="flex items-end"><button type="button" className={btnSecondary} onClick={limpiarFiltros}>Limpiar filtros</button></div>
-    </div>
+    <FiltrosProduccion valores={filtros} productos={productos} onChange={setFiltros} />
 
     <div className={`${cardCls} min-w-0`}>
       <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Historial de producción</h2><p className="mt-1 text-xs text-slate-500">Máximo 200 registros, ordenados desde el más reciente. Horas de America/Santiago.</p></div>
