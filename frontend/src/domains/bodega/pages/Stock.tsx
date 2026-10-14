@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerStockBodega, obtenerStockEnvases } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import EstadoVista from '../../../components/EstadoVista'
 import { formatMiles } from '../../../lib/format'
 import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
 
@@ -106,7 +107,7 @@ export default function Stock() {
     return () => { vigente = false }
   }, [perfil, version])
 
-  if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
+  if (cargando) return <EstadoVista variante="cargando" />
 
   const sucursalActual = sucursales.find((s) => s.id === sucursalId)
 
@@ -162,14 +163,11 @@ export default function Stock() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className={btnPrimary}
+            className={btnSecondary}
             disabled={refrescando}
             onClick={() => setVersion((actual) => actual + 1)}
           >
             {refrescando ? 'Actualizando...' : 'Actualizar'}
-          </button>
-          <button type="button" className={btnSecondary} disabled>
-            Exportar Excel
           </button>
         </div>
       </div>
@@ -177,15 +175,13 @@ export default function Stock() {
       <Tabs activa={tab} onChange={setTab} />
 
       {errorCatalogo || errorStock ? (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorCatalogo ?? errorStock}</p>
+        <EstadoVista variante="error" mensaje={errorCatalogo ?? errorStock ?? undefined} onReintentar={() => setVersion((actual) => actual + 1)} />
       ) : refrescando ? (
-        <p className="text-sm text-slate-500">Actualizando stock...</p>
+        <EstadoVista variante="cargando" mensaje="Actualizando stock..." />
       ) : tab === 'productos' ? (
         <SeccionStock titulo="Productos en bodega">
           {filasProductos.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              Sin registros de stock de productos para esta sucursal.
-            </p>
+            <div role="status"><EstadoVista variante="vacio" mensaje="Sin registros de stock de productos para esta sucursal." /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -212,9 +208,7 @@ export default function Stock() {
       ) : (
         <SeccionStock titulo="Envases">
           {filasEnvases.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              Sin registros de envases para esta sucursal.
-            </p>
+            <div role="status"><EstadoVista variante="vacio" mensaje="Sin registros de envases para esta sucursal." /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

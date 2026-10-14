@@ -165,3 +165,20 @@ it('FE-06 · descarta la respuesta pendiente al quitar la sucursal y libera Actu
   fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
   expect(api.obtenerStockBodega).not.toHaveBeenCalled()
 })
+
+
+it('B1 · oculta la exportación pendiente y presenta Actualizar como secundario', async () => {
+  renderWithProviders(<Stock />)
+  await screen.findByText(/Sin registros de stock de productos/)
+  expect(screen.queryByRole('button', { name: 'Exportar Excel' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Actualizar' })).toHaveClass('bg-white')
+})
+
+it('B1 · anuncia estados y ofrece Reintentar para un fallo de stock', async () => {
+  vi.mocked(api.obtenerStockBodega).mockRejectedValueOnce(new Error('Fallo')).mockResolvedValue(stockProductos)
+  renderWithProviders(<Stock />)
+  expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+  await screen.findByRole('alert')
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByText('30')).toBeInTheDocument()
+})
