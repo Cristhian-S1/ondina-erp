@@ -136,3 +136,27 @@ it('FE-05 · muestra error de vendedores sin borrar los datos del cliente', asyn
   expect(screen.getByPlaceholderText('Nombre o razón comercial')).toHaveValue('Almacén Sur')
   expect(screen.getByRole('button', { name: 'Guardar cliente' })).toBeDisabled()
 })
+
+it('A1-12 · errores describen controles con nombre estable y RHF enfoca el primero', async () => {
+  await renderModal()
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar cliente' }))
+  await screen.findByText('Ingresa el nombre')
+  for (const nombre of ['Nombre', 'Dirección']) {
+    const campo = screen.getByRole('textbox', { name: nombre, exact: true })
+    expect(campo).toHaveAttribute('aria-invalid', 'true')
+    const descripcion = document.getElementById(campo.getAttribute('aria-describedby')!)!
+    expect(descripcion).toBeInTheDocument()
+    expect((campo as HTMLInputElement).labels?.[0]).not.toContainElement(descripcion)
+    expect(campo).toHaveClass('border-red-400')
+  }
+  expect(screen.getByRole('textbox', { name: 'Nombre', exact: true })).toHaveFocus()
+})
+
+it('UX-21 · teléfono prepara teclado y autocompletado, nombre capitaliza palabras', async () => {
+  await renderModal()
+  const telefono = screen.getByRole('textbox', { name: 'Teléfono' })
+  expect(telefono).toHaveAttribute('type', 'tel')
+  expect(telefono).toHaveAttribute('inputmode', 'tel')
+  expect(telefono).toHaveAttribute('autocomplete', 'tel')
+  expect(screen.getByRole('textbox', { name: 'Nombre' })).toHaveAttribute('autocapitalize', 'words')
+})
