@@ -41,7 +41,7 @@ export default function ProduccionReciente({ perfilId, sucursalId, productos, re
         {rangoInvalido ? null : cargando ? <EstadoVista variante="cargando" mensaje="Cargando producción..." />
           : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} />
           : registros.length === 0 ? <EstadoVista variante="vacio" mensaje={filtrando ? 'No hay producciones para los filtros seleccionados.' : 'No hay producciones registradas.'} />
-          : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha y hora (America/Santiago)', sinSalto: true }, { titulo: 'Producto' }, { titulo: 'Cantidad', numerica: true }]} filas={registros.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), nombre(item.producto_id), formatMiles(item.cantidad)] }))} />}
+          : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha y hora (America/Santiago)', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true }]} filas={registros.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), nombre(item.producto_id), formatMiles(item.cantidad)] }))} />}
       </div>
     </section>
   </div>

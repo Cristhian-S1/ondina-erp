@@ -63,7 +63,7 @@ export default function IndicadoresProduccion({ sucursalId, productos, versionDa
     {datoValido && <div className={`${cardCls} min-w-0`}>
       <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Totales por producto</h2>
       {resumen.porProducto.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay producción en el período." /> : <TablaProduccionResponsive
-        columnas={[{ titulo: 'Producto' }, { titulo: 'Unidades', numerica: true }, { titulo: 'Registros', numerica: true }]}
+        columnas={[{ titulo: 'Producto', destacada: true }, { titulo: 'Unidades', numerica: true }, { titulo: 'Registros', numerica: true }]}
         filas={resumen.porProducto.map(item => ({ id: item.productoId, celdas: [productos.find(producto => producto.id === item.productoId)?.nombre ?? 'Nombre no disponible', formatMiles(item.cantidad), formatMiles(item.registros)] }))}
       />}
     </div>}

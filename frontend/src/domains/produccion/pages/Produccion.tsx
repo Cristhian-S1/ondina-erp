@@ -196,8 +196,8 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <section className={`${cardCls} min-w-0`}>
           <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Incidencias recientes</h2>
           <div className="min-w-0 xl:max-h-[28rem] xl:overflow-y-auto"><EstadoConsulta consulta={consulta.incidencias} cargando="Cargando incidencias...">
-            {!consulta.incidencias.data?.length ? <EstadoVista variante="vacio" mensaje="No hay incidencias registradas." /> : <ul className="divide-y divide-slate-100">{consulta.incidencias.data.map(item => <li key={item.id} className="min-w-0 space-y-1 px-5 py-4 [overflow-wrap:anywhere]">
-              <p className="text-xs text-slate-500">{fmtFechaHora(item.creado_en)}</p><p className="whitespace-pre-wrap text-sm">{item.descripcion}</p>
+            {!consulta.incidencias.data?.length ? <EstadoVista variante="vacio" mensaje="No hay incidencias registradas." /> : <ul className="space-y-3 bg-slate-50 p-3 sm:space-y-0 sm:divide-y sm:divide-slate-100 sm:bg-transparent sm:p-0">{consulta.incidencias.data.map(item => <li key={item.id} data-testid="tarjeta-registro" className="min-w-0 space-y-2 rounded-xl border border-slate-300 bg-white p-4 shadow-sm [overflow-wrap:anywhere] sm:space-y-1 sm:rounded-none sm:border-0 sm:px-5 sm:py-4 sm:shadow-none">
+              <p className="inline-block rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 sm:bg-transparent sm:p-0 sm:font-normal sm:text-slate-600">{fmtFechaHora(item.creado_en)}</p><p className="whitespace-pre-wrap text-sm text-slate-900">{item.descripcion}</p>
             </li>)}</ul>}
           </EstadoConsulta></div>
         </section>
@@ -216,7 +216,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <section className={`${cardCls} min-w-0`}>
           <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Mermas recientes</h2>
           <div className="min-w-0 xl:max-h-[28rem] xl:overflow-y-auto"><EstadoConsulta consulta={consulta.mermas} cargando="Cargando mermas...">
-            {!consulta.mermas.data?.length ? <EstadoVista variante="vacio" mensaje="No hay mermas registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha', sinSalto: true }, { titulo: 'Producto' }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Motivo' }]} filas={consulta.mermas.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), item.producto_id ? nombreProducto(item.producto_id) : 'Producto', formatMiles(item.cantidad), item.motivo] }))} />}
+            {!consulta.mermas.data?.length ? <EstadoVista variante="vacio" mensaje="No hay mermas registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Motivo' }]} filas={consulta.mermas.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), item.producto_id ? nombreProducto(item.producto_id) : 'Producto', formatMiles(item.cantidad), item.motivo] }))} />}
           </EstadoConsulta></div>
         </section>
       </div>

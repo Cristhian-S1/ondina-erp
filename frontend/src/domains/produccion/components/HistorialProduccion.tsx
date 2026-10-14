@@ -41,7 +41,7 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
       {!rangoInvalido && (cargando ? <EstadoVista variante="cargando" mensaje="Cargando historial..." /> : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null)}
       {!rangoInvalido && !cargando && !error && registros.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay registros para los filtros seleccionados." /> : null}
       {!rangoInvalido && !cargando && !error && registros.length > 0 ? <TablaProduccionResponsive
-        columnas={[{ titulo: 'Fecha y hora', sinSalto: true }, { titulo: 'Producto' }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Observaciones' }]}
+        columnas={[{ titulo: 'Fecha y hora', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Observaciones' }]}
         filas={registros.map(registro => ({ id: registro.id, celdas: [fmtFechaHora(registro.creado_en), productos.find(producto => producto.id === registro.producto_id)?.nombre ?? 'Nombre no disponible', formatMiles(registro.cantidad), registro.observaciones || '—'] }))}
       /> : null}
     </div>

@@ -40,3 +40,14 @@ describe('F3 · ProduccionReciente', () => {
     expect(screen.getByTestId('lista-produccion-reciente').className).toMatch(/xl:overflow-y-auto/)
   })
 })
+
+describe('M1 · tarjetas por registro', () => {
+  it('muestra una tarjeta por registro con fecha destacada y producto como título', () => {
+    const dos = [...(recientes as unknown as object[]), { id: 'r2', producto_id: 'p2', cantidad: 1500, creado_en: '2026-10-13T16:00:00Z', observaciones: null }] as never
+    render(<ProduccionReciente perfilId="u" sucursalId="s" productos={productos} recientes={dos} />)
+    const tarjetas = screen.getAllByTestId('tarjeta-registro')
+    expect(tarjetas).toHaveLength(2)
+    expect(tarjetas[1]).toHaveTextContent('Agua 20L')
+    expect(tarjetas[1]).toHaveTextContent('1.500')
+  })
+})

@@ -419,3 +419,21 @@ it('FX2 R4-05 · administrador no puede editar los campos del formulario', async
   expect(screen.getByLabelText('Observaciones')).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Agregar producto' })).toBeDisabled()
 })
+
+describe('M1 · tarjeta individual por línea de producto', () => {
+  it('renderiza una tarjeta por línea con encabezado, Quitar y sin duplicar controles', async () => {
+    setup()
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Bidón POL/ })
+    const tarjetas = screen.getAllByTestId('linea-producto-venta')
+    expect(tarjetas).toHaveLength(3)
+    tarjetas.forEach((tarjeta, index) => {
+      expect(tarjeta).toHaveTextContent(`Línea ${index + 1}`)
+      expect(tarjeta.querySelectorAll('button').length).toBeGreaterThanOrEqual(1)
+    })
+    expect(screen.getAllByRole('button', { name: 'Quitar' })).toHaveLength(3)
+    expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(3)
+    expect(screen.getAllByLabelText(/^Cantidad de /)).toHaveLength(3)
+    expect(screen.getAllByLabelText(/^Precio unitario de /)).toHaveLength(3)
+  })
+})

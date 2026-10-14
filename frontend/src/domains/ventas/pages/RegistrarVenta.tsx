@@ -266,9 +266,9 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
           <button type="button" className={btnSecondary} disabled={!!motivoLimite} aria-describedby={motivoLimite ? limiteId : undefined} onClick={() => append({ productoId: '', cantidad: 0, precioUnitario: 0 })}><PlusCircleIcon className="h-4 w-4" />Agregar producto</button>
           {motivoLimite && <span id={limiteId} className={errorTextCls}>{motivoLimite}</span>}
         </div>
-        <div className="min-w-0 sm:overflow-x-auto"><table role="table" className="block w-full sm:table">
-          <thead role="rowgroup" className="sr-only sm:not-sr-only sm:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
-          <tbody role="rowgroup" className="block sm:table-row-group">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
+        <div className="min-w-0 lg:overflow-x-auto"><table role="table" className="block w-full lg:table">
+          <thead role="rowgroup" className="sr-only lg:not-sr-only lg:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
+          <tbody role="rowgroup" className="block space-y-3 bg-slate-50 p-3 lg:table-row-group lg:space-y-0 lg:bg-transparent lg:p-0">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
         </table></div>
         {errors.detalles?.message && <p className={`px-5 py-2 ${errorTextCls}`}>{errors.detalles.message}</p>}
       </section>
