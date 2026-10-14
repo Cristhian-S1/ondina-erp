@@ -26,4 +26,4 @@ Fecha: 2026-10-14 · Rama de worktree `Cristhian-S1/fux-f3-produccion` · Base `
 | registrar | 375 / 768 / 1280 | ✔ en los tres | 417 px en los tres |
 | incidencias | 375 / 768 / 1280 | ✔ en los tres | 365 / 325 / 345 px (varía solo por el ancho del texto) |
 
-Capturas: `f3-registrar-{375,768,1280}.png`, `f3-incidencias-{375,768,1280}.png`.
+Capturas: `capturas/f3-registrar-{375,768,1280}.png`, `capturas/f3-incidencias-{375,768,1280}.png`.
