@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displayMilesInput, formatCantidad, formatMiles, formatMilesInput, parseMiles } from './format'
+import { displayMilesInput, formatCantidad, formatMiles, formatMilesInput, fmtFecha, fmtFechaHora, parseMiles } from './format'
 
 describe('TEST-02 · formato es-CL (lib/format)', () => {
   describe('formatMiles', () => {
@@ -79,5 +79,26 @@ describe('TEST-02 · formato es-CL (lib/format)', () => {
       expect(displayMilesInput(2500)).toBe('2.500')
       expect(displayMilesInput('1.000')).toBe('1.000')
     })
+  })
+})
+
+describe('fechas es-CL · America/Santiago', () => {
+  it('fmtFecha entrega dd-mm-aaaa en la zona de Santiago', () => {
+    // 2026-01-15 02:30Z = 14-01 23:30 en Santiago (UTC-3 en verano)
+    expect(fmtFecha('2026-01-15T02:30:00Z')).toBe('14-01-2026')
+    // 2026-07-15 12:00Z = 08:00 en Santiago (UTC-4 en invierno)
+    expect(fmtFecha('2026-07-15T12:00:00Z')).toBe('15-07-2026')
+  })
+
+  it('fmtFechaHora agrega hh:mm sin segundos', () => {
+    expect(fmtFechaHora('2026-01-15T02:30:45Z')).toBe('14-01-2026 23:30')
+    expect(fmtFechaHora('2026-07-15T12:05:00Z')).toBe('15-07-2026 08:05')
+  })
+
+  it('devuelve — con valores vacíos o inválidos', () => {
+    expect(fmtFecha(null)).toBe('—')
+    expect(fmtFecha(undefined)).toBe('—')
+    expect(fmtFecha('no es fecha')).toBe('—')
+    expect(fmtFechaHora('')).toBe('—')
   })
 })
