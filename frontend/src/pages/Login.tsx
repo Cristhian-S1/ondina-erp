@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import { mensajeErrorAutenticacion } from '../lib/errors'
+import { btnPrimary, errorBlockCls, inputCls, labelCls } from '../lib/ui'
 import logo from '../assets/logo.jpg'
 
 export default function Login() {
@@ -12,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [verPassword, setVerPassword] = useState(false)
 
   if (perfil) return <Navigate to="/" replace />
 
@@ -46,32 +48,49 @@ export default function Login() {
           <p className="mt-1 text-sm text-slate-500">Inicia sesión para continuar</p>
         </div>
 
-        <label className="block text-sm font-medium text-slate-700">
-          Email
+        <div>
+          <label htmlFor="login-email" className={labelCls}>Email</label>
           <input
+            id="login-email"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
             autoComplete="email"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 focus:outline-none"
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'login-error' : undefined}
+            className={inputCls}
           />
-        </label>
+        </div>
 
-        <label className="block text-sm font-medium text-slate-700">
-          Contraseña
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-            autoComplete="current-password"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 focus:outline-none"
-          />
-        </label>
+        <div>
+          <label htmlFor="login-password" className={labelCls}>Contraseña</label>
+          <div className="relative">
+            <input
+              id="login-password"
+              type={verPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              autoComplete="current-password"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? 'login-error' : undefined}
+              className={`${inputCls} pr-12`}
+            />
+            <button
+              type="button"
+              onClick={() => setVerPassword((value) => !value)}
+              aria-pressed={verPassword}
+              className="absolute inset-y-0 right-0 mt-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-xs font-medium text-brand-800 hover:bg-brand-50"
+            >
+              <span className="sr-only">Mostrar contraseña</span>
+              <span aria-hidden="true">{verPassword ? 'Ocultar' : 'Ver'}</span>
+            </button>
+          </div>
+        </div>
 
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          <p id="login-error" role="alert" className={errorBlockCls}>
             {error}
           </p>
         )}
@@ -79,7 +98,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-brand-600 py-2.5 font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className={`${btnPrimary} w-full`}
         >
           {submitting ? 'Entrando...' : 'Ingresar'}
         </button>
