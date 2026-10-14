@@ -512,3 +512,15 @@ describe('obtenerEnvasesDisponibles', () => {
     ).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })
+it('A1-07 · inicia stock de envases sin esperar el catálogo de empaques', async () => {
+  queryMock.select.mockReturnValue(queryMock)
+  queryMock.eq.mockReturnValue(queryMock)
+  returnsMock.mockResolvedValue({ data: [{ tipo_empaque_id: 'e1', cantidad: 12, modificado_en: '2026-10-13' }], error: null })
+  returnsMock.mockClear()
+  let resolve!: (value: import('../../types').TipoEmpaque[]) => void
+  const empaques = new Promise<import('../../types').TipoEmpaque[]>(r => { resolve = r })
+  const consulta = obtenerEnvasesDisponibles('s1', empaques)
+  expect(returnsMock).toHaveBeenCalledOnce()
+  resolve([{ id: 'e1', nombre: 'Bidón', categoria: 'retornable', activo: true }])
+  expect(await consulta).toEqual([{ tipo_empaque_id: 'e1', nombre: 'Bidón', cantidad: 12, modificado_en: '2026-10-13' }])
+})

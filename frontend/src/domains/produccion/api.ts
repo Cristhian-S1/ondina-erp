@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { obtenerTiposEmpaque } from '../../lib/catalog'
 import { mensajeErrorSupabase } from '../../lib/errors'
 import type { TipoEmpaque } from '../../types'
 import type { StockEnvases } from '../bodega/types'
@@ -96,14 +97,14 @@ export async function obtenerMermas(sucursalId: string): Promise<MermaProduccion
 
 export async function obtenerEnvasesDisponibles(
   sucursalId: string,
-  empaques: TipoEmpaque[],
+  catalogo: TipoEmpaque[] | Promise<TipoEmpaque[]> = obtenerTiposEmpaque(),
 ): Promise<EnvaseDisponible[]> {
   try {
-    const { data, error } = await supabase
-      .from('stock_envases')
-      .select('*')
-      .eq('sucursal_id', sucursalId)
-      .returns<StockEnvases[]>()
+    // El stock no necesita el catálogo para iniciar su petición (A1-07).
+    const [{ data, error }, empaques] = await Promise.all([
+      supabase.from('stock_envases').select('*').eq('sucursal_id', sucursalId).returns<StockEnvases[]>(),
+      catalogo,
+    ])
     if (error) throw new Error(mensajeErrorSupabase(error))
     return (data ?? [])
       .map((fila) => ({
@@ -143,12 +144,14 @@ export async function registrarMerma(
   }
 }
 
-export function subscribeProduccion(sucursalId: string, onChange: () => void): () => void {
+export type RecursoProduccion = 'producciones' | 'mermas' | 'stock_envases' | 'incidencias_produccion'
+
+export function subscribeProduccion(sucursalId: string, onChange: (recurso: RecursoProduccion) => void): () => void {
   const canal = supabase.channel(`produccion-${sucursalId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
-    // BD-12: mermas is not in the remote supabase_realtime publication yet; backend task B4 adds it.
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'mermas', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('producciones'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mermas', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('mermas'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('stock_envases'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'incidencias_produccion', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('incidencias_produccion'))
     .subscribe()
   return () => { void supabase.removeChannel(canal) }
 }
