@@ -8,10 +8,11 @@ import { useNavigate } from 'react-router-dom'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import Dialog from '../../../components/Dialog'
+import InputNumerico from '../../../components/InputNumerico'
 import { useAuth } from '../../../context/auth-context'
 import { crearDespacho } from '../api'
 import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls } from '../../../lib/ui'
-import { fmtFecha, fmtFechaHora, formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { fmtFecha, fmtFechaHora, formatMiles, parseMiles } from '../../../lib/format'
 import EstadoVista from '../../../components/EstadoVista'
 import AmbitoBodega from '../components/AmbitoBodega'
 import { useDatosBodega } from '../hooks/useDatosBodega'
@@ -85,6 +86,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
     despachoDetalles = [], despachoEnvases = [], desvProducto = [], desvEnvase = [],
     stockEnvases = [], cargaVendedor = [], stockBodega = [] } = datos.data ?? {}
   const load = datos.refetch
+  const productosActivos = productos.filter(producto => producto.activo)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [vendedorId, setVendedorId] = useState('')
@@ -145,6 +147,13 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
       ? bandejasManual.valor
       : bandejasAuto
 
+  const motivoLimite = productosActivos.length === 0 ? 'No hay productos activos en el catálogo.'
+    : lineas.length >= productosActivos.length ? `Máximo ${productosActivos.length} productos por despacho: ya alcanzaste el número de productos activos del catálogo.`
+    : undefined
+  const disponibleBandejas = stockEnvases.find(item => item.tipo_empaque_id === bandejaTipo?.id)?.cantidad ?? 0
+  const errorBandejas = parseMiles(bandejasCantidad) > disponibleBandejas
+    ? `Excede el stock de bandejas: disponibles ${formatMiles(disponibleBandejas)}.` : undefined
+
   async function registrarDespacho() {
     if (!perfil) return
     setError(null)
@@ -152,6 +161,11 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
     if (!sucursalId) {
       setError('Selecciona una sucursal para registrar el despacho.')
+      return
+    }
+
+    if (lineas.length > productosActivos.length) {
+      setError(`El catálogo tiene ${productosActivos.length} productos activos. Quita las líneas adicionales.`)
       return
     }
 
@@ -677,88 +691,50 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
             <div className="space-y-2">
               <p className="text-sm font-semibold text-slate-700">Productos del despacho</p>
-              {lineas.map((linea, index) => (
-                <div
-                  key={linea.id}
-                  className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_7rem_auto]"
-                >
-                  <label className="block">
-                    <span className={labelCls}>Producto</span>
-                    <select
-                      className={inputCls}
-                      value={linea.producto_id}
-                      {...atributosError(`despacho-producto-${linea.id}`)}
-                      onChange={(e) => {
+              {lineas.map((linea, index) => {
+                const solicitado = lineas.filter(item => item.producto_id === linea.producto_id)
+                  .reduce((total, item) => total + parseMiles(item.cantidad), 0)
+                const errorCantidad = linea.producto_id && solicitado > stockDisponible(linea.producto_id)
+                  ? `Excede el stock en bodega: disponibles ${formatMiles(stockDisponible(linea.producto_id))}.` : undefined
+                const ayudaId = `disponible-despacho-${linea.id}`
+                const atributosProducto = atributosError(`despacho-producto-${linea.id}`)
+                return <div key={linea.id} className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_auto]">
+                  <div className="min-w-0">
+                    <label htmlFor={atributosProducto.id} className={labelCls}>Producto</label>
+                    <select className={inputCls} value={linea.producto_id} {...atributosProducto}
+                      aria-describedby={[atributosProducto['aria-describedby'], linea.producto_id ? ayudaId : undefined].filter(Boolean).join(' ') || undefined}
+                      onChange={event => {
                         setError(null)
-                        const next = [...lineas]
-                        next[index] = { ...linea, producto_id: e.target.value }
-                        setLineas(next)
-                      }}
-                    >
+                        setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, producto_id: event.target.value } : item))
+                      }}>
                       <option value="">Selecciona producto...</option>
-                      {productos
-                        .filter((p) => p.activo)
-                        .map((p) => (
-                          <option
-                            key={p.id}
-                            value={p.id}
-                            disabled={lineas.some(
-                              (l, i) => i !== index && l.producto_id === p.id,
-                            )}
-                          >
-                            {p.nombre} (disp. {formatMiles(stockDisponible(p.id))})
-                          </option>
-                        ))}
+                      {productosActivos.map(producto => <option key={producto.id} value={producto.id}
+                        disabled={lineas.some((item, i) => i !== index && item.producto_id === producto.id)}>
+                        {producto.nombre} (disp. {formatMiles(stockDisponible(producto.id))})
+                      </option>)}
                     </select>
-                    {linea.producto_id && (
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Disponible en bodega:{' '}
-                        <b className="text-slate-700">{formatMiles(stockDisponible(linea.producto_id))}</b>
-                        {vendedorId && (
-                          <>
-                            {' · '}Carga del vendedor:{' '}
-                            <b className="text-slate-700">
-                              {formatMiles(cargaDelVendedor(linea.producto_id))}
-                            </b>
-                          </>
-                        )}
-                      </span>
-                    )}
-                  </label>
-                  <label className="block">
-                    <span className={labelCls}>Cantidad</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder=""
-                      className={inputCls}
-                      value={linea.cantidad}
-                      {...atributosError(`despacho-cantidad-${linea.id}`)}
-                      onChange={(e) => {
+                    {linea.producto_id && <span id={ayudaId} className="mt-1 block text-xs text-slate-500">
+                      Disponible en bodega: <b className="text-slate-700">{formatMiles(stockDisponible(linea.producto_id))}</b>
+                      {vendedorId && <> · Carga del vendedor: <b className="text-slate-700">{formatMiles(cargaDelVendedor(linea.producto_id))}</b></>}
+                    </span>}
+                  </div>
+                  <div className="min-w-0">
+                    <label htmlFor={`despacho-cantidad-${linea.id}`} className={labelCls}>Cantidad</label>
+                    <InputNumerico {...atributosError(`despacho-cantidad-${linea.id}`)} value={linea.cantidad} error={errorCantidad}
+                      onChange={valor => {
                         setError(null)
-                        const formatted = formatMilesInput(e.target.value)
-                        const next = [...lineas]
-                        next[index] = { ...linea, cantidad: formatted }
-                        setLineas(next)
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className={btnSecondary}
-                    onClick={() => setLineas((prev) => prev.filter((_, i) => i !== index))}
-                  >
-                    Quitar
-                  </button>
+                        setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, cantidad: valor === undefined ? '' : String(valor) } : item))
+                      }} />
+                  </div>
+                  <button type="button" className={`${btnSecondary} sm:mt-6`} onClick={() => setLineas(prev => prev.filter(item => item.id !== linea.id))}>Quitar</button>
                 </div>
-              ))}
-              <button
-                type="button"
-                className={btnSecondary}
-                onClick={() => setLineas((prev) => [...prev, nuevaLinea()])}
-              >
+              })}
+              <button type="button" className={btnSecondary} disabled={!!motivoLimite}
+                aria-describedby={motivoLimite ? 'limite-productos-despacho' : undefined}
+                onClick={() => setLineas(prev => prev.length < productosActivos.length ? [...prev, nuevaLinea()] : prev)}>
                 + Agregar producto
               </button>
+              {motivoLimite && <p id="limite-productos-despacho" className="text-xs text-slate-600">{motivoLimite}</p>}
             </div>
 
             <div className="space-y-2">
@@ -767,22 +743,14 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                 <p className="text-sm text-slate-500">No hay tipos de envase configurados.</p>
               ) : (
                 <>
-                  <label className="block">
-                    <span className={labelCls}>Bandejas</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder=""
-                      className={inputCls}
-                      value={bandejasCantidad}
-                      {...atributosError('despacho-bandejas')}
-                      onChange={(e) => {
+                  <div>
+                    <label htmlFor="despacho-bandejas" className={labelCls}>Bandejas</label>
+                    <InputNumerico {...atributosError('despacho-bandejas')} value={bandejasCantidad} error={errorBandejas}
+                      onChange={valor => {
                         setError(null)
-                        const formatted = formatMilesInput(e.target.value)
-                        setBandejasManual({ hielo: totalHieloSolicitado, valor: formatted })
-                      }}
-                    />
-                  </label>
+                        setBandejasManual({ hielo: totalHieloSolicitado, valor: valor === undefined ? '' : String(valor) })
+                      }} />
+                  </div>
                   <p className="text-xs text-slate-500">
                     Se completan solas: 1 bandeja cada {CAPACIDAD_BANDEJA} bolsas de hielo.
                   </p>

@@ -177,6 +177,7 @@ describe('HU-13 · Nuevo despacho', () => {
   }
 
   it('no permite elegir el mismo producto en dos filas', async () => {
+    vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
     await abrirModal()
     const selectsIniciales = screen.getAllByLabelText(/Producto/)
     fireEvent.change(selectsIniciales[0], { target: { value: producto.id } })
@@ -269,6 +270,7 @@ it('B1 · limpia el borrador de despacho al cambiar de sucursal', async () => {
 })
 
 it('B1 · conserva el nodo y foco de la segunda línea al quitar la primera', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
   renderWithProviders(<Despachos />)
   fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
   fireEvent.click(screen.getByRole('button', { name: '+ Agregar producto' }))
@@ -508,4 +510,67 @@ it('FX2 R4-07 · error enfoca y describe el vendedor; éxito anuncia el despacho
   fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
   expect(await screen.findByText('Despacho registrado.')).toBeVisible()
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+async function abrirDespachoF2() {
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  return screen.getByRole('dialog', { name: 'Nuevo despacho' })
+}
+
+it('F2 · alinea arriba los controles y deja la disponibilidad fuera de la etiqueta', async () => {
+  const dialogo = await abrirDespachoF2()
+  const productoInput = within(dialogo).getByLabelText('Producto')
+  fireEvent.change(productoInput, { target: { value: producto.id } })
+  const cantidad = within(dialogo).getByLabelText('Cantidad')
+  const fila = productoInput.closest('.grid')!
+  expect(fila).toHaveClass('items-start')
+  expect(fila).not.toHaveClass('items-end')
+  expect(fila).toContainElement(cantidad)
+  expect(within(dialogo).getByText(/Disponible en bodega:/).closest('label')).toBeNull()
+  expect(productoInput).toHaveAccessibleName('Producto')
+})
+
+it.each([7, 10])('F2 · limita líneas a %i productos activos y enlaza el motivo', async (total) => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([
+    ...Array.from({ length: total }, (_, i) => ({ ...producto, id: `activo-${i}`, nombre: `Producto ${i}` })),
+    { ...producto, id: 'inactivo', nombre: 'Inactivo', activo: false },
+  ])
+  const dialogo = await abrirDespachoF2()
+  const agregar = within(dialogo).getByRole('button', { name: '+ Agregar producto' })
+  for (let i = 1; i < total; i++) fireEvent.click(agregar)
+  expect(within(dialogo).getAllByLabelText('Producto')).toHaveLength(total)
+  expect(agregar).toBeDisabled()
+  expect(agregar).toHaveAccessibleDescription(`Máximo ${total} productos por despacho: ya alcanzaste el número de productos activos del catálogo.`)
+  expect(within(dialogo).queryByRole('option', { name: /Inactivo/ })).not.toBeInTheDocument()
+  fireEvent.click(within(dialogo).getAllByRole('button', { name: 'Quitar' })[0])
+  expect(agregar).toBeEnabled()
+})
+
+it('F2 · cantidad y bandejas rechazan letras y muestran exceso de stock en tiempo real', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([bandeja])
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(api.obtenerStockEnvases).mockResolvedValue([stockBandeja])
+  const dialogo = await abrirDespachoF2()
+  fireEvent.change(within(dialogo).getByLabelText('Producto'), { target: { value: hielo.id } })
+  const cantidad = within(dialogo).getByLabelText('Cantidad')
+  expect(fireEvent.keyDown(cantidad, { key: 'a' })).toBe(false)
+  fireEvent.change(cantidad, { target: { value: '1000' } })
+  expect(cantidad).toHaveValue('1.000')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription(/Excede el stock en bodega.*100/)
+  fireEvent.change(cantidad, { target: { value: '100' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  fireEvent.click(within(dialogo).getAllByRole('button', { name: 'Aumentar', exact: true })[0])
+  expect(cantidad).toHaveValue('101')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  const bandejasInput = within(dialogo).getByLabelText('Bandejas')
+  expect(fireEvent.keyDown(bandejasInput, { key: 'e' })).toBe(false)
+  fireEvent.paste(bandejasInput, { clipboardData: { getData: () => '1.2a3' } })
+  expect(bandejasInput).toHaveAttribute('aria-invalid', 'true')
+  expect(bandejasInput).toHaveAccessibleDescription(/Excede el stock de bandejas.*40/)
+  fireEvent.change(bandejasInput, { target: { value: '40' } })
+  expect(bandejasInput).toHaveAttribute('aria-invalid', 'false')
+  expect(api.crearDespacho).not.toHaveBeenCalled()
 })
