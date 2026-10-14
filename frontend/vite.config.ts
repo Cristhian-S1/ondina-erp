@@ -17,6 +17,22 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify((process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'dev').slice(0, 7)),
   },
   preview: { headers: previewHeaders },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              // Evita que los imports del shell fusionen Supabase con la entrada (A1-16).
+              name: 'vendor-supabase',
+              test: /node_modules[\\/]@supabase[\\/]/,
+              includeDependenciesRecursively: true,
+            },
+          ],
+        },
+      },
+    },
+  },
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
