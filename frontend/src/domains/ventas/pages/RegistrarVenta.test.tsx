@@ -311,3 +311,79 @@ it('A1-13 · recuperar productos conserva cliente, cantidad y observaciones ingr
   expect(screen.getByLabelText('Observaciones')).toHaveValue('Conservar al reintentar')
   expect(api.registrarVenta).not.toHaveBeenCalled()
 })
+
+
+it('FX2 R4-01 · restaura el cliente cuando las opciones del borrador llegan tarde', async () => {
+  setup()
+  let resolver!: (value: typeof CLIENTES) => void
+  vi.mocked(api.obtenerClientesRuta).mockReturnValueOnce(new Promise(r => { resolver = r }))
+  sessionStorage.setItem('ondina:draft-registrar-venta:vendedor-1', JSON.stringify({ clienteId: 'c1', metodoPago: 'efectivo', descuento: 0, observaciones: 'Restaurado', detalles: [{ productoId: 'p1', cantidad: 2, precioUnitario: 1000 }] }))
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  resolver(CLIENTES)
+  await screen.findByRole('option', { name: 'Doña María' })
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('c1')
+})
+
+it('FX2 R4-01 · cliente ausente del catálogo se limpia y avisa sin enviarlo oculto', async () => {
+  setup()
+  sessionStorage.setItem('ondina:draft-registrar-venta:vendedor-1', JSON.stringify({ clienteId: 'retirado', metodoPago: 'efectivo', descuento: 0, detalles: [{ productoId: 'p1', cantidad: 2, precioUnitario: 1000 }] }))
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  await screen.findByText(/El cliente del borrador ya no está disponible/)
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('')
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it.each(['precio', 'descuento'])('FX2 R4-02 · total cero por %s requiere confirmación explícita', async (caso) => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.change(screen.getByLabelText(caso === 'precio' ? 'Precio unitario de Bidón POL' : 'Descuento (CLP)'), { target: { value: caso === 'precio' ? '' : '2000' } })
+  await screen.findByText(/El total de la venta es \$0/)
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  const dialogo = await screen.findByRole('dialog', { name: 'Confirmar venta sin cobro' })
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Confirmar venta por $0' }))
+  await screen.findByRole('heading', { name: 'Venta registrada' })
+  expect(api.registrarVenta).toHaveBeenCalledTimes(1)
+})
+
+it.each(['vacío','exceso'])('FX2 R4-03 · %s se asocia a cantidad con foco y sin Toast duplicado', async (caso) => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  const cantidad = screen.getByLabelText('Cantidad de Bidón POL')
+  if (caso === 'exceso') fireEvent.change(cantidad, { target: { value: '1001' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await waitFor(() => expect(cantidad).toHaveAttribute('aria-invalid', 'true'))
+  expect(cantidad).toHaveFocus()
+  const mensaje = document.getElementById(cantidad.getAttribute('aria-describedby')!)!
+  expect(mensaje).toHaveTextContent(caso === 'vacío' ? 'Agrega al menos un producto' : 'solo tienes 1000')
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it('FX2 R4-04 · enfoca resumen, anuncia copia fallida y devuelve foco al cliente', async () => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  const titulo = await screen.findByRole('heading', { name: 'Venta registrada' })
+  await waitFor(() => expect(titulo).toHaveFocus())
+  expect(screen.getByRole('status')).toHaveTextContent('La venta quedó confirmada')
+  vi.stubGlobal('navigator', { ...navigator, clipboard: undefined })
+  try {
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar folio' }))
+    expect(await screen.findByText(/No se pudo copiar el folio/)).toHaveAttribute('role','status')
+  } finally { vi.unstubAllGlobals() }
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar otra venta' }))
+  await waitFor(() => expect(screen.getByLabelText('Cliente de tu cartera')).toHaveFocus())
+})
+
+it('FX2 R4-05 · administrador no puede editar los campos del formulario', async () => {
+  setup()
+  renderWithProviders(<RegistrarVenta />, { perfil: makePerfil({ rol: 'administrador' }) })
+  await screen.findByText(/El administrador consulta la gestión de ventas/)
+  expect(screen.getByLabelText('Cliente de tu cartera')).toBeDisabled()
+  expect(screen.getByLabelText('Observaciones')).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Agregar producto' })).toBeDisabled()
+})

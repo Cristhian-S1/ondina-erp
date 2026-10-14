@@ -15,6 +15,7 @@ import { registrarVentaSchema, type RegistrarVentaForm, type RegistrarVentaFormI
 import type { DetalleVentaDraft, ProductoVenta } from '../types'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
+import Dialog from '../../../components/Dialog'
 import EstadoVista from '../../../components/EstadoVista'
 import { btnSecondary, cardCls, errorTextCls, thCls } from '../../../lib/ui'
 import { PlusCircleIcon } from '../../../components/icons'
@@ -112,6 +113,8 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
   const storageKey = perfil ? `${STORAGE_PREFIX}${perfil.id}` : null
   const [draft] = useState(() => storageKey ? cargarDraft(storageKey) : null)
   const [confirmada, setConfirmada] = useState<{ id: string; cliente: string } | null>(null)
+  const [ventaCero, setVentaCero] = useState<RegistrarVentaForm | null>(null)
+  const volverAlCliente = useRef(false)
   const draftActivo = useRef(true)
   const navigate = useNavigate()
   const clientes = useClientesRuta()
@@ -121,7 +124,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
   const { toast, mostrar, cerrar } = useToast()
   const motivoBase = useId()
   const defaults = useMemo(() => construirDefaults(productos.data), [productos.data])
-  const { register, handleSubmit, control, reset, subscribe, getValues, getFieldState, setValue, formState: { errors } } = useForm<RegistrarVentaFormInput, unknown, RegistrarVentaForm>({
+  const { register, handleSubmit, control, reset, subscribe, getValues, getFieldState, setValue, setError, setFocus, formState: { errors } } = useForm<RegistrarVentaFormInput, unknown, RegistrarVentaForm>({
     resolver: zodResolver(registrarVentaSchema), defaultValues: draft ?? defaults,
   })
   const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
@@ -139,6 +142,20 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
       })
     }
   }, [productos.data, defaults, draft, getValues, getFieldState, setValue])
+  useEffect(() => {
+    if (!clientes.data) return
+    const actual = getValues('clienteId')
+    if (actual && !clientes.data.some(item => item.id === actual)) {
+      setValue('clienteId', '')
+      setError('clienteId', { type: 'catalogo', message: 'El cliente del borrador ya no está disponible. Selecciona otro cliente.' })
+    }
+  }, [clientes.data, getValues, setValue, setError])
+  useEffect(() => {
+    if (!confirmada && volverAlCliente.current) {
+      volverAlCliente.current = false
+      setFocus('clienteId')
+    }
+  }, [confirmada, setFocus])
   const idsSeleccionados = useWatch({ control, name: 'detalles', compute: detalles => detalles.map(item => item.productoId).join('|') }).split('|')
   const productoPorId = useMemo(() => new Map((productos.data ?? []).map(item => [item.id, item])), [productos.data])
   const cargaPorProducto = useMemo(() => new Map((carga.data ?? []).map(item => [item.producto_id, item.cantidad])), [carga.data])
@@ -159,7 +176,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
     await Promise.all([clientes, productos, carga].filter(consulta => consulta.error).map(consulta => consulta.refetch()))
   }
 
-  function validarCarga(values: RegistrarVentaForm): string | null {
+  function validarCarga(values: RegistrarVentaForm): { index: number; mensaje: string } | null {
     const cantidadesPorProducto = new Map<string, number>()
     for (const d of values.detalles) {
       if (!d.productoId || d.cantidad <= 0) continue
@@ -170,11 +187,11 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
       const disponible = cargaPorProducto.get(productoId)
       if (disponible === undefined) {
         const prod = productoPorId.get(productoId)
-        return `No tienes carga asignada de ${prod?.nombre ?? 'ese producto'}.`
+        return { index: values.detalles.findIndex(item => item.productoId === productoId), mensaje: `No tienes carga asignada de ${prod?.nombre ?? 'ese producto'}.` }
       }
       if (cantidadTotal > disponible) {
         const prod = productoPorId.get(productoId)
-        return `No puedes vender ${cantidadTotal} de ${prod?.nombre ?? 'este producto'}: solo tienes ${disponible} en carga.`
+        return { index: values.detalles.findIndex(item => item.productoId === productoId), mensaje: `No puedes vender ${cantidadTotal} de ${prod?.nombre ?? 'este producto'}: solo tienes ${disponible} en carga.` }
       }
     }
     return null
@@ -183,10 +200,16 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
   function onSubmit(values: RegistrarVentaForm) {
     if (motivos.length) return
     const limpio = { ...values, detalles: values.detalles.filter(item => item.productoId && item.cantidad > 0) }
-    if (!limpio.detalles.length) return mostrar('Agrega al menos un producto con cantidad mayor a 0.', 'error')
-    const errCarga = validarCarga(limpio)
-    if (errCarga) return mostrar(errCarga, 'error')
-    registrar.mutate(limpio, {
+    if (!limpio.detalles.length) return setError('detalles.0.cantidad', { type: 'validacion', message: 'Agrega al menos un producto con cantidad mayor a 0.' }, { shouldFocus: true })
+    const errCarga = validarCarga(values)
+    if (errCarga) return setError(`detalles.${errCarga.index}.cantidad`, { type: 'carga', message: errCarga.mensaje }, { shouldFocus: true })
+    const total = Math.max(0, limpio.detalles.reduce((sum, item) => sum + item.cantidad * item.precioUnitario, 0) - limpio.descuento)
+    if (total === 0) return setVentaCero(limpio)
+    enviarVenta(limpio)
+  }
+  function enviarVenta(values: RegistrarVentaForm) {
+    setVentaCero(null)
+    registrar.mutate(values, {
       onSuccess: res => {
         if (res.id) {
           draftActivo.current = false
@@ -201,6 +224,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
   }
   if (confirmada) return <ResumenVentaConfirmada {...confirmada} perfilId={perfil?.id ?? ''} onOtra={() => {
     draftActivo.current = true
+    volverAlCliente.current = true
     setConfirmada(null)
     reset(defaults)
   }} />
@@ -218,10 +242,11 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
           : cargando && !esAdmin ? <div id={motivoIds[index]}><EstadoVista variante="cargando" mensaje={motivo} /></div>
           : <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><p id={motivoIds[index]}>{motivo}</p>{!esAdmin && motivo.startsWith('Crea') && <Link to="/clientes" className="inline-flex min-h-11 items-center font-medium text-brand-800 underline">Crea uno primero</Link>}</div>}
       </div>)}
+      <fieldset disabled={esAdmin} className="min-w-0 space-y-6 border-0 p-0">
       <section className={cardCls}>
         <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">1 · Cliente</h2>
         <div className="p-5"><CampoFormulario etiqueta="Cliente de tu cartera" error={errors.clienteId?.message}>
-          {atributos => <select {...atributos} {...register('clienteId')}><option value="">Selecciona un cliente...</option>{clientes.data?.map(item => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>}
+          {atributos => <Controller control={control} name="clienteId" render={({ field }) => <select {...atributos} {...field}><option value="">Selecciona un cliente...</option>{clientes.data?.map(item => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>} />}
         </CampoFormulario></div>
       </section>
       <section className={`${cardCls} min-w-0`}>
@@ -230,9 +255,9 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
           <button type="button" className={btnSecondary} disabled={fields.length >= MAX_PRODUCTOS} onClick={() => append({ productoId: '', cantidad: 0, precioUnitario: 0 })}><PlusCircleIcon className="h-4 w-4" />Agregar producto</button>
           {fields.length >= MAX_PRODUCTOS && <span className={errorTextCls}>Máximo {MAX_PRODUCTOS} productos por venta</span>}
         </div>
-        <div className="min-w-0 sm:overflow-x-auto"><table className="block w-full sm:table">
-          <thead className="hidden sm:table-header-group"><tr className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th key={index} className={thCls}>{titulo}</th>)}</tr></thead>
-          <tbody className="block sm:table-row-group">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
+        <div className="min-w-0 sm:overflow-x-auto"><table role="table" className="block w-full sm:table">
+          <thead role="rowgroup" className="sr-only sm:not-sr-only sm:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
+          <tbody role="rowgroup" className="block sm:table-row-group">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
         </table></div>
         {errors.detalles?.message && <p className={`px-5 py-2 ${errorTextCls}`}>{errors.detalles.message}</p>}
       </section>
@@ -251,6 +276,13 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
         </div>
       </section>
       <ResumenFormularioVenta control={control} pendiente={registrar.isPending} bloqueado={!!motivos.length} motivoId={motivoIds.join(' ') || undefined} />
+      </fieldset>
     </form>
+    <Dialog open={!!ventaCero} onClose={() => setVentaCero(null)} title="Confirmar venta sin cobro" description="Registrarás una venta con total $0. Revisa los precios y el descuento antes de continuar.">
+      <div className="flex flex-wrap justify-end gap-3">
+        <button type="button" className={btnSecondary} onClick={() => setVentaCero(null)}>Volver a revisar</button>
+        <button type="button" className={btnSecondary} disabled={registrar.isPending} onClick={() => { if (ventaCero) enviarVenta(ventaCero) }}>Confirmar venta por $0</button>
+      </div>
+    </Dialog>
   </>
 }

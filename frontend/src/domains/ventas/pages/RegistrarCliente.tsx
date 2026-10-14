@@ -36,6 +36,9 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   const vendedores = useVendedoresSucursal(sucursalId)
   const crear = useCrearCliente(sucursalId)
   const { toast, mostrar, cerrar } = useToast()
+  const { reset: resetCreacion } = crear
+  const registrado = crear.isSuccess && !crear.data?.error
+  const envio = useRef(false)
   const cierreTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (cierreTimer.current) clearTimeout(cierreTimer.current) }, [open])
 
@@ -60,6 +63,8 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
 
   useEffect(() => {
     if (open) {
+      envio.current = false
+      resetCreacion()
       reset({
         nombre: '',
         direccion: '',
@@ -69,7 +74,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         vendedor_id: esAdmin ? vendedorId ?? '' : perfil?.id ?? '',
       })
     }
-  }, [open, reset, perfil, esAdmin, vendedorId])
+  }, [open, reset, resetCreacion, perfil, esAdmin, vendedorId])
 
   const vendedorElegido = useWatch({ control, name: 'vendedor_id' })
   const seleccionValida = !esAdmin || (!!sucursalId && !!vendedores.data?.some((v) => v.id === vendedorElegido))
@@ -77,10 +82,12 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   if (!open) return null
 
   function onSubmit(values: CrearClienteInput) {
-    if (!seleccionValida) return
+    if (!seleccionValida || envio.current) return
+    envio.current = true
     crear.mutate(values, {
       onSuccess: (res) => {
         if (res.error) {
+          envio.current = false
           mostrar(res.error, 'error')
           return
         }
@@ -89,6 +96,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         cierreTimer.current = setTimeout(onClose, 1500)
       },
       onError: (err) => {
+        envio.current = false
         mostrar(mensajeErrorSupabase(err), 'error')
       },
     })
@@ -136,7 +144,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
           <button type="button" className={btnSecondary} onClick={onClose}>
             Cancelar
           </button>
-          <button type="submit" className={btnPrimary} disabled={crear.isPending || !seleccionValida || (esAdmin && !!vendedores.error)}>
+          <button type="submit" className={btnPrimary} disabled={registrado || crear.isPending || !seleccionValida || (esAdmin && !!vendedores.error)}>
             {crear.isPending ? 'Guardando...' : 'Guardar cliente'}
           </button>
         </div>

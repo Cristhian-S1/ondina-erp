@@ -84,7 +84,7 @@ export default function Gastos() {
           </CampoFormulario>
           <CampoFormulario etiqueta="Monto (CLP)" error={errors.monto?.message}>
             {atributos => <Controller control={control} name="monto" render={({ field }) => <div className="relative">
-              <span aria-hidden="true" className="pointer-events-none absolute top-3 left-3 text-sm text-slate-500">$</span>
+              <span aria-hidden="true" className="pointer-events-none absolute top-[calc(50%+0.125rem)] left-3 -translate-y-1/2 text-sm text-slate-500">$</span>
               <input {...atributos} className={`${atributos.className} pl-7`} type="text" inputMode="numeric" value={field.value ? formatMiles(Number(field.value)) : ''} onChange={event => {
               const formatted = formatMilesInput(event.target.value)
               field.onChange(formatted ? parseMiles(formatted) : undefined)
