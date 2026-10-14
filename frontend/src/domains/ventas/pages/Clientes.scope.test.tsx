@@ -28,7 +28,7 @@ describe('Administrator customer scope', () => {
   it('keeps the selected seller in the dialog and restores focus after Escape', async () => {
     renderWithProviders(<Clientes />, { perfil: admin })
     await selectScope()
-    await screen.findByText('No tienes clientes en tu ruta.')
+    await screen.findByText('Este vendedor aún no tiene clientes en su ruta.')
     const opener = screen.getByRole('button', { name: 'Nuevo cliente' })
     opener.focus()
     fireEvent.click(opener)
@@ -48,21 +48,21 @@ describe('Administrator customer scope', () => {
   it('requires sucursal and vendedor before querying, even with an assigned branch', async () => {
     renderWithProviders(<Clientes />, { perfil: makePerfil({ rol: 'administrador' }) })
     expect(screen.getByText(/Selecciona una sucursal y un vendedor para consultar/)).toBeInTheDocument()
-    expect(screen.queryByText('No tienes clientes en tu ruta.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Este vendedor aún no tiene clientes en su ruta.')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Nuevo cliente' })).toBeDisabled()
     await screen.findByRole('option', { name: 'Norte' })
     expect(screen.getByRole('combobox', { name: 'Sucursal' })).toHaveValue('')
     expect(api.obtenerClientesRuta).not.toHaveBeenCalled()
     expect(api.obtenerVendedoresSucursal).not.toHaveBeenCalled()
     await selectScope()
-    await screen.findByText('No tienes clientes en tu ruta.')
+    await screen.findByText('Este vendedor aún no tiene clientes en su ruta.')
     expect(api.obtenerClientesRuta).toHaveBeenCalledWith(expect.objectContaining({ rol: 'administrador' }), 's1', 'v1')
   })
 
   it('creates for the selected seller and immediately refreshes that portfolio', async () => {
     renderWithProviders(<Clientes />, { perfil: admin })
     await selectScope()
-    await screen.findByText('No tienes clientes en tu ruta.')
+    await screen.findByText('Este vendedor aún no tiene clientes en su ruta.')
     vi.mocked(api.crearCliente).mockImplementation(async () => {
       vi.mocked(api.obtenerClientesRuta).mockResolvedValue([cliente])
       return { error: null }
@@ -86,7 +86,7 @@ describe('Administrator customer scope', () => {
     expect(screen.getByRole('combobox', { name: 'Vendedor responsable' })).toHaveValue('')
     await screen.findByRole('option', { name: 'Pedro Sur' })
     fireEvent.change(screen.getByRole('combobox', { name: 'Vendedor responsable' }), { target: { value: 'v2' } })
-    await screen.findByText('No tienes clientes en tu ruta.')
+    await screen.findByText('Este vendedor aún no tiene clientes en su ruta.')
     await act(async () => { resolve([cliente]) })
     expect(screen.queryByText(cliente.nombre)).not.toBeInTheDocument()
     expect(api.obtenerClientesRuta).toHaveBeenLastCalledWith(admin, 's2', 'v2')
@@ -100,7 +100,7 @@ describe('Administrator customer scope', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los vendedores')
     expect(screen.queryByText('No hay vendedores activos en esta sucursal.')).not.toBeInTheDocument()
     vi.mocked(api.obtenerVendedoresSucursal).mockResolvedValue([vendedor])
-    fireEvent.click(screen.getByRole('button', { name: 'Reintentar vendedores' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
     await screen.findByRole('option', { name: 'Ana López' })
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })

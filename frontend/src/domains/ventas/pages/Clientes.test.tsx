@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { renderWithProviders } from '@/test/render'
+import { makePerfil, renderWithProviders } from '@/test/render'
 import Clientes from './Clientes'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
@@ -70,5 +70,28 @@ describe('HU-04 · Clientes', () => {
       expect(screen.getAllByText('Doña María').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Don José').length).toBeGreaterThan(0)
     })
+  })
+
+  it('UX-15 · vendedor ve "tu ruta"; administrador ve copy de cartera por vendedor con etiquetas visibles', async () => {
+    setup([])
+    const { unmount } = renderWithProviders(<Clientes />)
+    expect(screen.getByText('Cartera de clientes de tu ruta.')).toBeInTheDocument()
+    await screen.findByText('No tienes clientes en tu ruta.')
+    unmount()
+    renderWithProviders(<Clientes />, { perfil: makePerfil({ rol: 'administrador' }) })
+    expect(screen.queryByText(/tu ruta/)).not.toBeInTheDocument()
+    expect(screen.getByText(/elige sucursal y vendedor/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Sucursal')).toBeVisible()
+    expect(screen.getByLabelText('Vendedor responsable')).toBeVisible()
+    expect(screen.getByRole('status')).toBeInTheDocument()
+  })
+
+  it('muestra error de cartera con Reintentar y fechas en dd-mm-aaaa', async () => {
+    vi.mocked(api.obtenerClientesRuta).mockRejectedValueOnce(new Error('x')).mockResolvedValueOnce([
+      { id: 'c1', nombre: 'Doña María', telefono: null, direccion: 'Calle 1', tipo: 'minorista', numero_local: null, creado_en: '2026-01-14T23:30:00-03:00' } as never,
+    ])
+    renderWithProviders(<Clientes />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Reintentar' }))
+    expect(await screen.findAllByText('14-01-2026')).not.toHaveLength(0)
   })
 })

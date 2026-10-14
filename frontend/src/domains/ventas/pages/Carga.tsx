@@ -1,9 +1,13 @@
+import { useAuth } from '../../../context/auth-context'
+import EstadoVista from '../../../components/EstadoVista'
 import { useCargaVendedor } from '../hooks/useCargaVendedor'
 import { btnSecondary, cardCls } from '../../../lib/ui'
 import { RefreshIcon } from '../../../components/icons'
 import { formatMiles } from '../../../lib/format'
 
 export default function Carga() {
+  const { perfil } = useAuth()
+  const esAdmin = perfil?.rol === 'administrador'
   const { data, isLoading, refetch, isFetching, error } = useCargaVendedor()
 
   const cargaDisponible = (data ?? []).filter((c) => c.cantidad > 0)
@@ -14,7 +18,9 @@ export default function Carga() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Mi carga</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Productos asignados a tu ruta para vender hoy.
+            {esAdmin
+              ? 'Productos asignados a tu usuario.'
+              : 'Productos asignados a tu ruta para vender hoy.'}
           </p>
         </div>
         <button
@@ -29,21 +35,24 @@ export default function Carga() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">Cargando...</p>
+        <EstadoVista variante="cargando" mensaje="Cargando carga..." />
       ) : error ? (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          No fue posible cargar tu carga. Inténtalo de nuevo con Actualizar.
-        </p>
+        <EstadoVista
+          variante="error"
+          mensaje="No fue posible cargar tu carga."
+          onReintentar={() => void refetch()}
+        />
       ) : !data || data.length === 0 ? (
-        <div className={cardCls}>
-          <p className="px-5 py-8 text-center text-sm text-slate-500">
-            Aún no se te ha asignado carga hoy.
-          </p>
-        </div>
+        <EstadoVista
+          variante="vacio"
+          mensaje={
+            esAdmin
+              ? 'Tu usuario no tiene carga asignada. La carga de ruta se asigna a cada vendedor mediante despacho.'
+              : 'Aún no se te ha asignado carga hoy.'
+          }
+        />
       ) : cargaDisponible.length === 0 ? (
-        <div className={cardCls}>
-          <p className="px-5 py-8 text-center text-sm text-slate-500">Carga agotada. No quedan unidades disponibles.</p>
-        </div>
+        <EstadoVista variante="vacio" mensaje="Carga agotada. No quedan unidades disponibles." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cargaDisponible.map((c) => (
@@ -65,7 +74,7 @@ export default function Carga() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-slate-500">
         La carga la asigna bodega mediante despacho. Es solo lectura.
       </p>
     </div>
