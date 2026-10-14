@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { Profiler } from 'react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -17,13 +18,14 @@ const key = (user: string) => `ondina:draft-registrar-venta:${user}`
 const draft = { clienteId: 'c1', metodoPago: 'efectivo', descuento: 0, observaciones: 'Pedido anterior', detalles: [{ productoId: 'p1', cantidad: 7, precioUnitario: 1000 }] }
 function setup(user: string) {
   const client = new QueryClient()
+  const renders = vi.fn()
   const view = (id: string) => <QueryClientProvider client={client}><MemoryRouter>
     <AuthContext.Provider value={{ perfil: makePerfil({ id }), loading: false, signIn: vi.fn(), signOut: vi.fn() }}>
-      <RegistrarVenta />
+      <Profiler id="venta" onRender={renders}><RegistrarVenta /></Profiler>
     </AuthContext.Provider>
   </MemoryRouter></QueryClientProvider>
   const result = render(view(user))
-  return { ...result, switchUser: (id: string) => result.rerender(view(id)) }
+  return { ...result, renders, switchUser: (id: string) => result.rerender(view(id)) }
 }
 afterEach(() => { sessionStorage.clear(); vi.clearAllMocks() })
 
@@ -34,7 +36,7 @@ describe('Sale draft identity and completion', () => {
     expect(screen.getByDisplayValue('Pedido anterior')).toBeInTheDocument()
     form.switchUser('user-2')
     await waitFor(() => expect(screen.queryByDisplayValue('Pedido anterior')).not.toBeInTheDocument())
-    expect(sessionStorage.getItem(key('user-2'))).not.toContain('Pedido anterior')
+    expect(sessionStorage.getItem(key('user-2')) ?? '').not.toContain('Pedido anterior')
     expect(sessionStorage.getItem('ondina:draft-registrar-venta')).toBeNull()
   })
   it('persists changes under the current user key', async () => {
@@ -62,4 +64,30 @@ describe('Sale draft identity and completion', () => {
     expect(screen.queryByDisplayValue('Pedido anterior')).not.toBeInTheDocument()
     expect(screen.getAllByRole('combobox')[0]).toHaveValue('')
   })
+})
+
+
+it('A1-03 · seis teclas de observaciones no renderizan el formulario y agrupan la persistencia', async () => {
+  const form = setup('user-1')
+  await waitFor(() => expect(screen.getByRole('combobox', { name: 'Producto 1' })).toHaveValue('p1'))
+  vi.useFakeTimers()
+  const guardar = vi.spyOn(Storage.prototype, 'setItem')
+  form.renders.mockClear()
+  try {
+    const campo = screen.getByLabelText('Observaciones')
+    for (const value of ['P', 'Pe', 'Ped', 'Pedi', 'Pedid', 'Pedido']) fireEvent.change(campo, { target: { value } })
+    console.info('B3 renders Observaciones / escrituras inmediatas:', form.renders.mock.calls.length, guardar.mock.calls.length)
+    expect(form.renders.mock.calls.length).toBe(0)
+    expect(guardar).not.toHaveBeenCalled()
+    act(() => vi.advanceTimersByTime(300))
+    expect(guardar).toHaveBeenCalledTimes(1)
+    expect(sessionStorage.getItem(key('user-1'))).toContain('Pedido')
+  } finally { vi.useRealTimers(); guardar.mockRestore() }
+})
+
+it('A1-03 · flush al desmontar conserva la última tecla antes del debounce', async () => {
+  const form = setup('user-1')
+  fireEvent.change(screen.getByLabelText('Observaciones'), { target: { value: 'Última tecla' } })
+  form.unmount()
+  expect(sessionStorage.getItem(key('user-1'))).toContain('Última tecla')
 })

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, within, fireEvent } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import RegistrarVenta from './RegistrarVenta'
@@ -8,6 +8,7 @@ vi.mock('@/domains/ventas/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/domains/ventas/api')>()
   return {
     ...actual,
+    obtenerResumenVenta: vi.fn().mockResolvedValue({ id: 'venta-123', total: 1733 }),
     obtenerClientesRuta: vi.fn(),
     obtenerProductosVenta: vi.fn(),
     obtenerCargaVendedor: vi.fn(),
@@ -35,11 +36,15 @@ const CLIENTES = [
   { id: 'c1', nombre: 'Doña María', telefono: null, direccion: 'Calle 1', numero_local: null, tipo: 'minorista', activo: true, creado_en: '2026-01-01T00:00:00Z' },
 ]
 
+// El desmontaje hace flush del borrador; aislar el siguiente caso después de ese cleanup.
+beforeEach(() => sessionStorage.clear())
+
 afterEach(() => {
   vi.mocked(api.obtenerClientesRuta).mockReset()
   vi.mocked(api.obtenerProductosVenta).mockReset()
   vi.mocked(api.obtenerCargaVendedor).mockReset()
   vi.mocked(api.registrarVenta).mockReset()
+  vi.mocked(api.obtenerResumenVenta).mockReset().mockResolvedValue({ id: 'venta-123', total: 1733 })
   sessionStorage.clear()
 })
 
@@ -60,6 +65,7 @@ async function renderForm() {
     const options = screen.getAllByRole('option')
     expect(options.some((o) => o.textContent?.includes('Bidón POL'))).toBe(true)
   })
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Confirmar venta' })).toBeEnabled())
 }
 
 function setNativeValue(el: HTMLSelectElement | HTMLInputElement, value: string) {
@@ -208,4 +214,100 @@ describe('Accesibilidad · RegistrarVenta', () => {
     expect(screen.getByRole('combobox', { name: 'Producto 3' })).toHaveValue('p3')
     expect(screen.getByLabelText('Método de pago')).toBeInTheDocument()
   })
+})
+
+it('A1-12 · cliente inválido conserva nombre, descripción y foco RHF', async () => {
+  await renderForm()
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await screen.findByText('Selecciona un cliente')
+  const campo = screen.getByRole('combobox', { name: 'Cliente de tu cartera', exact: true })
+  expect(campo).toHaveAttribute('aria-invalid', 'true')
+  expect(campo).toHaveClass('border-red-400')
+  expect(document.getElementById(campo.getAttribute('aria-describedby')!)).toHaveTextContent('Selecciona un cliente')
+  expect(campo).toHaveFocus()
+})
+
+it.each(['sin carga', 'sin clientes', 'administrador'] as const)('UX-06/A1-17 · explica y bloquea %s antes de enviar', async (caso) => {
+  setup()
+  if (caso === 'sin carga') vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([])
+  if (caso === 'sin clientes') vi.mocked(api.obtenerClientesRuta).mockResolvedValue([])
+  renderWithProviders(<RegistrarVenta />, { perfil: makePerfil({ id: 'vendedor-1', rol: caso === 'administrador' ? 'administrador' : 'vendedor' }) })
+  const motivo = await screen.findByText(caso === 'sin carga' ? /pídela a bodega/i : caso === 'sin clientes' ? /crea un cliente para continuar/i : /administrador.*venta.*vendedor/i)
+  const boton = screen.getByRole('button', { name: 'Confirmar venta' })
+  expect(boton).toBeDisabled()
+  expect(boton.getAttribute('aria-describedby')?.split(' ')).toContain(motivo.id)
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it('A1-13 · Reintentar recupera lecturas sin reenviar ventas y conserva observaciones', async () => {
+  setup()
+  vi.mocked(api.obtenerClientesRuta).mockRejectedValueOnce(new Error('fallo')).mockResolvedValue(CLIENTES)
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  await screen.findByRole('alert')
+  fireEvent.change(screen.getByLabelText('Observaciones'), { target: { value: 'Pedido pendiente' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await screen.findByRole('option', { name: 'Doña María' })
+  expect(screen.getByLabelText('Observaciones')).toHaveValue('Pedido pendiente')
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it('UX-05/A1-06 · éxito conserva folio completo y refresca carga una sola vez', async () => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await screen.findByRole('heading', { name: 'Venta registrada' })
+  expect(screen.getByLabelText('Folio de la venta')).toHaveValue('venta-123')
+  expect(screen.getByRole('button', { name: 'Registrar otra venta' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Ir a Ventas' })).toHaveAttribute('href', '/ventas')
+  await waitFor(() => expect(api.obtenerCargaVendedor).toHaveBeenCalledTimes(2))
+})
+
+it('UX-05 · si falla el resumen conserva folio y cliente y reintenta sólo la lectura', async () => {
+  await renderForm()
+  vi.mocked(api.obtenerResumenVenta).mockRejectedValueOnce(new Error('fallo de red'))
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await screen.findByRole('alert')
+  expect(screen.getByLabelText('Folio de la venta')).toHaveValue('venta-123')
+  expect(screen.getByText('Doña María')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByText('$ 1.733')).toBeInTheDocument()
+  expect(api.registrarVenta).toHaveBeenCalledTimes(1)
+  expect(api.obtenerResumenVenta).toHaveBeenCalledTimes(2)
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar otra venta' }))
+  expect(screen.getByRole('heading', { name: 'Registrar venta' })).toBeInTheDocument()
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('')
+  expect(screen.getByLabelText('Cantidad de Bidón POL')).toHaveValue('')
+})
+
+it('A1-12 · error de cantidad mantiene nombre e ID al corregir', async () => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  const cantidad = screen.getByLabelText('Cantidad de Bidón POL')
+  const id = cantidad.id
+  fireEvent.change(cantidad, { target: { value: '1001' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(document.getElementById(cantidad.getAttribute('aria-describedby')!)).toHaveTextContent('Excede tu carga')
+  fireEvent.change(cantidad, { target: { value: '2' } })
+  expect(cantidad.id).toBe(id)
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(cantidad).not.toHaveAttribute('aria-describedby')
+})
+
+it('A1-13 · recuperar productos conserva cliente, cantidad y observaciones ingresados durante el fallo', async () => {
+  setup()
+  vi.mocked(api.obtenerProductosVenta).mockRejectedValueOnce(new Error('fallo')).mockResolvedValue(PRODUCTOS)
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  await screen.findByRole('alert')
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de producto 1'), { target: { value: '7' } })
+  fireEvent.change(screen.getByLabelText('Observaciones'), { target: { value: 'Conservar al reintentar' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await waitFor(() => expect(screen.getByLabelText('Producto 1')).toHaveValue('p1'))
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('c1')
+  expect(screen.getByLabelText('Cantidad de Bidón POL')).toHaveValue('7')
+  expect(screen.getByLabelText('Observaciones')).toHaveValue('Conservar al reintentar')
+  expect(api.registrarVenta).not.toHaveBeenCalled()
 })
