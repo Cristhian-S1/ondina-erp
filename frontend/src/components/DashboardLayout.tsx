@@ -184,7 +184,7 @@ export default function DashboardLayout() {
         <main className="flex-1 p-4 sm:p-6">
           <Outlet />
         </main>
-        <footer className="px-4 pb-3 text-right text-xs text-slate-400 sm:px-6" title={`Versión de la aplicación: ${__APP_VERSION__}`}>
+        <footer className="px-4 pb-3 text-right text-xs text-slate-500 sm:px-6" title={`Versión de la aplicación: ${__APP_VERSION__}`}>
           Versión {__APP_VERSION__}
         </footer>
       </div>

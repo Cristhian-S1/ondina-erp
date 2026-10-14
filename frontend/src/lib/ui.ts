@@ -17,8 +17,9 @@ export const btnDanger =
 
 export const cardCls = 'rounded-2xl border border-slate-200 bg-white shadow-sm'
 
+// Encabezado de tabla: text-slate-600 mide 7,24:1 sobre slate-50 (slate-400 medía 2,45:1; AA exige 4,5:1)
 export const thCls =
-  'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400'
+  'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600'
 
 export const tdCls = 'px-4 py-3 text-sm text-slate-900'
 
@@ -31,6 +32,7 @@ export const errorBlockCls = 'rounded-lg bg-red-50 px-3 py-2 text-sm text-red-60
 // Borde rojo para inputs que fallan validacion
 export const inputErrorCls = 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/30'
 
+/** @deprecated Formato corto legado (dd-mm hh:mm). Usa fmtFecha/fmtFechaHora de lib/format. */
 export function fmtFecha(iso: string) {
   return new Date(iso).toLocaleString('es-CL', {
     day: '2-digit',
