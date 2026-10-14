@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { Navigate, NavLink, Outlet } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import logo from '../assets/logo.jpg'
 import type { Role } from '../types'
 import type { NavItem } from '../types/module'
 import { domains } from '../domains'
-import { BellIcon, HomeIcon, LogOutIcon, MenuIcon } from './icons'
+import { obtenerSucursalDashboard } from '../lib/dashboard'
+import { HomeIcon, LogOutIcon, MenuIcon } from './icons'
 
 const TODOS: Role[] = ['vendedor', 'bodega', 'produccion', 'administrador']
 
@@ -19,6 +21,11 @@ const rolEtiqueta: Record<Role, string> = {
   produccion: 'Producción',
   administrador: 'Administrador',
 }
+
+// Secciones de administración aún sin funcionalidad (UX-03): visibles, pero marcadas.
+const PROXIMAMENTE = new Set(['/reportes', '/ubicaciones', '/administracion', '/auditoria'])
+
+const FOCUSABLE = 'a[href], button:not([disabled])'
 
 function isDesktop() {
   return window.matchMedia('(min-width: 1024px)').matches
@@ -38,15 +45,37 @@ export default function DashboardLayout() {
   const sidebarHidden = !desktop && !mobileOpen
   const menuButton = useRef<HTMLButtonElement>(null)
   const sidebar = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
+  const modalAbierto = mobileOpen && !desktop
+
+  const { data: sucursal } = useQuery({
+    queryKey: ['dashboard-sucursal', perfil?.id, perfil?.sucursal_id],
+    queryFn: () => obtenerSucursalDashboard(perfil!.sucursal_id!),
+    enabled: modalAbierto && !!perfil?.sucursal_id,
+  })
 
   useEffect(() => {
-    if (!mobileOpen || desktop) return
+    if (!modalAbierto) return
     const opener = menuButton.current
-    sidebar.current?.querySelector<HTMLElement>('a, button')?.focus()
+    sidebar.current?.querySelector<HTMLElement>('nav a')?.focus()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault()
         setMobileOpen(false)
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = Array.from(sidebar.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement
+      if (event.shiftKey && (active === first || !sidebar.current?.contains(active))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (active === last || !sidebar.current?.contains(active))) {
+        event.preventDefault()
+        first.focus()
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -54,7 +83,15 @@ export default function DashboardLayout() {
       document.removeEventListener('keydown', onKeyDown)
       opener?.focus()
     }
-  }, [mobileOpen, desktop])
+  }, [modalAbierto])
+
+  const seccion = ALL_NAV.filter(
+    (item) => pathname === item.path || (item.path !== '/' && pathname.startsWith(item.path + '/')),
+  ).sort((a, b) => b.path.length - a.path.length)[0]
+  const titulo = seccion?.label
+  useEffect(() => {
+    document.title = titulo ? `${titulo} · Ondina` : 'Ondina'
+  }, [titulo])
 
   if (!perfil) return <Navigate to="/login" replace />
 
@@ -84,6 +121,9 @@ export default function DashboardLayout() {
         id="menu-lateral"
         inert={sidebarHidden}
         aria-hidden={sidebarHidden}
+        role={modalAbierto ? 'dialog' : undefined}
+        aria-modal={modalAbierto ? true : undefined}
+        aria-label={modalAbierto ? 'Menú principal' : undefined}
         className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-brand-900 transition-all duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'lg:w-16' : 'lg:w-64'} lg:translate-x-0`}
@@ -101,6 +141,26 @@ export default function DashboardLayout() {
           <span className={`text-lg font-bold text-white ${collapsed ? 'lg:hidden' : ''}`}>
             Ondina
           </span>
+        </div>
+
+        <div className="shrink-0 border-b border-brand-800 px-4 py-3 lg:hidden">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 text-sm text-white">
+              <p className="truncate font-semibold">{perfil.nombres} {perfil.apellidos}</p>
+              <p className="text-xs text-slate-300">{rolEtiqueta[perfil.rol]}</p>
+              <p className="truncate text-xs text-slate-300">
+                {perfil.sucursal_id ? (sucursal?.nombre ?? 'Sucursal asignada') : perfil.rol === 'administrador' ? 'Todas las sucursales' : 'Sin sucursal asignada'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(false)}
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-sm text-slate-300 hover:bg-brand-800 hover:text-white"
+            >
+              <span className="sr-only">Cerrar menú</span>
+              <span aria-hidden="true">✕</span>
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -121,6 +181,11 @@ export default function DashboardLayout() {
             >
               <item.icon className="h-5 w-5 shrink-0" />
               <span className={`truncate ${collapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+              {PROXIMAMENTE.has(item.path) && (
+                <span className={`ml-auto shrink-0 rounded-full bg-brand-800 px-2 py-0.5 text-[11px] font-medium text-slate-200 ${collapsed ? 'lg:hidden' : ''}`}>
+                  Próximamente
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -140,6 +205,7 @@ export default function DashboardLayout() {
       </aside>
 
       <div
+        inert={modalAbierto}
         className={`flex min-h-svh w-full flex-col transition-[padding] duration-300 ${
           collapsed ? 'lg:pl-16' : 'lg:pl-64'
         }`}
@@ -158,15 +224,6 @@ export default function DashboardLayout() {
           </button>
 
           <div className="flex-1" />
-
-          <button
-            type="button"
-            aria-label="Notificaciones"
-            className="relative min-h-11 min-w-11 rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100"
-          >
-            <BellIcon className="h-6 w-6" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" />
-          </button>
 
           <div className="hidden items-center gap-3 border-l border-slate-200 pl-3 sm:flex">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-800">
