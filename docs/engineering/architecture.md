@@ -4,13 +4,17 @@
 
 | Area | Source and responsibility |
 | --- | --- |
-| Frontend | `frontend/`: React/Vite/TypeScript with Tailwind/Mantine, TanStack Query, React Hook Form and Zod. |
+| Frontend | `frontend/`: React/Vite/TypeScript with Tailwind CSS, TanStack Query, React Hook Form and Zod; no UI component library (Mantine removed 2026-10-14). |
 | Domain modules | `frontend/src/domains/`: ventas, bodega, produccion and administracion, composed as `DomainModule` entries. |
 | Shared client | `frontend/src/lib/supabase.ts`; presentation consumes domain services/hooks. |
 | Backend | Supabase PostgreSQL/Auth; stock, authorization and transaction integrity belong in the database. |
 | Deployment | Vercel SPA configuration and GitHub Actions; database migrations are a separate manual workflow. |
 
 The current architecture uses the Supabase client rather than a separate Node API. Introduce another backend or framework only for an approved need, not to satisfy an unrelated skill recipe.
+
+## Frontend build shape
+
+Domain pages are lazy-loaded per route with a `Suspense` fallback, and the built HTML preloads only the entry, `jsx-runtime` and `vendor-supabase` chunks: `frontend/vite.config.ts` pins `@supabase/*` (and its recursive dependencies) into a dedicated `vendor-supabase` group so shell imports cannot merge Supabase into the entry. `npm run size` gates five gzip metrics against `frontend/bundle-budget.json` and must be measured with a real `frontend/.env.local`. Details and current figures live in [frontend conventions](frontend.md) and [performance](performance.md).
 
 ## Data and access
 
