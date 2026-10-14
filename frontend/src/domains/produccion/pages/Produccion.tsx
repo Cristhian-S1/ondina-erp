@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../context/auth-context'
@@ -76,15 +76,21 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     setOcupado(valor)
   }
   const [errores, setErrores] = useState<Record<string, string | undefined>>({})
+  const campoPendiente = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    if (campoPendiente.current) document.getElementById(`campo-${campoPendiente.current}`)?.focus()
+    campoPendiente.current = null
+  }, [errores])
   function invalidar(campo: string, mensaje: string) {
+    campoPendiente.current = campo
     setErrores(prev => ({ ...prev, [campo]: mensaje }))
-    mostrar(mensaje, 'error')
+    cerrar()
   }
   function corregir(campo: string) {
     setErrores(prev => ({ ...prev, [campo]: undefined }))
   }
   function accesibilidad(campo: string) {
-    return { 'aria-invalid': errores[campo] ? true : undefined, 'aria-describedby': errores[campo] ? `error-${campo}` : undefined }
+    return { id: `campo-${campo}`, 'aria-invalid': errores[campo] ? true : undefined, 'aria-describedby': errores[campo] ? `error-${campo}` : undefined }
   }
   function errorCampo(campo: string) {
     return errores[campo] ? <p id={`error-${campo}`} role="alert" className={errorTextCls}>{errores[campo]}</p> : null

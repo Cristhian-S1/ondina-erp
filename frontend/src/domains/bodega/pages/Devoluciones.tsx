@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { corregirDevolucion, registrarDevolucion } from '../api'
 import { btnPrimary, btnSecondary, cardCls, inputCls, tdCls, thCls } from '../../../lib/ui'
@@ -50,6 +50,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
     stockEnvases = [], cargaVendedor = [] } = datos.data ?? {}
   const load = datos.refetch
 
+  const detalleTitulo = useRef<HTMLHeadingElement>(null)
   const [seleccionado, setSeleccionado] = useState('')
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
@@ -65,6 +66,13 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   }
   const intento = useRef<{ contenido: string; clave: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (seleccionado) {
+      detalleTitulo.current?.focus()
+      detalleTitulo.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' })
+    }
+  }, [seleccionado])
 
   const tiposEmpaqueDevolvibles = useMemo(
     () => tiposEmpaque.filter((t) => t.categoria !== 'no_retornable'),
@@ -278,7 +286,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
 
       {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
       {error && (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p id="error-devolucion" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
       )}
 
       <div className={`${cardCls} min-w-0`}>
@@ -388,7 +396,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">
+                  <h2 ref={detalleTitulo} tabIndex={-1} className="text-base font-semibold text-slate-900">
                     Devolución de {despachoSeleccionado.vendedorNombre}
                   </h2>
                   <p className="text-sm text-slate-500">
@@ -440,6 +448,8 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                                   {editarProductos ? (
                                     <input
                                       aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
+                                      aria-invalid={Number(productoInputs[productoId]) > despachado || undefined}
+                                      aria-describedby={`ayuda-devolucion-cantidad${error && Number(productoInputs[productoId]) > despachado ? ' error-devolucion' : ''}`}
                                       type="number"
                                       inputMode="numeric"
                                       min={0}
@@ -468,8 +478,8 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                     </table>
                   </div>
                   {productosPendientes && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      No puedes devolver más de lo despachado por producto.
+                    <p id="ayuda-devolucion-cantidad" className="mt-1 text-xs text-slate-500">
+                      La devolución de cada producto tiene como límite la cantidad despachada.
                     </p>
                   )}
                 </div>

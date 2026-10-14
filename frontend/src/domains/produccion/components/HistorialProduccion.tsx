@@ -1,5 +1,5 @@
 import TablaProduccionResponsive from './TablaProduccionResponsive'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import EstadoVista from '../../../components/EstadoVista'
 import { btnSecondary, cardCls, inputCls, labelCls } from '../../../lib/ui'
@@ -19,13 +19,16 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
   const [productoId, setProductoId] = useState('')
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
+  const errorRangoId = useId()
+  const rangoInvalido = !!desde && !!hasta && desde > hasta
   const consulta = useQuery({
     queryKey: ['produccion', perfilId, sucursalId, 'historial', productoId, desde, hasta, versionDatos],
     queryFn: () => obtenerHistorialProduccion({ sucursalId, productoId, desde, hasta, limite: 200 }),
     retry: false,
+    enabled: !rangoInvalido,
   })
   const registros = consulta.data ?? []
-  const cargando = consulta.isPending
+  const cargando = !rangoInvalido && consulta.isPending
   const error = consulta.error ? mensajeErrorSupabase(consulta.error) : null
 
   function limpiarFiltros() {
@@ -34,7 +37,7 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
     setHasta('')
   }
 
-  return <section aria-busy={consulta.isFetching} className="min-w-0 space-y-4">
+  return <section aria-busy={!rangoInvalido && consulta.isFetching} className="min-w-0 space-y-4">
     <div className={`${cardCls} min-w-0 grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4`}>
       <label className={`${labelCls} min-w-0`}>
         Producto
@@ -54,17 +57,18 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
             ))}
         </select>
       </label>
-      <label className={`${labelCls} min-w-0`}>Desde<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={desde} max={hasta || undefined} onChange={(event) => setDesde(event.target.value)} /></label>
-      <label className={`${labelCls} min-w-0`}>Hasta<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={hasta} min={desde || undefined} onChange={(event) => setHasta(event.target.value)} /></label>
+      <label className={`${labelCls} min-w-0`}>Desde<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={desde} aria-invalid={rangoInvalido || undefined} aria-describedby={rangoInvalido ? errorRangoId : undefined} max={hasta || undefined} onChange={(event) => setDesde(event.target.value)} /></label>
+      <label className={`${labelCls} min-w-0`}>Hasta<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={hasta} aria-invalid={rangoInvalido || undefined} aria-describedby={rangoInvalido ? errorRangoId : undefined} min={desde || undefined} onChange={(event) => setHasta(event.target.value)} /></label>
+      {rangoInvalido && <p id={errorRangoId} role="alert" className="text-sm text-red-600 sm:col-span-2">Desde debe ser anterior o igual a Hasta.</p>}
       <div className="flex items-end"><button type="button" className={btnSecondary} onClick={limpiarFiltros}>Limpiar filtros</button></div>
     </div>
 
     <div className={`${cardCls} min-w-0`}>
       <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Historial de producción</h2><p className="mt-1 text-xs text-slate-500">Máximo 200 registros, ordenados desde el más reciente. Horas de America/Santiago.</p></div>
-      {consulta.isFetching && !consulta.isPending && <p role="status" className="px-5 py-2 text-sm text-slate-600">Actualizando...</p>}
-      {cargando ? <EstadoVista variante="cargando" mensaje="Cargando historial..." /> : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null}
-      {!cargando && !error && registros.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay registros para los filtros seleccionados." /> : null}
-      {!cargando && !error && registros.length > 0 ? <TablaProduccionResponsive
+      {!rangoInvalido && consulta.isFetching && !consulta.isPending && <p role="status" className="px-5 py-2 text-sm text-slate-600">Actualizando...</p>}
+      {!rangoInvalido && (cargando ? <EstadoVista variante="cargando" mensaje="Cargando historial..." /> : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null)}
+      {!rangoInvalido && !cargando && !error && registros.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay registros para los filtros seleccionados." /> : null}
+      {!rangoInvalido && !cargando && !error && registros.length > 0 ? <TablaProduccionResponsive
         columnas={[{ titulo: 'Fecha y hora', sinSalto: true }, { titulo: 'Producto' }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Observaciones' }]}
         filas={registros.map(registro => ({ id: registro.id, celdas: [fmtFechaHora(registro.creado_en), productos.find(producto => producto.id === registro.producto_id)?.nombre ?? 'Nombre no disponible', formatMiles(registro.cantidad), registro.observaciones || '—'] }))}
       /> : null}

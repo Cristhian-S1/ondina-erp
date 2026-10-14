@@ -3,8 +3,10 @@
 // feature/ventas nació de develop y arrastró este componente compartido. En
 // un futuro queda en consideración aislar la navegación de despachos para
 // que no se mezcle con el menú del vendedor de ventas.
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Toast } from '../../../components/Toast'
+import { useToast } from '../../../components/toast-utils'
 import Dialog from '../../../components/Dialog'
 import { useAuth } from '../../../context/auth-context'
 import { crearDespacho } from '../api'
@@ -105,6 +107,21 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const [vendedorFiltro, setVendedorFiltro] = useState('')
 
   const [error, setError] = useState<string | null>(null)
+  const [campoError, setCampoError] = useState({ id: '', intento: 0 })
+  const { toast, mostrar, cerrar } = useToast()
+  function informarError(mensaje: string, id: string) {
+    setError(mensaje)
+    setCampoError(prev => ({ id, intento: prev.intento + 1 }))
+  }
+  function atributosError(id: string) {
+    return { id, 'aria-invalid': !!error && campoError.id === id || undefined, 'aria-describedby': error && campoError.id === id ? 'error-despacho' : undefined }
+  }
+  useLayoutEffect(() => {
+    if (error) document.getElementById(campoError.id)?.focus()
+  }, [error, campoError])
+  useEffect(() => {
+    if (modalOpen) document.getElementById('despacho-vendedor')?.focus()
+  }, [modalOpen])
 
   const bandejaTipo = useMemo(
     () => tiposEmpaque.find((t) => t.categoria === 'uso_interno') ?? null,
@@ -131,6 +148,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   async function registrarDespacho() {
     if (!perfil) return
     setError(null)
+    setCampoError(prev => ({ ...prev, id: '' }))
 
     if (!sucursalId) {
       setError('Selecciona una sucursal para registrar el despacho.')
@@ -139,7 +157,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
     const lineasValidas = lineas.filter((l) => l.producto_id && parseMiles(l.cantidad) > 0)
     if (!vendedorId || lineasValidas.length === 0) {
-      setError('Selecciona un vendedor y agrega al menos un producto.')
+      informarError('Selecciona un vendedor y agrega al menos un producto.', !vendedorId ? 'despacho-vendedor' : lineas[0]?.producto_id ? `despacho-cantidad-${lineas[0].id}` : `despacho-producto-${lineas[0]?.id}`)
       return
     }
 
@@ -152,9 +170,10 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
       const disponible = stockBodega.find((s) => s.producto_id === productoId)?.cantidad ?? 0
       if (solicitado > disponible) {
         const producto = productos.find((p) => p.id === productoId)
-        setError(
+        informarError(
           `Stock insuficiente en bodega para ${producto?.nombre ?? 'el producto'}: ` +
             `disponible ${formatMiles(disponible)}, solicitado ${formatMiles(solicitado)}.`,
+          `despacho-cantidad-${lineas.find(item => item.producto_id === productoId)?.id}`,
         )
         return
       }
@@ -166,9 +185,10 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
     for (const l of envasesValidos) {
       const disponible = stockEnvases.find((s) => s.tipo_empaque_id === l.tipo_empaque_id)?.cantidad ?? 0
       if (l.cantidad > disponible) {
-        setError(
+        informarError(
           `Stock insuficiente de envases para ${bandejaTipo?.nombre ?? 'el envase'}: ` +
             `disponible ${formatMiles(disponible)}, solicitado ${formatMiles(l.cantidad)}.`,
+          'despacho-bandejas',
         )
         return
       }
@@ -207,6 +227,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
     setVendedorId('')
     setLineas([nuevaLinea()])
     setBandejasManual(null)
+    mostrar('Despacho registrado.')
     await load()
   }
 
@@ -298,6 +319,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
   return (
     <div className="space-y-6">
+      <Toast toast={toast} onClose={cerrar} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Despachos</h1>
@@ -314,7 +336,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
           >
             Devoluciones
           </button>
-          <button type="button" className={btnPrimary} onClick={() => { setError(null); setModalOpen(true) }}>
+          <button type="button" className={btnPrimary} onClick={() => { setError(null); cerrar(); setModalOpen(true) }}>
             Nuevo despacho
           </button>
         </div>
@@ -610,13 +632,14 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
       <Dialog open={modalOpen} onClose={() => { if (!enviando) { setError(null); setModalOpen(false) } }} title="Nuevo despacho">
             {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
-            {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+            {error && <p id="error-despacho" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
             <label className={labelCls}>
               Vendedor
               <select
                 className={inputCls}
                 value={vendedorId}
-                onChange={(e) => setVendedorId(e.target.value)}
+                {...atributosError('despacho-vendedor')}
+                onChange={(e) => { setError(null); setVendedorId(e.target.value) }}
               >
                 <option value="">Selecciona un vendedor...</option>
                 {vendedores.map((v) => (
@@ -664,7 +687,9 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                     <select
                       className={inputCls}
                       value={linea.producto_id}
+                      {...atributosError(`despacho-producto-${linea.id}`)}
                       onChange={(e) => {
+                        setError(null)
                         const next = [...lineas]
                         next[index] = { ...linea, producto_id: e.target.value }
                         setLineas(next)
@@ -708,7 +733,9 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                       placeholder=""
                       className={inputCls}
                       value={linea.cantidad}
+                      {...atributosError(`despacho-cantidad-${linea.id}`)}
                       onChange={(e) => {
+                        setError(null)
                         const formatted = formatMilesInput(e.target.value)
                         const next = [...lineas]
                         next[index] = { ...linea, cantidad: formatted }
@@ -748,7 +775,9 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                       placeholder=""
                       className={inputCls}
                       value={bandejasCantidad}
+                      {...atributosError('despacho-bandejas')}
                       onChange={(e) => {
+                        setError(null)
                         const formatted = formatMilesInput(e.target.value)
                         setBandejasManual({ hielo: totalHieloSolicitado, valor: formatted })
                       }}

@@ -251,7 +251,7 @@ it.each([
   ['registrar', 'Registrar producción', 'Producto'],
   ['incidencias', 'Registrar incidencia', 'Descripción de la incidencia'],
   ['incidencias', 'Registrar merma', 'Producto'],
-])('FX R2-03 · validación de %s queda asociada al campo después del Toast', async (seccion, boton, campo) => {
+])('FX2 R4-11 · validación de %s persiste en campo sin Toast', async (seccion, boton, campo) => {
   location.pathname = `/produccion/${seccion}`
   renderWithProviders(<Produccion />)
   await screen.findByRole('option', { name: 'Agua' })
@@ -259,7 +259,7 @@ it.each([
   expect(screen.getByLabelText(campo)).toHaveAttribute('aria-invalid', 'true')
   const id = screen.getByLabelText(campo).getAttribute('aria-describedby')!
   expect(document.getElementById(id)).toHaveAttribute('role', 'alert')
-  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
   expect(document.getElementById(id)).toBeVisible()
 })
 
@@ -283,9 +283,26 @@ it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el ca
   expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid')
   fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
   expect(screen.getByLabelText('Motivo')).toHaveAttribute('aria-describedby', 'error-merma-motivo')
-  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
   expect(screen.getByRole('alert')).toHaveTextContent('Indica el motivo')
   fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Pérdida de producto' } })
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(api.registrarMerma).not.toHaveBeenCalled()
+})
+
+
+it.each([
+  ['Registrar incidencia', 'Descripción de la incidencia'],
+  ['Registrar merma', 'Producto'],
+])('FX2 R4-11 · %s enfoca el campo inválido sin repetir la validación en Toast', async (boton, nombre) => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findByRole('option', { name: 'Agua' })
+  const campo = screen.getByLabelText(nombre)
+  screen.getByRole('button', { name: boton }).focus()
+  fireEvent.click(screen.getByRole('button', { name: boton }))
+  expect(await screen.findByRole('alert')).toBeVisible()
+  expect(campo).toHaveFocus()
+  expect(campo).toHaveAttribute('aria-invalid','true')
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
 })

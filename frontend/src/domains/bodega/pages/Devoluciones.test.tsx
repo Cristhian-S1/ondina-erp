@@ -347,3 +347,19 @@ it('FX R1-06 · devolución bloquea el ámbito mientras la RPC está en vuelo', 
   expect(screen.getByRole('alert')).toHaveTextContent('No fue posible completar')
   expect(screen.getByLabelText('Sucursal')).not.toBeDisabled()
 })
+
+
+it('FX2 R4-09 · ayuda neutra describe la cantidad sin error antes de ingresar datos', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  renderWithProviders(<Devoluciones />)
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
+  const campo = screen.getByLabelText('Cantidad a devolver de Bidón POL')
+  expect(campo).toHaveAttribute('aria-describedby', 'ayuda-devolucion-cantidad')
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.queryByText('No puedes devolver más de lo despachado por producto.')).not.toBeInTheDocument()
+  fireEvent.change(campo, { target: { value: '6' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar devolución' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('No puedes devolver más de 5')
+  expect(campo).toHaveAttribute('aria-invalid','true')
+})
