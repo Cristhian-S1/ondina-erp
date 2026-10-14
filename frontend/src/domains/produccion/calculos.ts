@@ -1,3 +1,4 @@
+import { formatMiles } from '../../lib/format'
 import type { EnvaseDisponible, IndicadorProducto, IndicadorProduccionDiario } from './types'
 
 export interface ResumenProduccion {
@@ -37,5 +38,5 @@ export function limiteEnvases(empaqueId: string | null | undefined, envases: Env
 
 export function mensajeLimiteEnvases(cantidad: number, limite: number | null): string | undefined {
   if (limite === null || cantidad <= limite) return undefined
-  return limite === 1 ? 'Solo hay 1 envase vacío disponible para este producto.' : `Solo hay ${limite} envases vacíos disponibles para este producto.`
+  return limite === 1 ? 'Solo hay 1 envase vacío disponible para este producto.' : `Solo hay ${formatMiles(limite)} envases vacíos disponibles para este producto.`
 }
