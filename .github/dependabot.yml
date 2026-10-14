@@ -15,6 +15,12 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
+    ignore:
+      # typescript-eslint (8.71.x) exige typescript <6.1 y no soporta TS 7
+      # (PR #82: npm ci falla por ERESOLVE). Retirar cuando lo soporte:
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
     groups:
       npm-minor-patch:
         patterns:
