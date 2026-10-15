@@ -5,6 +5,8 @@ import { afterEach, expect, it, vi } from 'vitest'
 import App from '../App'
 import { crearMutationCacheObservable, descartarReferenciaMutacion } from './observabilidad'
 
+// Unit tests never reach Supabase; without this, importing the real client throws when VITE_* env vars are absent (CI).
+vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('../pages/Login', () => ({ default: () => <p>Formulario existente</p> }))
 vi.mock('../domains', () => ({ domains: [] }))
 afterEach(() => { descartarReferenciaMutacion(); vi.restoreAllMocks() })
