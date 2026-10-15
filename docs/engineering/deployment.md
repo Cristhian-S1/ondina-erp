@@ -24,7 +24,7 @@ Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) a
 - `.github/dependabot.yml` requests weekly version updates (Monday, America/Santiago) for npm (`/frontend`) and GitHub Actions (`/`), targeting `develop`, grouping minor+patch per ecosystem, with at most 5 open PRs and the label `dependencies`.
 - Stale `feature/*` branches were archived as `archive/feature-*` tags and deleted on 2026-10-13; see the [development workflow](development.md).
 
-Still open: real migration execution/pgTAP in CI (#40), verified Supabase backups and recovery (#41), error tracking (#54), a justified need for stronger abuse protection (#55) and enforcing the CSP (#45).
+Still open: real migration execution/pgTAP in CI (#40), verified Supabase backups and recovery (#41; the interim manual procedure and the Pro plan requirement are documented in [backups](backups.md)), error tracking (#54), a justified need for stronger abuse protection (#55) and enforcing the CSP (#45).
 
 ## Configuration
 
