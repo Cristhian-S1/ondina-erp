@@ -1,0 +1,125 @@
+
+ RUN  v5.0.4 /home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend
+
+ ❯ scripts/check-bundle-size.test.mjs (12 tests | 1 failed | 11 skipped) 514ms
+   × keeps the authenticated shell, domain metadata and form libraries outside the real login boot set 512ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/check-bundle-size.test.mjs > keeps the authenticated shell, domain metadata and form libraries outside the real login boot set
+AssertionError: expected '../../../../home/cristhian/orca/works…' not to match /src\/domains\//domains\
+
+- Expected:
+/src\/domains\//
+
++ Received:
+"../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/scheduler/cjs/scheduler.production.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/scheduler/index.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react-dom/cjs/react-dom.production.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react-dom/index.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react-dom/cjs/react-dom-client.production.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react-dom/client.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/timeoutManager.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/utils.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/environmentManager.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/subscribable.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/focusManager.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/notifyManager.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/onlineManager.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/retryer.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/removable.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/infiniteQueryBehavior.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/query.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/queryObserver.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/mutation.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/mutationCache.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/queryCache.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/query-core/build/modern/queryClient.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/IsRestoringProvider.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/QueryErrorResetBoundary.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/errorBoundaryUtils.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/suspense.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/useBaseQuery.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@tanstack/react-query/build/modern/useQuery.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react-router/dist/development/chunk-OB3PAWPO.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/context/auth-context.ts
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/components/ProtectedRoute.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/assets/logo.jpg
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/components/EstadoVista.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/components/icons.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/domains/ventas/index.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/domains/bodega/index.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/domains/produccion/index.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/domains/administracion/index.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/domains/index.ts
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/components/DashboardLayout.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/lib/errors.ts
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/pages/Login.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/lib/supabase.ts
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/lib/dashboard.ts
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/pages/Dashboard.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/App.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/context/AuthProvider.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/components/ErrorBoundary.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/main.tsx
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react/cjs/react.production.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react/index.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react/cjs/react-jsx-runtime.production.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/react/jsx-runtime.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/src/lib/ui.ts
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/supabase-js/dist/tracingRegistry.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/tslib/tslib.es6.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/functions-js/dist/module/helper.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/functions-js/dist/module/types.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/functions-js/dist/module/FunctionsClient.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/postgrest-js/dist/index.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/lib/version.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/lib/constants.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/lib/serializer.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/lib/transformers.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/phoenix/priv/static/phoenix.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/phoenix/presenceAdapter.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/RealtimePresence.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/lib/normalizeChannelError.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/phoenix/channelAdapter.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/RealtimePostgresFilterBuilder.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/RealtimeChannel.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/phoenix/socketAdapter.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/iceberg-js/dist/index.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/storage-js/dist/index.mjs
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/version.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/constants.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/errors.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/base64url.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/helpers.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/fetch.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/types.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/GoTrueAdminApi.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/local-storage.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/locks.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/polyfills.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/web3/ethereum.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/webauthn.errors.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/lib/webauthn.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/GoTrueClient.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/auth-js/dist/module/AuthClient.js
+../../../../home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend/node_modules/@supabase/supabase-js/dist/index.mjs"
+
+ ❯ scripts/check-bundle-size.test.mjs:148:30
+    146|     return map.sources
+    147|   }).join('\n')
+    148|   expect(initialSources).not.toMatch(/src\/domains\//)
+       |                              ^
+    149|   expect(initialSources).not.toMatch(/src\/(components\/DashboardLayou…
+    150|   expect(initialSources).not.toMatch(/node_modules\/(zod|react-hook-fo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  21:13:24
+   Duration  1.18s (tests 47%, environment 29%, import 13%, transform 6%, setup 5%)

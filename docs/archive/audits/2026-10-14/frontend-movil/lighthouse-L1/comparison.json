@@ -1,0 +1,1022 @@
+[
+  {
+    "device": "mobile",
+    "page": "login",
+    "before": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1965.0367,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 175450,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 102759,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 57132
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1961.44245,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 166798,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 94359,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 48732
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "mobile",
+    "page": "portada",
+    "before": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2267.3847,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177063,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 90993,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 47265
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 3,
+        "wastedBytes": 3725,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2127.4568,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178069,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 84832,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 41104
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "mobile",
+    "page": "administracion",
+    "before": {
+      "performance": 97,
+      "accessibility": 94,
+      "best-practices": 100,
+      "lcpMs": 2260.00525,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178375,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 89961,
+        "wastedMs": 410,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 46233
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 3,
+        "wastedBytes": 3725,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 94,
+      "best-practices": 100,
+      "lcpMs": 2124.606,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 179399,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 87514,
+        "wastedMs": 300,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 43786
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "movil-412x915",
+    "page": "login",
+    "before": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1965.8999,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 175450,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 102759,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 57132
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1962.8676,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 166798,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 94359,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 48732
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "movil-412x915",
+    "page": "portada",
+    "before": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2266.4018499999997,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177063,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 90993,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 47265
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 3,
+        "wastedBytes": 3725,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2268.506,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178069,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 84832,
+        "wastedMs": 600,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 41104
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "movil-412x915",
+    "page": "administracion",
+    "before": {
+      "performance": 97,
+      "accessibility": 94,
+      "best-practices": 100,
+      "lcpMs": 2260.2944,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178375,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 89961,
+        "wastedMs": 410,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 46233
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 3,
+        "wastedBytes": 3725,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 94,
+      "best-practices": 100,
+      "lcpMs": 2125.0846,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 179399,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 87514,
+        "wastedMs": 300,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 43786
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "tablet-768x1024",
+    "page": "login",
+    "before": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1964.7948,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 175450,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 102759,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 57132
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1963.3263,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 166798,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 94359,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 48732
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "tablet-768x1024",
+    "page": "portada",
+    "before": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2267.77315,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177063,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 90993,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 47265
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 3,
+        "wastedBytes": 3725,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2160.36985,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178069,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 84832,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 41104
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "tablet-768x1024",
+    "page": "administracion",
+    "before": {
+      "performance": 97,
+      "accessibility": 94,
+      "best-practices": 100,
+      "lcpMs": 2259.5251500000004,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178375,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 89961,
+        "wastedMs": 410,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 46233
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 3,
+        "wastedBytes": 3725,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 94,
+      "best-practices": 100,
+      "lcpMs": 2121.9278,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 179399,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 87514,
+        "wastedMs": 300,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 43786
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "tablet-1024x1366",
+    "page": "login",
+    "before": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1966.2735,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 175450,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 102759,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 57132
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 1961.2221,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 166798,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 94359,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 48732
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "tablet-1024x1366",
+    "page": "portada",
+    "before": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2267.24535,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177063,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 90993,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 47265
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2343.9387500000003,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 182486,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 82672,
+        "wastedMs": 450,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 38944
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "tablet-1024x1366",
+    "page": "administracion",
+    "before": {
+      "performance": 97,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2260.631,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178375,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 89961,
+        "wastedMs": 410,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 46233
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 3,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 98,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 2202.1136,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183816,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 85354,
+        "wastedMs": 300,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 41626
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "desktop",
+    "page": "login",
+    "before": {
+      "performance": 100,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 458.7688,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 175450,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 102759,
+        "wastedMs": 80,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 57132
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 100,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 451.58555,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 166798,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 94359,
+        "wastedMs": 80,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 48732
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 45627
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "desktop",
+    "page": "portada",
+    "before": {
+      "performance": 100,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 539.36555,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177063,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 90993,
+        "wastedMs": 80,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 47265
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 1,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 100,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 487.2446,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 182486,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 82672,
+        "wastedMs": 40,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 38944
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  },
+  {
+    "device": "desktop",
+    "page": "administracion",
+    "before": {
+      "performance": 100,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 531.60115,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178375,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 89961,
+        "wastedMs": 70,
+        "index-": {
+          "totalBytes": 103520,
+          "wastedBytes": 46233
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    },
+    "after": {
+      "performance": 100,
+      "accessibility": 95,
+      "best-practices": 100,
+      "lcpMs": 509.4048,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183816,
+      "unused-javascript": {
+        "failures": 3,
+        "wastedBytes": 85354,
+        "wastedMs": 40,
+        "index-": {
+          "totalBytes": 91352,
+          "wastedBytes": 41626
+        },
+        "vendor-supabase-": {
+          "totalBytes": 54629,
+          "wastedBytes": 43728
+        }
+      },
+      "render-blocking-resources": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      },
+      "offscreen-images": {
+        "failures": 0,
+        "wastedBytes": 0,
+        "wastedMs": 0
+      }
+    }
+  }
+]

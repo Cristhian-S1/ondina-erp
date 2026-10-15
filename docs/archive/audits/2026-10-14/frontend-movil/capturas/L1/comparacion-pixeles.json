@@ -1,0 +1,92 @@
+[
+  {
+    "before": "administracion-1024x1366-antes.png",
+    "after": "administracion-1024x1366-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "administracion-1280x800-antes.png",
+    "after": "administracion-1280x800-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "administracion-375x812-antes.png",
+    "after": "administracion-375x812-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "administracion-412x915-antes.png",
+    "after": "administracion-412x915-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "administracion-768x1024-antes.png",
+    "after": "administracion-768x1024-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "drawer-375x812-antes.png",
+    "after": "drawer-375x812-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "drawer-412x915-antes.png",
+    "after": "drawer-412x915-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "drawer-768x1024-antes.png",
+    "after": "drawer-768x1024-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "login-1024x1366-antes.png",
+    "after": "login-1024x1366-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "login-1280x800-antes.png",
+    "after": "login-1280x800-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "login-375x812-antes.png",
+    "after": "login-375x812-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "login-412x915-antes.png",
+    "after": "login-412x915-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "login-768x1024-antes.png",
+    "after": "login-768x1024-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "portada-1024x1366-antes.png",
+    "after": "portada-1024x1366-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "portada-1280x800-antes.png",
+    "after": "portada-1280x800-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "portada-375x812-antes.png",
+    "after": "portada-375x812-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "portada-412x915-antes.png",
+    "after": "portada-412x915-despues.png",
+    "changedPixels": 0
+  },
+  {
+    "before": "portada-768x1024-antes.png",
+    "after": "portada-768x1024-despues.png",
+    "changedPixels": 0
+  }
+]
