@@ -36,7 +36,7 @@ Script reproducible: `scripts/q1-bucle-carga.sh` (mismo directorio de este infor
 | 14 | 0 | 16 | 39.37 | verde |
 | 15 | 0 | 16 | 36.23 | verde |
 
-**14/15 verdes**. Todas las corridas reportaron 696 tests (sin variación de recuento).
+**14/15 verdes**. Recuento estable en las 15 corridas: **55 archivos / 723 tests** (717 verdes en run 13 con 6 fallos). Nota: el incidente original de OND-c07.19 reportó "1 de 696" porque se midió en el worktree de integración (otra composición de branch); en este worktree `4809b1a` la suite tiene 723 tests y así se registró en ambos bucles.
 
 ### Pruebas fallidas en run 13 (todas con la suite correcta, por tiempo)
 
@@ -78,7 +78,7 @@ Ninguna otra prueba o archivo fue modificado. `lint` limpio en los cuatro archiv
 
 ## Bucle 2 (después de correcciones; HEAD + 4 archivos de prueba/config)
 
-Se corrió el mismo bucle con la misma generación de carga: **15/15 verdes, con loadavg igual o mayor** (hasta 35.96 de 1 min). Duraciones 16–37 s, sin variación de tests (696).
+Se corrió el mismo bucle con la misma generación de carga: **15/15 verdes, con loadavg igual o mayor** (hasta 35.96 de 1 min). Duraciones 16–37 s, recuento estable (55 archivos / 723 tests).
 
 | Run | RC | Duración (s) | loadavg (1m) | Resultado |
 | --- | ---: | ---: | ---: | --- |
