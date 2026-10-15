@@ -9,16 +9,23 @@ interface AtributosCampo {
   'aria-describedby': string | undefined
 }
 
-export default function CampoFormulario({ etiqueta, error, children }: {
+// Optional id preserves caller-owned focus/arrow references; descripcionId adds
+// help before the error description; alerta opts the error into role="alert".
+// Existing callers retain generated IDs, classes and markup by default.
+export default function CampoFormulario({ id: idExterno, etiqueta, error, descripcionId, alerta = false, children }: {
+  id?: string
+  descripcionId?: string
+  alerta?: boolean
   etiqueta: string
   error?: string
   children: (atributos: AtributosCampo) => ReactNode
 }) {
-  const id = useId()
+  const idGenerado = useId()
+  const id = idExterno ?? idGenerado
   const errorId = `${id}-error`
   return <div className="min-w-0">
     <label htmlFor={id} className={labelCls}>{etiqueta}</label>
-    {children({ id, className: `${inputCls} ${error ? inputErrorCls : ''}`, 'aria-invalid': !!error, 'aria-describedby': error ? errorId : undefined })}
-    {error && <p id={errorId} className={errorTextCls}>{error}</p>}
+    {children({ id, className: `${inputCls} ${error ? inputErrorCls : ''}`, 'aria-invalid': !!error, 'aria-describedby': [descripcionId, error ? errorId : undefined].filter(Boolean).join(' ') || undefined })}
+    {error && <p id={errorId} role={alerta ? 'alert' : undefined} className={errorTextCls}>{error}</p>}
   </div>
 }
