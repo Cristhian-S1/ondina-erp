@@ -8,6 +8,8 @@ import { useCarteraPaginada } from './useCarteraPaginada'
 import { useCrearCliente } from './useCrearCliente'
 import { useCrearGasto } from './useCrearGasto'
 import * as api from '../api'
+// Unit tests never reach Supabase; without this, importing the real client throws when VITE_* env vars are absent (CI).
+vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('../api')
 beforeEach(() => { vi.clearAllMocks() })
 function setup() {

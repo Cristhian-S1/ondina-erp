@@ -4,6 +4,8 @@ import { renderWithProviders } from '@/test/render'
 import Clientes from './Clientes'
 import Gastos from './Gastos'
 import * as api from '../api'
+// Unit tests never reach Supabase; without this, importing the real client throws when VITE_* env vars are absent (CI).
+vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('../api')
 vi.mock('../../../lib/catalog', () => ({ obtenerSucursales: vi.fn().mockResolvedValue([]) }))
 beforeEach(() => {
