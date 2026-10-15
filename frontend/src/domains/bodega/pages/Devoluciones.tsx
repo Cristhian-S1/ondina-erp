@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { corregirDevolucion, registrarDevolucion } from '../api'
-import { btnPrimary, btnSecondary, cardCls, inputCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls } from '../../../lib/ui'
 import { fmtFecha, fmtFechaHora, formatMiles } from '../../../lib/format'
 import EstadoVista from '../../../components/EstadoVista'
 import InputNumerico from '../../../components/InputNumerico'
@@ -9,6 +9,7 @@ import Dialog from '../../../components/Dialog'
 import { disponibleParaDevolver } from '../validacion'
 import AmbitoBodega from '../components/AmbitoBodega'
 import SeccionDevolucion from '../components/SeccionDevolucion'
+import CampoFormulario from '../../../components/CampoFormulario'
 import { useDatosBodega } from '../hooks/useDatosBodega'
 import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
@@ -40,7 +41,6 @@ const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['todo', 'Todo'],
 ]
 
-const inputCompact = `${inputCls} text-right`
 // Fila compacta: nombre y disponibilidad a la izquierda, input acotado a la derecha.
 const filaCls = 'grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-3 py-3'
 // En teléfono las flechas apiladas de InputNumerico duplicarían el alto de la fila; el teclado numérico basta
@@ -457,14 +457,16 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                             </div>
                             {editarProductos ? (
                               <div className={`w-36 @lg:w-44 ${sinFlechasMovil}`}>
-                                <InputNumerico id={`devolucion-producto-${productoId}`}
-                                  aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
-                                  aria-describedby="ayuda-devolucion-cantidad"
-                                  className={inputCompact} value={productoInputs[productoId] ?? ''} error={errorCantidad}
-                                  onChange={valor => {
-                                    setError(null)
-                                    setProductoInputs(prev => ({ ...prev, [productoId]: valor === undefined ? '' : String(valor) }))
-                                  }} />
+                                <CampoFormulario id={`devolucion-producto-${productoId}`} etiqueta="Cantidad a devolver"
+                                  descripcionId="ayuda-devolucion-cantidad" error={errorCantidad}>
+                                  {atributos => <InputNumerico {...atributos}
+                                    aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
+                                    className={`${atributos.className} text-right`} value={productoInputs[productoId] ?? ''}
+                                    onChange={valor => {
+                                      setError(null)
+                                      setProductoInputs(prev => ({ ...prev, [productoId]: valor === undefined ? '' : String(valor) }))
+                                    }} />}
+                                </CampoFormulario>
                               </div>
                             ) : (
                               <span className="whitespace-nowrap text-right text-sm font-bold text-amber-800">
@@ -502,24 +504,26 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                           {editarEnvases ? (
                             <div className={`grid grid-cols-2 gap-3 @lg:w-80 ${sinFlechasMovil}`}>
                               <div className="min-w-0">
-                                <span className="block text-xs font-medium text-slate-700">Buenos</span>
-                                <InputNumerico aria-label={`Cantidad de envases buenos de ${t.nombre}`}
-                                  aria-describedby={advertencia ? advertenciaId : undefined}
-                                  className={inputCompact} value={input.buenos}
-                                  onChange={valor => {
-                                    setError(null)
-                                    setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, buenos: valor === undefined ? '' : String(valor) } }))
-                                  }} />
+                                <CampoFormulario id={`devolucion-envase-bueno-${t.id}`} etiqueta="Buenos"
+                                  descripcionId={advertencia ? advertenciaId : undefined}>
+                                  {atributos => <InputNumerico {...atributos} aria-label={`Cantidad de envases buenos de ${t.nombre}`}
+                                    className={`${atributos.className} text-right`} value={input.buenos}
+                                    onChange={valor => {
+                                      setError(null)
+                                      setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, buenos: valor === undefined ? '' : String(valor) } }))
+                                    }} />}
+                                </CampoFormulario>
                               </div>
                               <div className="min-w-0">
-                                <span className="block text-xs font-medium text-slate-700">Malos</span>
-                                <InputNumerico aria-label={`Cantidad de envases malos de ${t.nombre}`}
-                                  aria-describedby={advertencia ? advertenciaId : undefined}
-                                  className={inputCompact} value={input.malos}
-                                  onChange={valor => {
-                                    setError(null)
-                                    setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, malos: valor === undefined ? '' : String(valor) } }))
-                                  }} />
+                                <CampoFormulario id={`devolucion-envase-malo-${t.id}`} etiqueta="Malos"
+                                  descripcionId={advertencia ? advertenciaId : undefined}>
+                                  {atributos => <InputNumerico {...atributos} aria-label={`Cantidad de envases malos de ${t.nombre}`}
+                                    className={`${atributos.className} text-right`} value={input.malos}
+                                    onChange={valor => {
+                                      setError(null)
+                                      setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, malos: valor === undefined ? '' : String(valor) } }))
+                                    }} />}
+                                </CampoFormulario>
                               </div>
                             </div>
                           ) : (

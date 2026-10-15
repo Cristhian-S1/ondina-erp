@@ -616,3 +616,69 @@ it('M2 · cada producto del despacho es una tarjeta con encabezado, controles y 
   // Un único árbol: sin controles duplicados para otra vista.
   expect(within(dialogo).getAllByLabelText('Cantidad')).toHaveLength(2)
 })
+
+function comprobarCampoK1(campo: HTMLElement, mensaje: RegExp) {
+  const label = document.querySelector(`label[for="${campo.id}"]`)
+  expect(label).toBeInTheDocument()
+  expect(label).toBeVisible()
+  expect(campo).toHaveAttribute('aria-invalid', 'true')
+  const mensajes = campo.getAttribute('aria-describedby')!.split(' ').map(id => document.getElementById(id)!)
+  const error = mensajes.find(elemento => mensaje.test(elemento.textContent ?? ''))!
+  expect(error).toBeVisible()
+  expect(label?.parentElement).toContainElement(error)
+}
+
+it('K1 R2-13 · vendedor usa label htmlFor y error persistente bajo su control', async () => {
+  const dialogo = await abrirDespachoF2()
+  const campo = within(dialogo).getByLabelText('Vendedor')
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  comprobarCampoK1(campo, /Selecciona un vendedor/)
+  expect(campo).toHaveFocus()
+  fireEvent.change(campo, { target: { value: vendedor.id } })
+  expect(campo).toHaveAttribute('aria-invalid', 'false')
+  expect(campo).not.toHaveAttribute('aria-describedby')
+})
+
+it('K1 R2-13 · producto y cantidad asocian su error local y conservan IDs al corregir', async () => {
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  const dialogo = await abrirDespachoF2()
+  fireEvent.change(within(dialogo).getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  const productoCampo = within(dialogo).getByLabelText('Producto')
+  const cantidad = within(dialogo).getByLabelText('Cantidad')
+  const ids = [productoCampo.id, cantidad.id]
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  comprobarCampoK1(productoCampo, /agrega al menos un producto/)
+  expect(productoCampo).toHaveFocus()
+  fireEvent.change(productoCampo, { target: { value: hielo.id } })
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  comprobarCampoK1(cantidad, /agrega al menos un producto/)
+  expect(cantidad).toHaveFocus()
+  fireEvent.change(cantidad, { target: { value: '101' } })
+  comprobarCampoK1(cantidad, /Excede el stock en bodega/)
+  fireEvent.change(cantidad, { target: { value: '1' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(productoCampo).toHaveAttribute('aria-invalid', 'false')
+  expect([productoCampo.id, cantidad.id]).toEqual(ids)
+})
+
+it('K1 R2-13 · bandejas enlaza label, estado inválido y mensaje bajo el campo', async () => {
+  vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([bandeja])
+  vi.mocked(api.obtenerStockEnvases).mockResolvedValue([stockBandeja])
+  const dialogo = await abrirDespachoF2()
+  const campo = within(dialogo).getByLabelText('Bandejas')
+  fireEvent.change(campo, { target: { value: '41' } })
+  comprobarCampoK1(campo, /Excede el stock de bandejas/)
+  fireEvent.change(campo, { target: { value: '40' } })
+  expect(campo).toHaveAttribute('aria-invalid', 'false')
+  expect(campo).not.toHaveAttribute('aria-describedby')
+})
+
+it('K1 R2-13 · conserva un error visible cuando se envía después de quitar todas las líneas', async () => {
+  const dialogo = await abrirDespachoF2()
+  fireEvent.change(within(dialogo).getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Quitar' }))
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  expect(within(dialogo).getByRole('alert')).toHaveTextContent('Selecciona un vendedor y agrega al menos un producto.')
+  expect(api.crearDespacho).not.toHaveBeenCalled()
+})

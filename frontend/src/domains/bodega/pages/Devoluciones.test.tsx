@@ -518,3 +518,43 @@ it('FX5 R5-04 · distingue un producto sin devolución de otro ya devuelto', asy
   expect(filas[1]).toHaveTextContent('Sin devolución')
   expect(filas[1]).not.toHaveTextContent('Devuelto 0')
 })
+
+it('K1 R2-13 · devolución de producto enlaza label htmlFor, ayuda y error persistente', async () => {
+  await abrirDevolucionF2()
+  const campo = screen.getByLabelText('Cantidad a devolver de Bidón POL')
+  const label = document.querySelector(`label[for="${campo.id}"]`)
+  expect(label).toBeInTheDocument()
+  expect(label).toBeVisible()
+  fireEvent.change(campo, { target: { value: '6' } })
+  expect(campo).toHaveAttribute('aria-invalid', 'true')
+  const ids = campo.getAttribute('aria-describedby')!.split(' ')
+  expect(ids).toContain('ayuda-devolucion-cantidad')
+  const mensaje = ids.map(id => document.getElementById(id)).find(e => /No puedes devolver más de 5/.test(e?.textContent ?? ''))!
+  expect(mensaje).toBeVisible()
+  expect(label?.parentElement).toContainElement(mensaje)
+  fireEvent.change(campo, { target: { value: '5' } })
+  expect(campo).toHaveAttribute('aria-invalid', 'false')
+  expect(campo).toHaveAttribute('aria-describedby', 'ayuda-devolucion-cantidad')
+})
+
+it('K1 R2-13 · envases buenos/malos tienen labels y advertencia descrita sin invalidar ni bloquear', async () => {
+  await abrirDevolucionF2()
+  const buenos = screen.getByLabelText('Cantidad de envases buenos de Bandeja')
+  const malos = screen.getByLabelText('Cantidad de envases malos de Bandeja')
+  for (const campo of [buenos, malos]) {
+    expect(document.querySelector(`label[for="${campo.id}"]`)).toBeVisible()
+    expect(campo).toHaveAttribute('aria-invalid', 'false')
+  }
+  const ids = [buenos.id, malos.id]
+  fireEvent.change(buenos, { target: { value: '7' } })
+  for (const campo of [buenos, malos]) {
+    expect(campo).toHaveAttribute('aria-invalid', 'false')
+    const mensaje = document.getElementById(campo.getAttribute('aria-describedby')!)
+    expect(mensaje).toBeVisible()
+    expect(mensaje).toHaveAttribute('role', 'status')
+    expect(mensaje).toHaveTextContent(/Pueden venir de clientes/)
+  }
+  expect(screen.getByRole('button', { name: 'Registrar devolución' })).toBeEnabled()
+  expect([buenos.id, malos.id]).toEqual(ids)
+  expect(api.registrarDevolucion).not.toHaveBeenCalled()
+})

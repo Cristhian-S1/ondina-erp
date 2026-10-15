@@ -1,6 +1,7 @@
+import CampoFormulario from '../../../components/CampoFormulario'
 import InputNumerico from '../../../components/InputNumerico'
 import { formatMiles } from '../../../lib/format'
-import { btnDangerOutline, inputCls, labelCls } from '../../../lib/ui'
+import { btnDangerOutline } from '../../../lib/ui'
 import type { Producto } from '../../../types'
 
 interface AtributosCampo {
@@ -20,6 +21,7 @@ interface LineaDespachoProps {
   disponible: (productoId: string) => number
   // Carga actual del vendedor para el producto; undefined si aún no hay vendedor.
   cargaVendedor?: number
+  errorProducto?: string
   errorCantidad?: string
   atributosProducto: AtributosCampo
   atributosCantidad: AtributosCampo
@@ -32,7 +34,7 @@ interface LineaDespachoProps {
 // número, nombre como título, producto, disponibilidad y cantidad alineadas, y Quitar de 44 px.
 export default function LineaDespacho({
   indice, lineaId, productoId, cantidad, productos, productosEnOtrasLineas, disponible, cargaVendedor,
-  errorCantidad, atributosProducto, atributosCantidad, onProducto, onCantidad, onQuitar,
+  errorProducto, errorCantidad, atributosProducto, atributosCantidad, onProducto, onCantidad, onQuitar,
 }: LineaDespachoProps) {
   const elegido = productos.find((p) => p.id === productoId)
   const ayudaId = `disponible-despacho-${lineaId}`
@@ -49,19 +51,16 @@ export default function LineaDespacho({
         </button>
       </div>
       <div className="mt-3 space-y-3">
-        <div className="min-w-0">
-          <label htmlFor={atributosProducto.id} className={labelCls}>Producto</label>
-          <select className={inputCls} value={productoId} {...atributosProducto}
-            aria-describedby={[atributosProducto['aria-describedby'], productoId ? ayudaId : undefined].filter(Boolean).join(' ') || undefined}
-            onChange={(event) => onProducto(event.target.value)}>
+        <CampoFormulario id={atributosProducto.id} etiqueta="Producto" error={errorProducto}
+          alerta={atributosProducto['aria-invalid']}
+          descripcionId={productoId ? ayudaId : undefined}>
+          {atributos => <select {...atributos} value={productoId} onChange={event => onProducto(event.target.value)}>
             <option value="">Selecciona producto...</option>
-            {productos.map((producto) => (
-              <option key={producto.id} value={producto.id} disabled={productosEnOtrasLineas.includes(producto.id)}>
-                {producto.nombre} (disp. {formatMiles(disponible(producto.id))})
-              </option>
-            ))}
-          </select>
-        </div>
+            {productos.map(producto => <option key={producto.id} value={producto.id} disabled={productosEnOtrasLineas.includes(producto.id)}>
+              {producto.nombre} (disp. {formatMiles(disponible(producto.id))})
+            </option>)}
+          </select>}
+        </CampoFormulario>
         <div className="grid min-w-0 grid-cols-1 items-start gap-3 @sm:grid-cols-[minmax(0,1fr)_13rem]">
           <div className="min-w-0 @sm:pt-6">
             {productoId ? (
@@ -76,8 +75,10 @@ export default function LineaDespacho({
             )}
           </div>
           <div className="w-52 max-w-full min-w-0">
-            <label htmlFor={atributosCantidad.id} className={labelCls}>Cantidad</label>
-            <InputNumerico {...atributosCantidad} value={cantidad} error={errorCantidad} onChange={onCantidad} />
+            <CampoFormulario id={atributosCantidad.id} etiqueta="Cantidad" error={errorCantidad}
+              alerta={atributosCantidad['aria-invalid']}>
+              {atributos => <InputNumerico {...atributos} value={cantidad} onChange={onCantidad} />}
+            </CampoFormulario>
           </div>
         </div>
       </div>

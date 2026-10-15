@@ -3,9 +3,10 @@ import Dialog from '../../../components/Dialog'
 import InputNumerico from '../../../components/InputNumerico'
 import { useAuth } from '../../../context/auth-context'
 import { crearDespacho } from '../api'
-import { btnPrimary, btnSecondary, inputCls, labelCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary } from '../../../lib/ui'
 import { formatMiles, parseMiles } from '../../../lib/format'
 import LineaDespacho from './LineaDespacho'
+import CampoFormulario from '../../../components/CampoFormulario'
 import type { RecursosDespacho } from './despachos.types'
 
 interface LineaProducto {
@@ -56,8 +57,9 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
     setCampoError(prev => ({ id, intento: prev.intento + 1 }))
   }
   function atributosError(id: string) {
-    return { id, 'aria-invalid': !!error && campoError.id === id || undefined, 'aria-describedby': error && campoError.id === id ? 'error-despacho' : undefined }
+    return { id, 'aria-invalid': !!error && campoError.id === id, 'aria-describedby': error && campoError.id === id ? `${id}-error` : undefined }
   }
+  const errorDe = (id: string) => campoError.id === id ? error ?? undefined : undefined
   useLayoutEffect(() => {
     if (error) document.getElementById(campoError.id)?.focus()
   }, [error, campoError])
@@ -111,7 +113,10 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
 
     const lineasValidas = lineas.filter((l) => l.producto_id && parseMiles(l.cantidad) > 0)
     if (!vendedorId || lineasValidas.length === 0) {
-      informarError('Selecciona un vendedor y agrega al menos un producto.', !vendedorId ? 'despacho-vendedor' : lineas[0]?.producto_id ? `despacho-cantidad-${lineas[0].id}` : `despacho-producto-${lineas[0]?.id}`)
+      const primeraLinea = lineas[0]
+      const campo = !vendedorId ? 'despacho-vendedor' : !primeraLinea ? ''
+        : primeraLinea.producto_id ? `despacho-cantidad-${primeraLinea.id}` : `despacho-producto-${primeraLinea.id}`
+      informarError('Selecciona un vendedor y agrega al menos un producto.', campo)
       return
     }
 
@@ -198,23 +203,14 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
   return (
     <Dialog open={open} onClose={() => { if (!enviando) { setError(null); onClose() } }} title="Nuevo despacho">
       {errorLectura && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void onActualizar()}>Reintentar</button></div>)}
-      {error && <p id="error-despacho" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      <label className={labelCls}>
-        Vendedor
-        <select
-          className={inputCls}
-          value={vendedorId}
-          {...atributosError('despacho-vendedor')}
-          onChange={(e) => { setError(null); setVendedorId(e.target.value) }}
-        >
+      {error && !campoError.id && <p id="error-despacho" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      <CampoFormulario id="despacho-vendedor" etiqueta="Vendedor" error={errorDe('despacho-vendedor')} alerta>
+        {atributos => <select {...atributos} value={vendedorId}
+          onChange={e => { setError(null); setVendedorId(e.target.value) }}>
           <option value="">Selecciona un vendedor...</option>
-          {vendedores.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.nombres} {v.apellidos}
-            </option>
-          ))}
-        </select>
-      </label>
+          {vendedores.map(v => <option key={v.id} value={v.id}>{v.nombres} {v.apellidos}</option>)}
+        </select>}
+      </CampoFormulario>
 
       {vendedorId && (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -259,7 +255,8 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
               productosEnOtrasLineas={lineas.filter((item, i) => i !== index && item.producto_id).map(item => item.producto_id)}
               disponible={stockDisponible}
               cargaVendedor={vendedorId && linea.producto_id ? cargaDelVendedor(linea.producto_id) : undefined}
-              errorCantidad={errorCantidad}
+              errorProducto={errorDe(`despacho-producto-${linea.id}`)}
+              errorCantidad={errorDe(`despacho-cantidad-${linea.id}`) ?? errorCantidad}
               atributosProducto={atributosError(`despacho-producto-${linea.id}`)}
               atributosCantidad={atributosError(`despacho-cantidad-${linea.id}`)}
               onProducto={productoId => {
@@ -270,7 +267,7 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
                 setError(null)
                 setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, cantidad: valor === undefined ? '' : String(valor) } : item))
               }}
-              onQuitar={() => setLineas(prev => prev.filter(item => item.id !== linea.id))} />
+              onQuitar={() => { setError(null); setLineas(prev => prev.filter(item => item.id !== linea.id)) }} />
           })}
         </ul>
         <button type="button" className={`${btnSecondary} w-full sm:w-auto`} disabled={!!motivoLimite}
@@ -288,12 +285,15 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
         ) : (
           <>
             <div className="max-w-[10rem]">
-              <label htmlFor="despacho-bandejas" className={labelCls}>Bandejas</label>
-              <InputNumerico {...atributosError('despacho-bandejas')} value={bandejasCantidad} error={errorBandejas}
-                onChange={valor => {
-                  setError(null)
-                  setBandejasManual({ hielo: totalHieloSolicitado, valor: valor === undefined ? '' : String(valor) })
-                }} />
+              <CampoFormulario id="despacho-bandejas" etiqueta="Bandejas"
+                error={errorDe('despacho-bandejas') ?? errorBandejas}
+                alerta={!!errorDe('despacho-bandejas')}>
+                {atributos => <InputNumerico {...atributos} value={bandejasCantidad}
+                  onChange={valor => {
+                    setError(null)
+                    setBandejasManual({ hielo: totalHieloSolicitado, valor: valor === undefined ? '' : String(valor) })
+                  }} />}
+              </CampoFormulario>
             </div>
             <p className="text-xs text-slate-600">
               Se completan solas: 1 bandeja cada {CAPACIDAD_BANDEJA} bolsas de hielo.
