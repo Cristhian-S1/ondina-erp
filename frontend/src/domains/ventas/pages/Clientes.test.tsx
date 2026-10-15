@@ -8,7 +8,7 @@ vi.mock('@/domains/ventas/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/domains/ventas/api')>()
   return {
     ...actual,
-    obtenerClientesRuta: vi.fn(),
+    obtenerPaginaClientes: vi.fn(async (perfil: Parameters<typeof api.obtenerClientesRuta>[0], sucursal?: string, vendedor?: string) => { const filas = await api.obtenerClientesRuta(perfil, sucursal, vendedor); return { filas, total: filas.length } }), obtenerClientesRuta: vi.fn(),
     obtenerVendedoresSucursal: vi.fn().mockResolvedValue([]),
     crearCliente: vi.fn().mockResolvedValue({ error: null }),
   }

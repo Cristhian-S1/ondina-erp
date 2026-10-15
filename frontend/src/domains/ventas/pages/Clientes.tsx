@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import SucursalSelector from '../../../components/SucursalSelector'
 import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
-import { useClientesRuta } from '../hooks/useClientesRuta'
+import { useCarteraPaginada } from '../hooks/useCarteraPaginada'
+import Paginacion from '../../../components/Paginacion'
 import EstadoVista from '../../../components/EstadoVista'
 import { fmtFecha } from '../../../lib/format'
 import { btnPrimary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
@@ -32,7 +33,8 @@ function ClientesCartera() {
   const [sucursalId, setSucursalId] = useState('')
   const [vendedorId, setVendedorId] = useState('')
   const vendedores = useVendedoresSucursal(sucursalId)
-  const { data, isLoading, error, refetch } = useClientesRuta(sucursalId, vendedorId)
+  const consulta = useCarteraPaginada(sucursalId, vendedorId)
+  const { data, isLoading, error, refetch } = consulta
   const faltaSeleccion = esAdmin && (!sucursalId || !vendedorId)
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -180,6 +182,7 @@ function ClientesCartera() {
         </>
       )}
 
+      {!faltaSeleccion && <Paginacion pagina={consulta.pagina} total={consulta.total} onCambiar={consulta.setPagina} cargando={consulta.isFetching} etiqueta="Paginación de clientes" />}
       <RegistrarCliente key={`${sucursalId}:${vendedorId}`} open={modalOpen} onClose={() => setModalOpen(false)} sucursalId={sucursalId} vendedorId={vendedorId} onCreated={setVendedorId} />
     </div>
   )

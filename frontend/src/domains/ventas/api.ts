@@ -1,3 +1,5 @@
+import { rangoPagina } from '../../lib/paginacion'
+import type { Pagina } from '../../lib/paginacion'
 // Servicios de Supabase del módulo de ventas. Único punto que importa el
 // cliente compartido: los hooks consumen estas funciones, no al cliente directo.
 
@@ -34,6 +36,22 @@ export async function obtenerClientesRuta(perfil: Perfil, sucursalSeleccionada?:
   } catch (error: unknown) {
     throw new Error(mensajeErrorSupabase(error), { cause: error })
   }
+}
+
+export async function obtenerPaginaClientes(perfil: Perfil, sucursalSeleccionada?: string, vendedorSeleccionado?: string, pagina = 1): Promise<Pagina<ClienteCartera>> {
+  try {
+    const esAdmin = perfil.rol === 'administrador'
+    const sucursalId = esAdmin ? sucursalSeleccionada : perfil.sucursal_id
+    const vendedorId = esAdmin ? vendedorSeleccionado : perfil.id
+    if (!sucursalId || !vendedorId) return { filas: [], total: 0 }
+    const { data, count, error } = await supabase.from('clientes')
+      .select('id, nombre, telefono, direccion, numero_local, tipo, activo, creado_en', { count: 'exact' })
+      .eq('sucursal_id', sucursalId).eq('vendedor_id', vendedorId).eq('activo', true)
+      .order('nombre', { ascending: true }).order('id', { ascending: true })
+      .range(...rangoPagina(pagina)).returns<ClienteCartera[]>()
+    if (error) throw new Error('No fue posible cargar los clientes de tu ruta. Inténtalo de nuevo.')
+    return { filas: data ?? [], total: count ?? 0 }
+  } catch (error: unknown) { throw new Error(mensajeErrorSupabase(error), { cause: error }) }
 }
 
 // --- HU-02: crear cliente ---
@@ -146,6 +164,57 @@ export async function obtenerGastosHoy(perfil: Perfil): Promise<GastoExtra[]> {
   } catch (error: unknown) {
     throw new Error(mensajeErrorSupabase(error), { cause: error })
   }
+}
+
+const fechaGastos = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit' })
+export function jornadaGastos() { return fechaGastos.format(new Date()) }
+function inicioDiaGastos(dia: string) {
+  const referencia = Date.parse(`${dia}T12:00:00Z`)
+  let desde = referencia - 36 * 3600_000
+  let hasta = referencia + 36 * 3600_000
+  while (desde < hasta) {
+    const medio = Math.floor((desde + hasta) / 2)
+    if (fechaGastos.format(medio) < dia) desde = medio + 1
+    else hasta = medio
+  }
+  return new Date(desde).toISOString()
+}
+function limitesGastos(dia: string) {
+  const siguiente = new Date(`${dia}T12:00:00Z`)
+  siguiente.setUTCDate(siguiente.getUTCDate() + 1)
+  return [inicioDiaGastos(dia), inicioDiaGastos(siguiente.toISOString().slice(0, 10))]
+}
+
+export async function obtenerPaginaGastos(perfil: Perfil, dia: string, pagina = 1): Promise<Pagina<GastoExtra>> {
+  try {
+    const [desde, hasta] = limitesGastos(dia)
+    const { data, count, error } = await supabase.from('gastos_extras')
+      .select('id, tipo, monto, motivo, creado_en, anulado, vendedor_id, sucursal_id', { count: 'exact' })
+      .eq('vendedor_id', perfil.id).eq('sucursal_id', perfil.sucursal_id ?? '')
+      .gte('creado_en', desde).lt('creado_en', hasta)
+      .order('creado_en', { ascending: false }).order('id', { ascending: false })
+      .range(...rangoPagina(pagina)).returns<GastoExtra[]>()
+    if (error) throw new Error('No fue posible cargar los gastos de hoy. Inténtalo de nuevo.')
+    return { filas: data ?? [], total: count ?? 0 }
+  } catch (error: unknown) { throw new Error(mensajeErrorSupabase(error), { cause: error }) }
+}
+
+// A complete day total needs all active amounts, never just the visible page.
+// Read compact, bounded batches; no SQL change or PostgREST aggregate feature required.
+export async function obtenerTotalGastosHoy(perfil: Perfil, dia: string): Promise<number> {
+  try {
+    const [desde, hasta] = limitesGastos(dia)
+    let total = 0
+    for (let offset = 0; ; offset += 500) {
+      const { data, count, error } = await supabase.from('gastos_extras').select('monto', { count: 'exact' })
+        .eq('vendedor_id', perfil.id).eq('sucursal_id', perfil.sucursal_id ?? '').eq('anulado', false)
+        .gte('creado_en', desde).lt('creado_en', hasta)
+        .order('id', { ascending: true }).range(offset, offset + 499).returns<{ monto: number }[]>()
+      if (error) throw new Error('No fue posible cargar el total de gastos. Inténtalo de nuevo.')
+      total += (data ?? []).reduce((sum, row) => sum + Number(row.monto), 0)
+      if ((data?.length ?? 0) < 500 || (count !== null && offset + 500 >= count)) return total
+    }
+  } catch (error: unknown) { throw new Error(mensajeErrorSupabase(error), { cause: error }) }
 }
 
 export interface CrearGastoPayload {

@@ -1,3 +1,4 @@
+import Paginacion from '../../../components/Paginacion'
 import { z } from 'zod'
 import CampoFormulario from '../components/CampoFormulario'
 import EstadoVista from '../../../components/EstadoVista'
@@ -31,7 +32,8 @@ type FormularioGasto = z.input<typeof formularioGastoSchema>
 type GastoValidado = z.output<typeof formularioGastoSchema>
 
 export default function Gastos() {
-  const { data, isLoading, error, refetch } = useGastosHoy()
+  const consulta = useGastosHoy()
+  const { data, isLoading, error, refetch } = consulta
   const crear = useCrearGasto()
   const { toast, mostrar, cerrar } = useToast()
 
@@ -62,7 +64,7 @@ export default function Gastos() {
     })
   }
 
-  const totalHoy = (data ?? []).filter((g) => !g.anulado).reduce((sum, g) => sum + g.monto, 0)
+  const totalHoy = consulta.totalHoy
 
   return (
     <div className="space-y-6">
@@ -104,9 +106,10 @@ export default function Gastos() {
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-base font-semibold text-slate-900">Gastos de hoy</h2>
           <span className="text-sm font-semibold text-slate-700">
-            {error || isLoading ? 'Total: —' : `Total: ${fmtMonto(totalHoy)}`}
+            {error || isLoading || consulta.errorTotal || consulta.cargandoTotal || totalHoy === undefined ? 'Total: —' : `Total: ${fmtMonto(totalHoy)}`}
           </span>
         </div>
+        {consulta.errorTotal && !error && <EstadoVista variante="error" mensaje="No fue posible cargar el total de gastos. Inténtalo de nuevo." onReintentar={() => void refetch()} />}
         {isLoading ? (
           <EstadoVista variante="cargando" mensaje="Cargando gastos..." />
         ) : error ? (
@@ -140,6 +143,7 @@ export default function Gastos() {
             ))}
           </ul>
         )}
+        <Paginacion pagina={consulta.pagina} total={consulta.totalRegistros} onCambiar={consulta.setPagina} cargando={consulta.isFetching || crear.isPending} etiqueta="Paginación de gastos" />
       </section>
     </div>
   )

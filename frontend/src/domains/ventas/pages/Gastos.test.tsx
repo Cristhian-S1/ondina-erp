@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import Gastos from './Gastos'
@@ -8,12 +8,16 @@ vi.mock('@/domains/ventas/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/domains/ventas/api')>()
   return {
     ...actual,
+    obtenerPaginaGastos: vi.fn(async (perfil: Parameters<typeof api.obtenerGastosHoy>[0]) => { const filas = await api.obtenerGastosHoy(perfil); return { filas, total: filas.length } }),
+    obtenerTotalGastosHoy: vi.fn().mockResolvedValue(0),
     obtenerGastosHoy: vi.fn(),
     crearGasto: vi.fn(),
   }
 })
 
 import * as api from '@/domains/ventas/api'
+
+beforeEach(() => { vi.mocked(api.obtenerTotalGastosHoy).mockResolvedValue(0) })
 
 const PERFIL = makePerfil({ id: 'vendedor-1' })
 
@@ -119,6 +123,7 @@ it('UX-17/A1-12 · exige elegir tipo y enlaza todos los errores con nombres esta
 })
 
 it('UX-17 · historial y total muestran moneda chilena con símbolo y miles', async () => {
+  vi.mocked(api.obtenerTotalGastosHoy).mockResolvedValue(5000)
   setup()
   vi.mocked(api.obtenerGastosHoy).mockResolvedValue([{ id: 'g1', monto: 5000, motivo: 'Bencina', tipo: 'combustible', anulado: false, creado_en: '2026-10-13T02:15:59Z', creado_por: 'vendedor-1', vendedor_id: 'vendedor-1', sucursal_id: 's1' }])
   renderWithProviders(<Gastos />, { perfil: PERFIL })

@@ -5,7 +5,7 @@ import Clientes from './Clientes'
 import * as api from '../api'
 
 vi.mock('@/lib/catalog', () => ({ obtenerSucursales: vi.fn().mockResolvedValue([{ id: 's1', nombre: 'Norte' }, { id: 's2', nombre: 'Sur' }]) }))
-vi.mock('../api', () => ({ obtenerClientesRuta: vi.fn(), obtenerVendedoresSucursal: vi.fn(), crearCliente: vi.fn() }))
+vi.mock('../api', () => ({ obtenerPaginaClientes: vi.fn(async (perfil: Parameters<typeof api.obtenerClientesRuta>[0], sucursal?: string, vendedor?: string) => { const filas = await api.obtenerClientesRuta(perfil, sucursal, vendedor); return { filas, total: filas.length } }), obtenerClientesRuta: vi.fn(), obtenerVendedoresSucursal: vi.fn(), crearCliente: vi.fn() }))
 const vendedor = { id: 'v1', nombres: 'Ana', apellidos: 'López' }
 const cliente = { id: 'c1', nombre: 'Almacén Sur', direccion: 'Calle 1', telefono: null, numero_local: null, tipo: 'minorista', activo: true, creado_en: '2026-01-01' }
 const admin = makePerfil({ rol: 'administrador', sucursal_id: null })
