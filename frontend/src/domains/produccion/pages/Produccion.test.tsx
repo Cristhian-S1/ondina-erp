@@ -41,6 +41,7 @@ vi.mock('../api', async (importOriginal) => {
 
   return {
     ...actual,
+    obtenerStockBodega: vi.fn().mockResolvedValue([]),
     obtenerProducciones: vi.fn(),
   obtenerPaginaProducciones: vi.fn(async (scope: Parameters<typeof api.obtenerProducciones>[0]) => { const filas = await api.obtenerProducciones(scope); return { filas, total: filas.length } }),
     obtenerMermas: vi.fn(),

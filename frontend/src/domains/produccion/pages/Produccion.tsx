@@ -19,6 +19,7 @@ import { validarMerma, validarProduccion } from '../validacion'
 import HistorialProduccion from '../components/HistorialProduccion'
 import IndicadoresProduccion from '../components/IndicadoresProduccion'
 import ProduccionReciente from '../components/ProduccionReciente'
+import TabsIncidencias from '../components/TabsIncidencias'
 import TablaProduccionResponsive from '../components/TablaProduccionResponsive'
 
 const secciones: { id: SeccionProduccion; titulo: string; descripcion: string }[] = [
@@ -110,6 +111,8 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
   const productoSeleccionado = productos.find(item => item.id === productoId)
   const limite = limiteEnvases(productoSeleccionado?.tipo_empaque_id, consulta.envases.data ?? [])
   const errorEnvases = mensajeLimiteEnvases(cantidad ?? 0, limite)
+  const stockMerma = productoMermaId && consulta.stock.isSuccess && !consulta.stock.error ? (consulta.stock.data?.find(item => item.producto_id === productoMermaId)?.cantidad ?? 0) : undefined
+  const errorStockMerma = stockMerma !== undefined && (cantidadMerma ?? 0) > stockMerma ? `Excede el stock en bodega: disponibles ${formatMiles(stockMerma)}.` : undefined
   const catalogoInvalido = !consulta.productos.isSuccess
 
   async function guardarProduccion(event: FormEvent) {
@@ -152,6 +155,8 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     const datos = { sucursal_id: sucursalId, producto_id: productoMermaId, tipo_empaque_id: null, despacho_id: null, cantidad: cantidadMerma ?? 0, motivo: motivoMerma.trim(), creado_por: perfil.id }
     const validacion = validarMerma(datos)
     if (validacion) return invalidar(!productoMermaId ? 'merma-producto' : (!Number.isInteger(datos.cantidad) || datos.cantidad <= 0) ? 'merma-cantidad' : 'merma-motivo', validacion)
+    if (!consulta.stock.isSuccess || consulta.stock.error) return invalidar('merma-cantidad', 'No fue posible verificar el stock. Actualiza la disponibilidad antes de registrar.')
+    if (errorStockMerma) { document.getElementById('campo-merma-cantidad')?.focus(); return }
     setGuardando(true)
     cerrar()
     const mensaje = await registrarMerma(datos)
@@ -186,7 +191,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
       </EstadoConsulta>}
     </div>}
 
-    {seccion === 'incidencias' && <div className="min-w-0 space-y-6">
+    {seccion === 'incidencias' && <TabsIncidencias>
       <div className={gridCls}>
         <form className={formCls} onSubmit={event => void guardarIncidencia(event)}>
           <h2 className="font-semibold text-slate-900">Incidencia descriptiva</h2>
@@ -210,11 +215,12 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
           <div><h2 className="font-semibold text-slate-900">Registrar merma</h2><p className="mt-1 text-sm text-slate-600">Registra productos dañados o perdidos para descontarlos del stock de bodega.</p></div>
           <label className={labelCls}>Producto<select className={controlCls} value={productoMermaId} {...accesibilidad('merma-producto')} onChange={event => { corregir('merma-producto'); setProductoMermaId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
         {errorCampo('merma-producto')}
-          <div><label htmlFor="campo-merma-cantidad" className={labelCls}>Cantidad</label><InputNumerico {...accesibilidad('merma-cantidad')} className={controlCls} value={cantidadMerma} onChange={valor => { corregir('merma-cantidad'); setCantidadMerma(valor) }} /></div>
-        {errorCampo('merma-cantidad')}
+          <div><label htmlFor="campo-merma-cantidad" className={labelCls}>Cantidad</label><InputNumerico {...accesibilidad('merma-cantidad')} className={controlCls} value={cantidadMerma} error={errorStockMerma ?? errores['merma-cantidad']} aria-describedby={productoMermaId ? "disponible-merma" : undefined} onChange={valor => { corregir('merma-cantidad'); setCantidadMerma(valor) }} /></div>
+          {productoMermaId && <p id="disponible-merma" className="text-sm text-slate-600">Disponible: {stockMerma === undefined ? '—' : formatMiles(stockMerma)}</p>}
+          <EstadoConsulta consulta={consulta.stock} cargando="Cargando stock de bodega..." mensaje="No fue posible verificar el stock de bodega. Reintenta la lectura." />
           <label className={labelCls}>Motivo<textarea className={controlCls} rows={4} maxLength={1000} value={motivoMerma} {...accesibilidad('merma-motivo')} onChange={event => { corregir('merma-motivo'); setMotivoMerma(event.target.value) }} placeholder="Ej.: Bidón dañado durante producción" /></label>
         {errorCampo('merma-motivo')}
-          <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar merma'}</button>
+          <button disabled={guardando || catalogoInvalido || !consulta.stock.isSuccess || !!consulta.stock.error} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar merma'}</button>
         </form>
         <section className={`${cardCls} min-w-0`}>
           <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Mermas recientes</h2>
@@ -224,7 +230,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
           <Paginacion pagina={consulta.mermas.pagina} tamanoPagina={TAMANO_PRODUCCION} total={consulta.mermas.total} onCambiar={consulta.mermas.setPagina} cargando={consulta.mermas.isFetching || guardando} etiqueta="Paginación de mermas" />
         </section>
       </div>
-    </div>}
+    </TabsIncidencias>}
 
     {seccion === 'envases' && <section className={`${cardCls} min-w-0`}>
       <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Envases vacíos disponibles</h2><p className="mt-1 text-sm text-slate-600">Empaques retornables de la sucursal. Horas de America/Santiago.</p></div>
@@ -234,8 +240,8 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         </article>)}</div>}
       </EstadoConsulta>
     </section>}
-    {seccion === 'historial' && <HistorialProduccion perfilId={perfil?.id} sucursalId={sucursalId} productos={productos} />}
-    {seccion === 'indicadores' && <IndicadoresProduccion perfilId={perfil?.id} sucursalId={sucursalId} productos={productos} />}
+    {seccion === 'historial' && <HistorialProduccion perfilId={perfil?.id ?? ''} sucursalId={sucursalId} productos={productos} />}
+    {seccion === 'indicadores' && <IndicadoresProduccion perfilId={perfil?.id ?? ''} sucursalId={sucursalId} productos={productos} />}
   </div>
 }
 

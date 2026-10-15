@@ -2,14 +2,15 @@ import { usePaginaProduccion } from './usePaginaProduccion'
 import { useEffect } from 'react'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { obtenerProductos } from '../../../lib/catalog'
-import { obtenerEnvasesDisponibles, obtenerPaginaIncidencias, obtenerPaginaMermas, obtenerPaginaProducciones, subscribeProduccion } from '../api'
+import { obtenerStockBodega, obtenerEnvasesDisponibles, obtenerPaginaIncidencias, obtenerPaginaMermas, obtenerPaginaProducciones, subscribeProduccion } from '../api'
 import type { RecursoProduccion } from '../api'
 
 export type SeccionProduccion = 'registrar' | 'envases' | 'historial' | 'indicadores' | 'incidencias'
-type Consulta = 'productos' | 'producciones' | 'mermas' | 'incidencias' | 'envases' | 'historial' | 'indicadores'
+type Consulta = 'stock' | 'productos' | 'producciones' | 'mermas' | 'incidencias' | 'envases' | 'historial' | 'indicadores'
 const recursos: Record<RecursoProduccion, Consulta[]> = {
   producciones: ['producciones', 'historial', 'indicadores'],
-  mermas: ['mermas'],
+  mermas: ['mermas', 'stock'],
+  stock_bodega: ['stock'],
   stock_envases: ['envases'],
   incidencias_produccion: ['incidencias'],
 }
@@ -18,7 +19,7 @@ const secciones: Record<SeccionProduccion, Consulta[]> = {
   envases: ['envases'],
   historial: ['productos', 'historial'],
   indicadores: ['productos', 'indicadores'],
-  incidencias: ['productos', 'mermas', 'incidencias'],
+  incidencias: ['productos', 'mermas', 'incidencias', 'stock'],
 }
 
 export function useDatosProduccion(perfilId: string, sucursalId: string, seccion: SeccionProduccion = 'registrar') {
@@ -34,6 +35,7 @@ export function useDatosProduccion(perfilId: string, sucursalId: string, seccion
   const producciones = { ...produccionesQuery, data: produccionesQuery.data?.filas, total: produccionesQuery.data?.total ?? 0, ...pagProducciones }
   const mermas = { ...mermasQuery, data: mermasQuery.data?.filas, total: mermasQuery.data?.total ?? 0, ...pagMermas }
   const incidencias = { ...incidenciasQuery, data: incidenciasQuery.data?.filas, total: incidenciasQuery.data?.total ?? 0, ...pagIncidencias }
+  const stock = useQuery({ queryKey: key('stock'), queryFn: () => obtenerStockBodega(sucursalId), enabled: seccion === 'incidencias', retry: false, staleTime: 0, refetchOnWindowFocus: 'always' })
   const envases = useQuery({ queryKey: key('envases'), queryFn: () => obtenerEnvasesDisponibles(sucursalId), enabled: seccion === 'envases' || seccion === 'registrar', retry: false })
 
   function invalidarConsultas(consultas: Consulta[]) {
@@ -41,7 +43,7 @@ export function useDatosProduccion(perfilId: string, sucursalId: string, seccion
   }
   function invalidar(recurso: RecursoProduccion) {
     // Registrar producción consume envases; las otras escrituras no los alteran.
-    return invalidarConsultas(recurso === 'producciones' ? [...recursos[recurso], 'envases'] : recursos[recurso])
+    return invalidarConsultas(recurso === 'producciones' ? [...recursos[recurso], 'envases', 'stock'] : recursos[recurso])
   }
   useEffect(() => {
     let vigente = true
@@ -54,5 +56,5 @@ export function useDatosProduccion(perfilId: string, sucursalId: string, seccion
     })
     return () => { vigente = false; unsubscribe() }
   }, [perfilId, sucursalId, queryClient])
-  return { productos, producciones, mermas, incidencias, envases, invalidar, actualizar: () => invalidarConsultas(secciones[seccion]) }
+  return { productos, producciones, mermas, incidencias, envases, stock, invalidar, actualizar: () => invalidarConsultas(secciones[seccion]) }
 }

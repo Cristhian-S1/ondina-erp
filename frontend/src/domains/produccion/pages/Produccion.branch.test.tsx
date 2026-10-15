@@ -13,6 +13,7 @@ vi.mock('@/lib/catalog', () => ({
   obtenerSucursales: vi.fn().mockResolvedValue([{ id: 's1', nombre: 'Norte' }, { id: 's2', nombre: 'Sur' }]),
 }))
 vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10,
+  obtenerStockBodega: vi.fn().mockResolvedValue([{ producto_id: 'p1', cantidad: 8 }]),
   obtenerHistorialProduccion: vi.fn().mockResolvedValue([]),
   obtenerPaginaHistorial: vi.fn(async (scope: Parameters<typeof api.obtenerHistorialProduccion>[0]) => { const filas = await api.obtenerHistorialProduccion(scope); return { filas, total: filas.length } }),
   obtenerIndicadoresProduccion: vi.fn().mockResolvedValue([]),
@@ -281,7 +282,7 @@ it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el ca
   await screen.findAllByRole('option', { name: 'Agua' })
   fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
   fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
-  expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-describedby', 'error-merma-cantidad')
+  expect(screen.getByLabelText('Cantidad')).toHaveAccessibleDescription(/La cantidad debe ser un número entero mayor que cero/)
   expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-invalid', 'true')
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
   expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid', 'true')
@@ -323,4 +324,80 @@ it('P2 · incidencias y mermas vacías ocultan los botones de paginación', asyn
     expect(nav).toHaveTextContent('0 registros')
     expect(within(nav).queryAllByRole('button')).toHaveLength(0)
   }
+})
+
+
+it('C3-12 · merma muestra stock y valida en vivo sin recortar el borrador', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  expect(await screen.findByText('Disponible: 8')).toBeInTheDocument()
+  const cantidad = screen.getByLabelText('Cantidad')
+  fireEvent.change(cantidad, { target: { value: '9' } })
+  expect(cantidad).toHaveValue('9')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription(/Excede el stock en bodega: disponibles 8/)
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Rotura' } })
+  fireEvent.submit(screen.getByRole('button', { name: 'Registrar merma' }).closest('form')!)
+  expect(api.registrarMerma).not.toHaveBeenCalled()
+  fireEvent.change(cantidad, { target: { value: '8' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(screen.queryByText(/Excede el stock/)).not.toBeInTheDocument()
+})
+
+it('C3-09 · tabs móviles enlazan paneles, mantienen borradores y admiten teclado', async () => {
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+  try {
+    location.pathname = '/produccion/incidencias'
+    renderWithProviders(<Produccion />)
+    const tabs = screen.getByRole('tablist', { name: 'Tipo de registro' })
+    const incidencias = within(tabs).getByRole('tab', { name: 'Incidencias' })
+    const mermas = within(tabs).getByRole('tab', { name: 'Mermas' })
+    fireEvent.change(await screen.findByLabelText('Descripción de la incidencia'), { target: { value: 'Borrador' } })
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Incidencias')
+    fireEvent.keyDown(incidencias, { key: 'ArrowRight' })
+    expect(mermas).toHaveFocus()
+    expect(mermas).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Mermas')
+    expect(screen.queryByRole('button', { name: 'Registrar incidencia' })).not.toBeInTheDocument()
+    fireEvent.keyDown(mermas, { key: 'Home' })
+    expect(screen.getByLabelText('Descripción de la incidencia')).toHaveValue('Borrador')
+  } finally { vi.unstubAllGlobals() }
+})
+
+it('C3-12 · actualiza el límite de merma con el stock y trata un producto sin saldo como cero', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  await screen.findByText('Disponible: 8')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '5' } })
+  vi.mocked(api.obtenerStockBodega).mockResolvedValueOnce([{ producto_id: 'p1', cantidad: 3 } as never])
+  fireEvent.click(screen.getByRole('button', { name: 'Actualizar lista' }))
+  await screen.findByText('Disponible: 3')
+  expect(screen.getByLabelText('Cantidad')).toHaveAccessibleDescription(/Excede el stock en bodega: disponibles 3/)
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('5')
+  vi.mocked(api.obtenerStockBodega).mockResolvedValueOnce([])
+  fireEvent.click(screen.getByRole('button', { name: 'Actualizar lista' }))
+  await screen.findByText('Disponible: 0')
+  expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-invalid', 'true')
+})
+
+it('C3-12 · fallo de stock no muestra cero ni permite escribir y su reintento conserva el borrador', async () => {
+  location.pathname = '/produccion/incidencias'
+  vi.mocked(api.obtenerStockBodega).mockRejectedValueOnce(new Error('offline'))
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Rotura' } })
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible verificar el stock de bodega')
+  expect(screen.getByText('Disponible: —')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Registrar merma' })).toBeDisabled()
+  expect(api.registrarMerma).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await screen.findByText('Disponible: 8')
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('2')
+  expect(screen.getByLabelText('Motivo')).toHaveValue('Rotura')
 })

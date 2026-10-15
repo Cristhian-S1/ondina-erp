@@ -164,16 +164,22 @@ export async function registrarMerma(
   }
 }
 
-export type RecursoProduccion = 'producciones' | 'mermas' | 'stock_envases' | 'incidencias_produccion'
+export { obtenerStockBodega } from '../bodega/api'
 
-export function subscribeProduccion(sucursalId: string, onChange: (recurso: RecursoProduccion) => void): () => void {
-  const canal = supabase.channel(`produccion-${sucursalId}`)
+export type RecursoProduccion = 'producciones' | 'mermas' | 'stock_envases' | 'stock_bodega' | 'incidencias_produccion'
+
+export function subscribeProduccion(sucursalId: string, onChange: (recurso: RecursoProduccion) => void): () => Promise<void> {
+  const canal = supabase.channel(`produccion-${sucursalId}-${crypto.randomUUID()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('producciones'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'mermas', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('mermas'))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_bodega', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('stock_bodega'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('stock_envases'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'incidencias_produccion', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('incidencias_produccion'))
     .subscribe()
-  return () => { void supabase.removeChannel(canal) }
+  return async () => {
+    try { await supabase.removeChannel(canal) }
+    catch { console.warn('No fue posible cerrar el canal de producción.') }
+  }
 }
 
 export async function obtenerIncidencias(sucursalId: string): Promise<IncidenciaProduccion[]> {

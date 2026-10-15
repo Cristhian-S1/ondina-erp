@@ -7,7 +7,7 @@ import * as api from '../api'
 import * as catalog from '../../../lib/catalog'
 
 vi.mock('../../../lib/catalog', () => ({ obtenerProductos: vi.fn().mockResolvedValue([]), obtenerTiposEmpaque: vi.fn().mockResolvedValue([]) }))
-vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10,
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10, obtenerStockBodega: vi.fn().mockResolvedValue([]),
   obtenerIncidencias: vi.fn().mockResolvedValue([]),
   obtenerPaginaIncidencias: vi.fn(async (scope: Parameters<typeof api.obtenerIncidencias>[0]) => { const filas = await api.obtenerIncidencias(scope); return { filas, total: filas.length } }),
   obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]),
@@ -49,7 +49,7 @@ it('A1-07 · Realtime invalida sólo el recurso afectado y limpia al cambiar ide
   const oldCallback = vi.mocked(api.subscribeProduccion).mock.calls[0][1]
   const firstCleanup = vi.mocked(api.subscribeProduccion).mock.results[0].value
   act(() => oldCallback('mermas'))
-  expect(invalidate).toHaveBeenCalledExactlyOnceWith({ queryKey: ['produccion', 'u1', 's1', 'mermas'] })
+  expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['mermas', 'stock'])
   invalidate.mockClear()
   act(() => oldCallback('producciones'))
   expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['producciones', 'historial', 'indicadores'])
@@ -68,8 +68,8 @@ it('A1-07 · Realtime invalida sólo el recurso afectado y limpia al cambiar ide
 })
 
 it.each([
-  ['producciones', ['producciones', 'historial', 'indicadores', 'envases']],
-  ['mermas', ['mermas']],
+  ['producciones', ['producciones', 'historial', 'indicadores', 'envases', 'stock']],
+  ['mermas', ['mermas', 'stock']],
   ['incidencias_produccion', ['incidencias']],
 ] as const)('A1-07 · mutación de %s invalida sólo recursos afectados', async (recurso, esperados) => {
   const { client, wrapper } = setup()
@@ -104,4 +104,19 @@ it('P2 · Realtime invalida también todas las páginas inactivas del recurso', 
   act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('producciones'))
   for (const resource of ['producciones', 'historial', 'indicadores']) expect(client.getQueryState([...prefix, resource, 'cached-page-9'])?.isInvalidated).toBe(true)
   expect(client.getQueryState(['produccion', 'another-user', 's1', 'historial', 2])?.isInvalidated).toBe(false)
+})
+
+
+it('C3-12 · stock se consulta sólo para incidencias y Realtime lo invalida con alcance de identidad', async () => {
+  const { client, wrapper } = setup()
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  const { result, rerender } = renderHook(({ seccion }) => useDatosProduccion('u1', 's1', seccion), { wrapper, initialProps: { seccion: 'registrar' as 'registrar' | 'incidencias' } })
+  await waitFor(() => expect(result.current.productos.isSuccess).toBe(true))
+  expect(api.obtenerStockBodega).not.toHaveBeenCalled()
+  rerender({ seccion: 'incidencias' })
+  await waitFor(() => expect(result.current.stock.isSuccess).toBe(true))
+  expect(api.obtenerStockBodega).toHaveBeenCalledWith('s1')
+  invalidate.mockClear()
+  act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('stock_bodega'))
+  expect(invalidate).toHaveBeenCalledExactlyOnceWith({ queryKey: ['produccion', 'u1', 's1', 'stock'] })
 })
