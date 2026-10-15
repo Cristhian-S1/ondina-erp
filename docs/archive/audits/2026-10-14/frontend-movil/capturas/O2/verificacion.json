@@ -1,0 +1,276 @@
+{
+  "date": "2026-10-15",
+  "results": [
+    {
+      "name": "recuperar",
+      "viewport": "412x915",
+      "width": 412,
+      "scroll": 412,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 330
+        }
+      ]
+    },
+    {
+      "name": "recuperar",
+      "viewport": "768x1024",
+      "width": 768,
+      "scroll": 768,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        }
+      ]
+    },
+    {
+      "name": "recuperar",
+      "viewport": "1280x900",
+      "width": 1280,
+      "scroll": 1280,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        }
+      ]
+    },
+    {
+      "name": "recuperar-enviado",
+      "viewport": "412x915",
+      "width": 412,
+      "scroll": 412,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 330
+        }
+      ]
+    },
+    {
+      "name": "restablecer",
+      "viewport": "412x915",
+      "width": 412,
+      "scroll": 412,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 330
+        }
+      ]
+    },
+    {
+      "name": "restablecer",
+      "viewport": "768x1024",
+      "width": 768,
+      "scroll": 768,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        }
+      ]
+    },
+    {
+      "name": "restablecer",
+      "viewport": "1280x900",
+      "width": 1280,
+      "scroll": 1280,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        }
+      ]
+    },
+    {
+      "name": "restablecer-validacion",
+      "viewport": "412x915",
+      "width": 412,
+      "scroll": 412,
+      "controls": [
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "INPUT",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "BUTTON",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 330
+        }
+      ]
+    },
+    {
+      "name": "restablecer-enlace-invalido",
+      "viewport": "412x915",
+      "width": 412,
+      "scroll": 412,
+      "controls": [
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 330
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 330
+        }
+      ]
+    },
+    {
+      "name": "restablecer-enlace-invalido",
+      "viewport": "768x1024",
+      "width": 768,
+      "scroll": 768,
+      "controls": [
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        }
+      ]
+    },
+    {
+      "name": "restablecer-enlace-invalido",
+      "viewport": "1280x900",
+      "width": 1280,
+      "scroll": 1280,
+      "controls": [
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        },
+        {
+          "tag": "A",
+          "height": 44,
+          "width": 318
+        }
+      ]
+    }
+  ],
+  "consoleErrors": [],
+  "profileRequests": [],
+  "flow": [
+    "real PASSWORD_RECOVERY callback",
+    "reload",
+    "protected route",
+    "new tab",
+    "validation focus",
+    "updateUser",
+    "signOut",
+    "login with changed password",
+    "invalid callback"
+  ]
+}
