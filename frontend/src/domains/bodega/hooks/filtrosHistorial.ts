@@ -1,4 +1,4 @@
-import { fechaSantiago, inicioPeriodo } from './useJornadaSantiago'
+import { fechaSantiago, inicioPeriodo } from '../../../lib/jornada'
 
 // First instant of a Santiago civil day; handles midnight DST gaps too.
 export function inicioDiaSantiago(dia: string): string {

@@ -69,7 +69,7 @@ it('invalidates every scoped cached page, resources, selected dispatch, stock an
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const perfil = makePerfil()
   const scope = ['bodega', perfil.id, perfil.rol, perfil.sucursal_id, 'suc-1']
-  const affected = [[...scope, 'historial', {}, 99], [...scope, 'recursos', true], [...scope, 'despacho', 'pinned'], ['stock', perfil.id, 'suc-1'], ['ventas', 'carga', perfil.id]]
+  const affected = [[...scope, 'historial', {}, 99], [...scope, 'recursos', true], [...scope, 'despacho', 'pinned'], ['stock', perfil.id, 'suc-1'], ['produccion', perfil.id, 'suc-1', 'stock'], ['ventas', 'carga', perfil.id]]
   const unrelated = ['bodega', 'someone-else', perfil.rol, perfil.sucursal_id, 'suc-1', 'historial', {}, 1]
   for (const key of [...affected, unrelated]) client.setQueryData(key, 'cached')
   render(<QueryClientProvider client={client}><AuthContext.Provider value={{ perfil, loading: false, signIn: async () => {}, signOut: async () => {} }}><Vista /></AuthContext.Provider></QueryClientProvider>)
@@ -80,4 +80,15 @@ it('invalidates every scoped cached page, resources, selected dispatch, stock an
   })
   expect(client.getQueryState(unrelated)?.isInvalidated).toBe(false)
   client.clear()
+})
+
+it.each(['56d3d7aa-vendedor', undefined])('FX5 R5-05 · etiqueta la referencia de vendedor y tolera ausencia de ID (%s)', async vendedorId => {
+  vi.mocked(api.obtenerPaginaDespachos).mockResolvedValue({ filas: [{ id: 'page-1', vendedor_id: vendedorId } as never], total: 1 })
+  vi.mocked(api.obtenerDespacho).mockResolvedValue([{ id: 'fuera-de-pagina', vendedor_id: vendedorId } as never])
+  renderWithProviders(<Nombres />)
+  const esperado = vendedorId ? 'Vendedor no disponible · ref. 56d3d7aa' : 'Vendedor no disponible'
+  await waitFor(() => expect(screen.getByTestId('lista')).toHaveTextContent(esperado))
+  await waitFor(() => expect(screen.getByTestId('individual')).toHaveTextContent(esperado))
+  expect(screen.getByTestId('lista')).not.toHaveTextContent('#')
+  expect(screen.getByTestId('individual')).not.toHaveTextContent('#')
 })

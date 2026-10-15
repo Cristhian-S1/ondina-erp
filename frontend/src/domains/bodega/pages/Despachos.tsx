@@ -20,7 +20,7 @@ import { useDatosBodega } from '../hooks/useDatosBodega'
 import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
 import { filtrosHistorial } from '../hooks/filtrosHistorial'
-import { useJornadaSantiago } from '../hooks/useJornadaSantiago'
+import { useJornadaSantiago } from '../../../lib/jornada'
 
 interface LineaProducto {
   id: string
@@ -454,7 +454,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                           <p className={`${d.vendedorDisponible ? 'truncate' : 'break-words'} text-sm font-semibold text-slate-900`}>
                             {d.vendedorNombre}
                           </p>
-                          <p className="text-xs text-slate-600">{fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)}</p>
+                          <p className="text-xs text-slate-600">{fmtFechaHora(d.creado_en)} · Despacho #{d.id.slice(0, 8)}</p>
                         </div>
                       </div>
                       <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0">
@@ -614,7 +614,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                 <li key={g.despachoId} className="px-4 py-3">
                   <div className="flex min-w-0 flex-col items-start gap-1">
                     <p className="max-w-full truncate text-sm font-semibold text-slate-900">{g.vendedor}</p>
-                    <span className="text-xs text-slate-600">{fmtFechaHora(g.fecha)} · #{g.despachoId.slice(0, 8)}</span>
+                    <span className="text-xs text-slate-600">{fmtFechaHora(g.fecha)} · Despacho #{g.despachoId.slice(0, 8)}</span>
                   </div>
                   <ul className="mt-2 space-y-1">
                     {g.lineas.map((l) => (

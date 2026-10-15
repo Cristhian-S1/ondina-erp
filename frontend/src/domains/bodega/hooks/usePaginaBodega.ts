@@ -55,16 +55,20 @@ export function usePaginaBodega(sucursalId: string, filtros: FiltrosDespachos, v
   })
   const nombres = new Map(vendedores.map(v => [v.id, `${v.nombres} ${v.apellidos}`]))
   function enriquecer(datos: Awaited<ReturnType<typeof detalles>>) {
-    return { ...datos, despachos: datos.despachos.map(d => ({ ...d,
-      vendedorNombre: nombres.get(d.vendedor_id) ?? `Vendedor no disponible (#${d.vendedor_id.slice(0, 8)})`,
-      vendedorDisponible: nombres.has(d.vendedor_id),
-      totalUnidades: datos.despachoDetalles.filter(x => x.despacho_id === d.id).reduce((sum, x) => sum + x.cantidad, 0),
-    })) }
+    return { ...datos, despachos: datos.despachos.map(d => {
+      const referenciaVendedor = d.vendedor_id?.slice(0, 8)
+      return { ...d,
+        vendedorNombre: nombres.get(d.vendedor_id) ?? `Vendedor no disponible${referenciaVendedor ? ` · ref. ${referenciaVendedor}` : ''}`,
+        vendedorDisponible: nombres.has(d.vendedor_id),
+        totalUnidades: datos.despachoDetalles.filter(x => x.despacho_id === d.id).reduce((sum, x) => sum + x.cantidad, 0),
+      }
+    }) }
   }
   async function actualizar() {
     await Promise.all([
       client.invalidateQueries({ queryKey: scope }),
       client.invalidateQueries({ queryKey: ['stock', perfil?.id, sucursalId] }),
+      client.invalidateQueries({ queryKey: ['produccion', perfil?.id, sucursalId, 'stock'] }),
       client.invalidateQueries({ queryKey: ['ventas', 'carga'] }),
     ])
   }

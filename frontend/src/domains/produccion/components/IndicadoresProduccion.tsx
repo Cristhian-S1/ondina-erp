@@ -3,13 +3,12 @@ import { useQuery } from '@tanstack/react-query'
 import EstadoVista from '../../../components/EstadoVista'
 import { cardCls, inputCls, labelCls } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
+import { inicioPeriodo, useJornadaSantiago } from '../../../lib/jornada'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 import type { Producto } from '../../../types'
 import { obtenerIndicadoresProduccion } from '../api'
 import { calcularResumenIndicadores } from '../calculos'
 import TablaProduccionResponsive from './TablaProduccionResponsive'
-
-import { inicioPeriodo, useJornadaSantiago } from '../../bodega/hooks/useJornadaSantiago'
 
 type Periodo = 'hoy' | '7dias' | '30dias'
 

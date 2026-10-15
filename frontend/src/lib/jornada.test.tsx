@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
-import { fechaSantiago, inicioPeriodo, useJornadaSantiago } from './useJornadaSantiago'
+import { fechaSantiago, inicioPeriodo, useJornadaSantiago } from './jornada'
 
 afterEach(() => vi.useRealTimers())
 

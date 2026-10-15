@@ -13,7 +13,7 @@ import { useDatosBodega } from '../hooks/useDatosBodega'
 import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
 import { filtrosHistorial } from '../hooks/filtrosHistorial'
-import { useJornadaSantiago } from '../hooks/useJornadaSantiago'
+import { useJornadaSantiago } from '../../../lib/jornada'
 
 type EstadoDespacho = 'pendiente' | 'productos' | 'envases' | 'completo'
 
@@ -405,7 +405,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                         <span className={`shrink-0 ${estadoBadge[dEstado]}`}>{estadoEtiqueta[dEstado]}</span>
                       </div>
                       <p className="mt-0.5 text-xs text-slate-600">
-                        {fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)} · {d.totalUnidades} unid.
+                        {fmtFechaHora(d.creado_en)} · Despacho #{d.id.slice(0, 8)} · {d.totalUnidades} unid.
                       </p>
                     </button>
                   </li>
@@ -442,6 +442,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                       ([productoId, despachado]) => {
                         const producto = productos.find((p) => p.id === productoId)
                         const disponible = disponibleParaDevolver(despachado, devueltoProductoDe(seleccionado, productoId), esCorreccion)
+                        const devuelto = devueltoProductoDe(seleccionado, productoId)
                         const errorCantidad = Number(productoInputs[productoId]) > disponible
                           ? `No puedes devolver más de ${disponible} ${producto?.nombre ?? 'del producto'} (disponible para devolver).` : undefined
                         return (
@@ -467,7 +468,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                               </div>
                             ) : (
                               <span className="whitespace-nowrap text-right text-sm font-bold text-amber-800">
-                                Devuelto {formatMiles(devueltoProductoDe(seleccionado, productoId))}
+                                {devuelto > 0 ? `Devuelto ${formatMiles(devuelto)}` : 'Sin devolución'}
                               </span>
                             )}
                           </li>
