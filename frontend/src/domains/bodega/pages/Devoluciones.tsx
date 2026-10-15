@@ -399,10 +399,10 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-slate-900">
+                        <p className={`${d.vendedorDisponible ? 'truncate' : 'break-words'} min-w-0 text-sm font-semibold text-slate-900`}>
                           {d.vendedorNombre}
                         </p>
-                        <span className={estadoBadge[dEstado]}>{estadoEtiqueta[dEstado]}</span>
+                        <span className={`shrink-0 ${estadoBadge[dEstado]}`}>{estadoEtiqueta[dEstado]}</span>
                       </div>
                       <p className="mt-0.5 text-xs text-slate-600">
                         {fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)} · {d.totalUnidades} unid.
@@ -450,7 +450,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                               <p className="break-words text-sm font-semibold text-slate-900">{producto?.nombre ?? 'Producto'}</p>
                               <p className="mt-0.5 text-xs text-slate-600">
                                 Despachado <b className="text-slate-900">{formatMiles(despachado)}</b>
-                                {' · '}Disponible <b className="text-slate-900">{formatMiles(disponible)}</b>
+                                {editarProductos && <> · Disponible <b className="text-slate-900">{formatMiles(disponible)}</b></>}
                                 {estado === 'pendiente' && <> · Carga <b className="text-slate-900">{formatMiles(cargaDeDespacho(seleccionado, productoId))}</b></>}
                               </p>
                             </div>
@@ -466,8 +466,8 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                                   }} />
                               </div>
                             ) : (
-                              <span className="text-right text-sm font-bold text-amber-800">
-                                −{formatMiles(devueltoProductoDe(seleccionado, productoId))}
+                              <span className="whitespace-nowrap text-right text-sm font-bold text-amber-800">
+                                Devuelto {formatMiles(devueltoProductoDe(seleccionado, productoId))}
                               </span>
                             )}
                           </li>

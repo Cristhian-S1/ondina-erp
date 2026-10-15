@@ -36,10 +36,12 @@ export default function SeccionDevolucion({ tono, titulo, lineas, yaDevueltos = 
           <Icono className="h-5 w-5" />
         </span>
         <h3 id={tituloId} className="min-w-0 flex-1 text-base font-bold">{titulo}</h3>
-        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-800">
-          {lineas} {lineas === 1 ? 'línea' : 'líneas'}
-        </span>
-        {yaDevueltos && <span className="text-xs font-semibold text-emerald-800">Ya devueltos</span>}
+        <div className="flex basis-full flex-wrap items-center gap-x-3 gap-y-1 pl-12 @lg:basis-auto @lg:pl-0">
+          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-800">
+            {lineas} {lineas === 1 ? 'línea' : 'líneas'}
+          </span>
+          {yaDevueltos && <span className="text-xs font-semibold text-emerald-800">Ya devueltos</span>}
+        </div>
       </header>
       {children}
     </section>

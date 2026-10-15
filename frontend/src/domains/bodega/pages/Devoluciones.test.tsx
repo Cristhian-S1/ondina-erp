@@ -128,6 +128,24 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
+it('C3-04 · etiqueta lo devuelto y oculta disponibilidad cuando productos ya fueron devueltos', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  vi.mocked(api.obtenerDevolucionesProducto).mockResolvedValue([
+    { id: 'dev-1', despacho_id: 'd-1', producto_id: 'p-1', cantidad: 1, anulado: false,
+      creado_por: 'user-2', creado_en: '2026-10-13T12:00:00Z' },
+  ])
+  renderWithProviders(<Devoluciones />)
+  fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
+  const region = screen.getByRole('region', { name: 'Productos del despacho' })
+  expect(within(region).getByText('Ya devueltos')).toBeInTheDocument()
+  const fila = within(region).getByTestId('fila-devolucion-producto')
+  expect(fila).toHaveTextContent('Despachado 5')
+  expect(fila).toHaveTextContent('Devuelto 1')
+  expect(fila).not.toHaveTextContent('Disponible')
+  expect(within(fila).queryByRole('textbox')).not.toBeInTheDocument()
+})
+
 describe('HU-13 · Devoluciones', () => {
   it('muestra el estado vacío cuando no hay despachos para la sucursal', async () => {
     renderWithProviders(<Devoluciones />)
