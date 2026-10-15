@@ -43,6 +43,24 @@ describe('HU-03 · Carga', () => {
   })
 })
 
+describe('M2 · Carga compacta', () => {
+  it('cada producto es una tarjeta con nombre, tipo y unidades en la misma fila', async () => {
+    vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([
+      { producto_id: 'p1', vendedor_id: 'user-1', cantidad: 24, modificado_en: '2026-01-01T00:00:00Z',
+        producto: { id: 'p1', nombre: 'Bidón 20L', tipo: 'agua', precio_base: 3000 } },
+      { producto_id: 'p2', vendedor_id: 'user-1', cantidad: 5, modificado_en: '2026-01-01T00:00:00Z',
+        producto: { id: 'p2', nombre: 'Hielo CUBO', tipo: 'hielo', precio_base: 1000 } },
+    ])
+    renderWithProviders(<Carga />)
+    const tarjetas = await screen.findAllByTestId('tarjeta-carga')
+    expect(tarjetas).toHaveLength(2)
+    expect(tarjetas[0]).toHaveClass('flex', 'justify-between')
+    expect(tarjetas[0]).toHaveTextContent('Bidón 20L')
+    expect(tarjetas[0]).toHaveTextContent('Agua')
+    expect(tarjetas[0]).toHaveTextContent('Disponibles24')
+  })
+})
+
 describe('FE-05 / FE-12 · carga disponible', () => {
   it.each([Carga, Ventas])('muestra carga agotada si todas las filas tienen cantidad cero (%s)', async (Pagina) => {
     vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([

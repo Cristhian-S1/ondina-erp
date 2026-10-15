@@ -96,21 +96,21 @@ export default function MiComision() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className={`${cardCls} p-4`}>
-          <p className="text-sm text-slate-500">Comisión acumulada</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className={`${cardCls} col-span-2 p-4 sm:col-span-1`}>
+          <p className="text-sm text-slate-600">Comisión acumulada</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">
             {formatearMoneda(totalComision)}
           </p>
         </div>
 
         <div className={`${cardCls} p-4`}>
-          <p className="text-sm text-slate-500">Ventas consideradas</p>
+          <p className="text-sm text-slate-600">Ventas consideradas</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">{formatMiles(totalVentas)}</p>
         </div>
 
         <div className={`${cardCls} p-4`}>
-          <p className="text-sm text-slate-500">Total vendido</p>
+          <p className="text-sm text-slate-600">Total vendido</p>
           <p className="mt-1 text-2xl font-bold text-slate-900">
             {formatearMoneda(totalVendido)}
           </p>
@@ -127,7 +127,7 @@ export default function MiComision() {
             key={`${item.jornada}-${item.tipo}`}
             className={`${cardCls} p-4`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <h2 className="font-semibold text-slate-900">{TIPO_ETIQUETA[item.tipo] ?? capitalizar(item.tipo)}</h2>
 
               <span className="font-semibold text-slate-900">
@@ -135,20 +135,20 @@ export default function MiComision() {
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-200 pt-3 text-sm">
               <div>
-                <p className="text-slate-500">Total vendido</p>
+                <p className="text-slate-600">Total vendido</p>
                 <p className="text-slate-900">{formatearMoneda(item.base_comision)}</p>
               </div>
 
               <div>
-                <p className="text-slate-500">Ventas</p>
+                <p className="text-slate-600">Ventas</p>
                 <p className="text-slate-900">{formatMiles(item.ventas_del_tipo)}</p>
               </div>
 
               <div>
-                <p className="text-slate-500">Porcentaje</p>
-                <p>
+                <p className="text-slate-600">Porcentaje</p>
+                <p className="text-slate-900">
                   {item.porcentaje !== null
                     ? `${item.porcentaje}%`
                     : 'Sin definir'}
@@ -156,8 +156,8 @@ export default function MiComision() {
               </div>
 
               <div>
-                <p className="text-slate-500">Monto fijo</p>
-                <p>
+                <p className="text-slate-600">Monto fijo</p>
+                <p className="text-slate-900">
                   {item.monto_fijo !== null
                     ? formatearMoneda(item.monto_fijo)
                     : 'No aplica'}

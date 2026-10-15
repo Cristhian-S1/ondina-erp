@@ -533,11 +533,11 @@ it('F2 · alinea arriba los controles y deja la disponibilidad fuera de la etiqu
   const productoInput = within(dialogo).getByLabelText('Producto')
   fireEvent.change(productoInput, { target: { value: producto.id } })
   const cantidad = within(dialogo).getByLabelText('Cantidad')
-  const fila = productoInput.closest('.grid')!
+  const fila = cantidad.closest('.grid')!
   expect(fila).toHaveClass('items-start')
   expect(fila).not.toHaveClass('items-end')
   expect(fila).toContainElement(cantidad)
-  expect(within(dialogo).getByText(/Disponible en bodega:/).closest('label')).toBeNull()
+  expect(within(dialogo).getByText(/En bodega/).closest('label')).toBeNull()
   expect(productoInput).toHaveAccessibleName('Producto')
 })
 
@@ -583,4 +583,26 @@ it('F2 · cantidad y bandejas rechazan letras y muestran exceso de stock en tiem
   fireEvent.change(bandejasInput, { target: { value: '40' } })
   expect(bandejasInput).toHaveAttribute('aria-invalid', 'false')
   expect(api.crearDespacho).not.toHaveBeenCalled()
+})
+
+it('M2 · cada producto del despacho es una tarjeta con encabezado, controles y Quitar de 44 px', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
+  const dialogo = await abrirDespachoF2()
+  fireEvent.click(within(dialogo).getByRole('button', { name: '+ Agregar producto' }))
+  const tarjetas = within(dialogo).getAllByTestId('linea-despacho')
+  expect(tarjetas).toHaveLength(2)
+  expect(within(dialogo).getByText('2 líneas')).toBeInTheDocument()
+  fireEvent.change(within(tarjetas[0]).getByLabelText('Producto'), { target: { value: producto.id } })
+  expect(within(tarjetas[0]).getByText('Línea 1')).toBeInTheDocument()
+  expect(within(tarjetas[0]).getAllByText('Bidón POL').length).toBeGreaterThan(0)
+  expect(within(tarjetas[1]).getByText('Línea 2')).toBeInTheDocument()
+  expect(within(tarjetas[1]).getByText('Sin producto seleccionado')).toBeInTheDocument()
+  for (const tarjeta of tarjetas) {
+    expect(tarjeta).toHaveClass('border', 'rounded-xl')
+    expect(within(tarjeta).getByLabelText('Producto')).toBeInTheDocument()
+    expect(within(tarjeta).getByLabelText('Cantidad')).toBeInTheDocument()
+    expect(within(tarjeta).getByRole('button', { name: 'Quitar' })).toHaveClass('min-h-11')
+  }
+  // Un único árbol: sin controles duplicados para otra vista.
+  expect(within(dialogo).getAllByLabelText('Cantidad')).toHaveLength(2)
 })

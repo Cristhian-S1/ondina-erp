@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
 import { obtenerStockBodega, obtenerStockEnvases } from '../api'
 import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnSecondary, cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { btnSecondary, cardCls, inputCls, labelCls, thCls } from '../../../lib/ui'
 import EstadoVista from '../../../components/EstadoVista'
 import { formatMiles } from '../../../lib/format'
 import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
@@ -17,7 +17,7 @@ function Tabs({ activa, onChange }: { activa: Tab; onChange: (tab: Tab) => void 
   ]
 
   return (
-    <div className="inline-flex rounded-lg border border-brand-200 bg-brand-50 p-1">
+    <div className="grid w-full max-w-sm grid-cols-2 gap-1 rounded-lg border border-brand-200 bg-brand-50 p-1 sm:inline-grid sm:w-auto sm:max-w-none">
       {opciones.map((opcion) => (
         <button
           key={opcion.id}
@@ -35,6 +35,23 @@ function Tabs({ activa, onChange }: { activa: Tab; onChange: (tab: Tab) => void 
     </div>
   )
 }
+
+// Etiqueta legible para valores de catálogo como `uso_interno` o `no_retornable`.
+function etiquetaCatalogo(valor?: string | null) {
+  if (!valor) return '-'
+  const texto = valor.replaceAll('_', ' ')
+  return texto.charAt(0).toLocaleUpperCase('es-CL') + texto.slice(1)
+}
+
+// Teléfono: cada fila es una tarjeta compacta (nombre + tipo a la izquierda, unidades a la derecha).
+// Desde 640 px vuelve la tabla. Mismo árbol DOM, sólo CSS.
+const tablaCls = 'block w-full sm:table'
+const theadCls = 'sr-only sm:not-sr-only sm:table-header-group'
+const tbodyCls = 'block space-y-2 p-3 sm:table-row-group sm:space-y-0 sm:divide-y sm:divide-slate-100 sm:p-0'
+const filaCls = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 rounded-xl border border-slate-200 bg-white px-4 py-3 sm:table-row sm:rounded-none sm:border-0 sm:px-0 sm:py-0'
+const celdaNombreCls = 'col-start-1 row-start-1 block min-w-0 break-words text-base font-semibold text-slate-900 sm:table-cell sm:px-4 sm:py-3 sm:text-sm sm:font-normal'
+const celdaTipoCls = 'col-start-1 row-start-2 block text-xs text-slate-600 sm:table-cell sm:px-4 sm:py-3 sm:text-sm sm:text-slate-900'
+const celdaUnidadesCls = 'col-start-2 row-span-2 row-start-1 block text-right text-xl font-bold text-slate-900 sm:table-cell sm:px-4 sm:py-3 sm:text-sm sm:font-semibold'
 
 function SeccionStock({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -88,7 +105,7 @@ export default function Stock() {
       const [sucursalesData, productosData, empaquesData] = await Promise.all([
         obtenerSucursales(),
         obtenerProductos(true),
-        obtenerTiposEmpaque(),
+        obtenerTiposEmpaque(true),
       ])
       if (!vigente) return
       setErrorCatalogo(null)
@@ -183,21 +200,21 @@ export default function Stock() {
           {filasProductos.length === 0 ? (
             <div role="status"><EstadoVista variante="vacio" mensaje="Sin registros de stock de productos para esta sucursal." /></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
-                    <th className={thCls}>Producto</th>
-                    <th className={thCls}>Tipo</th>
-                    <th className={`${thCls} text-right`}>Unidades</th>
+            <div className="sm:overflow-x-auto">
+              <table role="table" className={tablaCls}>
+                <thead role="rowgroup" className={theadCls}>
+                  <tr role="row" className="border-b border-slate-100 bg-slate-50">
+                    <th role="columnheader" scope="col" className={thCls}>Producto</th>
+                    <th role="columnheader" scope="col" className={thCls}>Tipo</th>
+                    <th role="columnheader" scope="col" className={`${thCls} text-right`}>Unidades</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody role="rowgroup" className={tbodyCls}>
                   {filasProductos.map((f) => (
-                    <tr key={f.producto_id}>
-                      <td className={tdCls}>{f.producto?.nombre ?? 'Desconocido'}</td>
-                      <td className={tdCls}>{f.producto?.tipo ?? '-'}</td>
-                      <td className={`${tdCls} text-right font-semibold`}>{formatMiles(f.cantidad)}</td>
+                    <tr role="row" key={f.producto_id} className={filaCls}>
+                      <td role="cell" className={celdaNombreCls}>{f.producto?.nombre ?? 'Producto no disponible'}</td>
+                      <td role="cell" className={celdaTipoCls}>{etiquetaCatalogo(f.producto?.tipo)}</td>
+                      <td role="cell" className={celdaUnidadesCls}>{formatMiles(f.cantidad)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -210,21 +227,21 @@ export default function Stock() {
           {filasEnvases.length === 0 ? (
             <div role="status"><EstadoVista variante="vacio" mensaje="Sin registros de envases para esta sucursal." /></div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
-                    <th className={thCls}>Envase</th>
-                    <th className={thCls}>Categoría</th>
-                    <th className={`${thCls} text-right`}>Unidades</th>
+            <div className="sm:overflow-x-auto">
+              <table role="table" className={tablaCls}>
+                <thead role="rowgroup" className={theadCls}>
+                  <tr role="row" className="border-b border-slate-100 bg-slate-50">
+                    <th role="columnheader" scope="col" className={thCls}>Envase</th>
+                    <th role="columnheader" scope="col" className={thCls}>Categoría</th>
+                    <th role="columnheader" scope="col" className={`${thCls} text-right`}>Unidades</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody role="rowgroup" className={tbodyCls}>
                   {filasEnvases.map((f) => (
-                    <tr key={f.tipo_empaque_id}>
-                      <td className={tdCls}>{f.empaque?.nombre ?? 'Desconocido'}</td>
-                      <td className={tdCls}>{f.empaque?.categoria ?? '-'}</td>
-                      <td className={`${tdCls} text-right font-semibold`}>{formatMiles(f.cantidad)}</td>
+                    <tr role="row" key={f.tipo_empaque_id} className={filaCls}>
+                      <td role="cell" className={celdaNombreCls}>{f.empaque?.nombre ?? 'Envase no disponible'}</td>
+                      <td role="cell" className={celdaTipoCls}>{etiquetaCatalogo(f.empaque?.categoria)}</td>
+                      <td role="cell" className={celdaUnidadesCls}>{formatMiles(f.cantidad)}</td>
                     </tr>
                   ))}
                 </tbody>

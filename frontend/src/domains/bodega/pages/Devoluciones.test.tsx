@@ -287,16 +287,24 @@ describe('B1 · aislamiento de sucursal y estados', () => {
   })
 })
 
-it('B1 · permite recorrer las tablas del detalle en regiones con nombre', async () => {
+it('M2 · distingue Productos del despacho y Envases en secciones con encabezado, conteo y filas compactas', async () => {
   vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
   vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
   renderWithProviders(<Devoluciones />)
   fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
-  for (const nombre of ['Productos del despacho', 'Envases del despacho']) {
-    const region = screen.getByRole('region', { name: nombre })
-    expect(region).toHaveAttribute('tabindex', '0')
-    expect(region).toHaveClass('overflow-x-auto')
-  }
+  const productos = screen.getByRole('region', { name: 'Productos del despacho' })
+  const envases = screen.getByRole('region', { name: 'Envases' })
+  expect(productos).toHaveAttribute('data-tono', 'producto')
+  expect(envases).toHaveAttribute('data-tono', 'envase')
+  expect(productos.className).not.toBe(envases.className)
+  expect(within(productos).getByText('1 línea')).toBeInTheDocument()
+  expect(within(envases).getByText(/líneas?$/)).toBeInTheDocument()
+  const fila = within(productos).getByTestId('fila-devolucion-producto')
+  expect(fila).toHaveTextContent('Bidón POL')
+  expect(fila).toHaveTextContent(/Disponible\s*\d/)
+  expect(within(fila).getByLabelText('Cantidad a devolver de Bidón POL').closest('.w-36')).not.toBeNull()
+  expect(within(envases).getAllByTestId('fila-devolucion-envase').length).toBeGreaterThan(0)
+  expect(within(envases).getAllByText('Buenos').length).toBeGreaterThan(0)
 })
 
 
@@ -333,8 +341,7 @@ it('FX R1-02/13 · conserva detalle y borrador tras fallo; tarjeta usa el mismo 
   fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
   const campo = screen.getByLabelText('Cantidad a devolver de Bidón POL')
   fireEvent.change(campo, { target: { value: '2' } })
-  expect(campo.closest('td')).toHaveAttribute('data-etiqueta', 'Devuelve')
-  expect(campo.closest('table')).toHaveClass('block', 'sm:table')
+  expect(campo.closest('li')).toHaveAttribute('data-testid', 'fila-devolucion-producto')
   vi.mocked(api.obtenerDespachos).mockRejectedValueOnce(new Error('Sin red'))
   vi.setSystemTime(new Date(Date.now() + 31000))
   await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })

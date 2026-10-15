@@ -113,6 +113,31 @@ describe('HU-13 · Stock', () => {
 })
 
 
+describe('M2 · Stock móvil y N-01', () => {
+  it('N-01 · pide los tipos de empaque incluyendo inactivos y nombra los envases sin catálogo', async () => {
+    vi.mocked(api.obtenerStockEnvases).mockResolvedValue([
+      ...stockEnvases,
+      { sucursal_id: 'suc-1', tipo_empaque_id: 'te-huerfano', cantidad: 5, modificado_en: '2026-01-01T00:00:00Z' },
+    ])
+    renderWithProviders(<Stock />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Envases' }))
+    expect(await screen.findByText('Envase no disponible')).toBeInTheDocument()
+    expect(screen.queryByText('Desconocido')).not.toBeInTheDocument()
+    expect(catalog.obtenerTiposEmpaque).toHaveBeenCalledWith(true)
+    expect(screen.getByText('Uso interno')).toBeInTheDocument()
+  })
+
+  it('cada fila es una tarjeta compacta en teléfono con la tabla como vista de escritorio (mismo DOM)', async () => {
+    vi.mocked(api.obtenerStockBodega).mockResolvedValue(stockProductos)
+    renderWithProviders(<Stock />)
+    const celda = await screen.findByRole('cell', { name: 'Bidón POL' })
+    const fila = celda.closest('tr')!
+    expect(fila).toHaveClass('grid', 'rounded-xl', 'sm:table-row')
+    expect(screen.getAllByText('Bidón POL')).toHaveLength(1)
+    expect(screen.getByRole('table')).toHaveClass('block', 'sm:table')
+  })
+})
+
 describe('FE-05 / FE-06 · lectura de stock', () => {
   it('muestra error de stock y permite recuperar la lectura con Actualizar', async () => {
     vi.mocked(api.obtenerStockBodega).mockRejectedValueOnce(new Error('Fallo de consulta')).mockResolvedValueOnce(stockProductos)

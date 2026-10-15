@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
 import { corregirDevolucion, registrarDevolucion } from '../api'
-import { btnPrimary, btnSecondary, cardCls, inputCls, tdCls, thCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls, inputCls } from '../../../lib/ui'
 import { fmtFecha, fmtFechaHora, formatMiles } from '../../../lib/format'
 import EstadoVista from '../../../components/EstadoVista'
 import InputNumerico from '../../../components/InputNumerico'
 import Dialog from '../../../components/Dialog'
 import { disponibleParaDevolver } from '../validacion'
 import AmbitoBodega from '../components/AmbitoBodega'
+import SeccionDevolucion from '../components/SeccionDevolucion'
 import { useDatosBodega } from '../hooks/useDatosBodega'
 import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
@@ -39,7 +40,13 @@ const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['todo', 'Todo'],
 ]
 
-const inputCompact = `${inputCls} !mt-0 text-right`
+const inputCompact = `${inputCls} text-right`
+// Fila compacta: nombre y disponibilidad a la izquierda, input acotado a la derecha.
+const filaCls = 'grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-3 py-3'
+// En teléfono las flechas apiladas de InputNumerico duplicarían el alto de la fila; el teclado numérico basta
+// (ArrowUp/ArrowDown siguen funcionando). Se muestran cuando la sección mide ≥ 32rem (container query:
+// en escritorio la columna de detalle es angosta aunque la ventana sea ancha).
+const sinFlechasMovil = '@max-lg:[&_button]:hidden'
 
 export default function Devoluciones() {
   return <AmbitoBodega>{(sucursalId, setOcupado) => <DevolucionesSucursal sucursalId={sucursalId} setOcupado={setOcupado} />}</AmbitoBodega>
@@ -428,156 +435,107 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                 <span className={estadoBadge[estado!]}>{estadoEtiqueta[estado!]}</span>
               </div>
 
-              <div className="space-y-6 p-5">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Productos del despacho
-                    </h3>
-                    {!editarProductos && (
-                      <span className="text-xs font-semibold text-emerald-700">Ya devueltos</span>
+              <div className="space-y-5 p-3 sm:p-5">
+                <SeccionDevolucion tono="producto" titulo="Productos del despacho" lineas={productosDespachados(seleccionado).size} yaDevueltos={!editarProductos}>
+                  <ul className="divide-y divide-slate-200">
+                    {[...productosDespachados(seleccionado).entries()].map(
+                      ([productoId, despachado]) => {
+                        const producto = productos.find((p) => p.id === productoId)
+                        const disponible = disponibleParaDevolver(despachado, devueltoProductoDe(seleccionado, productoId), esCorreccion)
+                        const errorCantidad = Number(productoInputs[productoId]) > disponible
+                          ? `No puedes devolver más de ${disponible} ${producto?.nombre ?? 'del producto'} (disponible para devolver).` : undefined
+                        return (
+                          <li key={productoId} data-testid="fila-devolucion-producto" className={filaCls}>
+                            <div className="min-w-0">
+                              <p className="break-words text-sm font-semibold text-slate-900">{producto?.nombre ?? 'Producto'}</p>
+                              <p className="mt-0.5 text-xs text-slate-600">
+                                Despachado <b className="text-slate-900">{formatMiles(despachado)}</b>
+                                {' · '}Disponible <b className="text-slate-900">{formatMiles(disponible)}</b>
+                                {estado === 'pendiente' && <> · Carga <b className="text-slate-900">{formatMiles(cargaDeDespacho(seleccionado, productoId))}</b></>}
+                              </p>
+                            </div>
+                            {editarProductos ? (
+                              <div className={`w-36 @lg:w-44 ${sinFlechasMovil}`}>
+                                <InputNumerico id={`devolucion-producto-${productoId}`}
+                                  aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
+                                  aria-describedby="ayuda-devolucion-cantidad"
+                                  className={inputCompact} value={productoInputs[productoId] ?? ''} error={errorCantidad}
+                                  onChange={valor => {
+                                    setError(null)
+                                    setProductoInputs(prev => ({ ...prev, [productoId]: valor === undefined ? '' : String(valor) }))
+                                  }} />
+                              </div>
+                            ) : (
+                              <span className="text-right text-sm font-bold text-amber-800">
+                                −{formatMiles(devueltoProductoDe(seleccionado, productoId))}
+                              </span>
+                            )}
+                          </li>
+                        )
+                      },
                     )}
-                  </div>
-                  <div role="region" aria-label="Productos del despacho" tabIndex={0} className="mt-2 max-w-full overflow-x-auto rounded-lg border border-slate-200">
-                    <table role="table" className="block w-full sm:table [&_td]:!block [&_td]:!whitespace-normal [&_td]:text-left [&_td]:[overflow-wrap:anywhere] sm:[&_td]:!table-cell sm:[&_td]:text-right [&_td]:before:mb-1 [&_td]:before:block [&_td]:before:text-xs [&_td]:before:font-medium [&_td]:before:text-slate-600 [&_td]:before:content-[attr(data-etiqueta)] sm:[&_td]:before:hidden">
-                      <thead role="rowgroup" className="sr-only bg-slate-50 sm:not-sr-only sm:table-header-group">
-                        <tr role="row">
-                          <th role="columnheader" scope="col" className={thCls}>Producto</th>
-                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Despachado</th>
-                          {estado === 'pendiente' && (
-                            <th role="columnheader" scope="col" className={`${thCls} text-right`}>Carga</th>
-                          )}
-                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Devuelve</th>
-                        </tr>
-                      </thead>
-                      <tbody role="rowgroup" className="block divide-y divide-slate-100 sm:table-row-group">
-                        {[...productosDespachados(seleccionado).entries()].map(
-                          ([productoId, despachado]) => {
-                            const producto = productos.find((p) => p.id === productoId)
-                            const disponible = disponibleParaDevolver(despachado, devueltoProductoDe(seleccionado, productoId), esCorreccion)
-                            const errorCantidad = Number(productoInputs[productoId]) > disponible
-                              ? `No puedes devolver más de ${disponible} ${producto?.nombre ?? 'del producto'} (disponible para devolver).` : undefined
-                            return (
-                              <tr role="row" className="block min-w-0 pb-3 sm:table-row sm:pb-0" key={productoId}>
-                                <td role="cell" data-etiqueta="Producto" className={tdCls}>{producto?.nombre ?? 'Producto'}</td>
-                                <td role="cell" data-etiqueta="Despachado" className={`${tdCls} text-right font-semibold`}>
-                                  {despachado}
-                                </td>
-                                {estado === 'pendiente' && (
-                                  <td role="cell" data-etiqueta="Carga" className={`${tdCls} text-right text-slate-500`}>
-                                    {cargaDeDespacho(seleccionado, productoId)}
-                                  </td>
-                                )}
-                                <td role="cell" data-etiqueta="Devuelve" className={`${tdCls} text-right sm:min-w-44`}>
-                                  {editarProductos ? (
-                                    <InputNumerico id={`devolucion-producto-${productoId}`}
-                                      aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
-                                      aria-describedby="ayuda-devolucion-cantidad"
-                                      className={inputCompact} value={productoInputs[productoId] ?? ''} error={errorCantidad}
-                                      onChange={valor => {
-                                        setError(null)
-                                        setProductoInputs(prev => ({ ...prev, [productoId]: valor === undefined ? '' : String(valor) }))
-                                      }} />
-                                  ) : (
-                                    <span className="font-medium text-amber-700">
-                                      −{devueltoProductoDe(seleccionado, productoId)}
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          },
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                  </ul>
                   {editarProductos && (
-                    <p id="ayuda-devolucion-cantidad" className="mt-1 text-xs text-slate-500">
+                    <p id="ayuda-devolucion-cantidad" className="border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
                       La devolución de cada producto tiene como límite lo despachado menos lo ya devuelto. En una corrección se reemplazan las cantidades anteriores.
                     </p>
                   )}
-                </div>
+                </SeccionDevolucion>
 
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Envases
-                    </h3>
-                    {!editarEnvases && (
-                      <span className="text-xs font-semibold text-emerald-700">Ya devueltos</span>
-                    )}
-                  </div>
-                  <div role="region" aria-label="Envases del despacho" tabIndex={0} className="mt-2 max-w-full overflow-x-auto rounded-lg border border-slate-200">
-                    <table role="table" className="block w-full sm:table [&_td]:!block [&_td]:!whitespace-normal [&_td]:text-left [&_td]:[overflow-wrap:anywhere] sm:[&_td]:!table-cell sm:[&_td]:text-right [&_td]:before:mb-1 [&_td]:before:block [&_td]:before:text-xs [&_td]:before:font-medium [&_td]:before:text-slate-600 [&_td]:before:content-[attr(data-etiqueta)] sm:[&_td]:before:hidden">
-                      <thead role="rowgroup" className="sr-only bg-slate-50 sm:not-sr-only sm:table-header-group">
-                        <tr role="row">
-                          <th role="columnheader" scope="col" className={thCls}>Envase</th>
-                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Despachadas</th>
-                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>En bodega</th>
-                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Buenos</th>
-                          <th role="columnheader" scope="col" className={`${thCls} text-right`}>Malos</th>
-                        </tr>
-                      </thead>
-                      <tbody role="rowgroup" className="block divide-y divide-slate-100 sm:table-row-group">
-                        {tiposEmpaqueDevolvibles.map((t) => {
-                          const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
-                          const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
-                          const advertencia = advertenciasEnvases.find(item => item.tipoId === t.id)
-                          const advertenciaId = `advertencia-envase-${t.id}`
-                          return (
-                            <tr role="row" className="block min-w-0 pb-3 sm:table-row sm:pb-0" key={t.id}>
-                              <td role="cell" data-etiqueta="Envase" className={tdCls}>{t.nombre}</td>
-                              <td role="cell" data-etiqueta="Despachadas" className={`${tdCls} text-right font-semibold`}>
-                                {despachadas}
-                              </td>
-                              <td role="cell" data-etiqueta="En bodega" className={`${tdCls} text-right text-slate-500`}>
-                                {stockEnvaseDe(t.id)}
-                              </td>
-                              <td role="cell" data-etiqueta="Buenos" className={`${tdCls} text-right sm:min-w-44`}>
-                                {editarEnvases ? (
-                                  <div>
-                                    <InputNumerico aria-label={`Cantidad de envases buenos de ${t.nombre}`}
-                                      aria-describedby={advertencia ? advertenciaId : undefined}
-                                      className={inputCompact} value={input.buenos}
-                                      onChange={valor => {
-                                        setError(null)
-                                        setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, buenos: valor === undefined ? '' : String(valor) } }))
-                                      }} />
-                                    {advertencia && <p id={advertenciaId} role="status" className="mt-1 text-left text-xs text-amber-800">{advertencia.mensaje}</p>}
-                                  </div>
-                                ) : (
-                                  <span className="font-medium text-emerald-700">
-                                    +{devueltoEnvaseBuenoDe(seleccionado, t.id)}
-                                  </span>
-                                )}
-                              </td>
-                              <td role="cell" data-etiqueta="Malos" className={`${tdCls} text-right sm:min-w-44`}>
-                                {editarEnvases ? (
-                                  <div>
-                                    <InputNumerico aria-label={`Cantidad de envases malos de ${t.nombre}`}
-                                      aria-describedby={advertencia ? advertenciaId : undefined}
-                                      className={inputCompact} value={input.malos}
-                                      onChange={valor => {
-                                        setError(null)
-                                        setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, malos: valor === undefined ? '' : String(valor) } }))
-                                      }} />
-                                  </div>
-                                ) : (
-                                  <span className="font-medium text-amber-700">
-                                    +{devueltoEnvaseMaloDe(seleccionado, t.id)}
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                <SeccionDevolucion tono="envase" titulo="Envases" lineas={tiposEmpaqueDevolvibles.length} yaDevueltos={!editarEnvases}>
+                  <ul className="divide-y divide-slate-200">
+                    {tiposEmpaqueDevolvibles.map((t) => {
+                      const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
+                      const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
+                      const advertencia = advertenciasEnvases.find(item => item.tipoId === t.id)
+                      const advertenciaId = `advertencia-envase-${t.id}`
+                      return (
+                        <li key={t.id} data-testid="fila-devolucion-envase" className="grid min-w-0 gap-x-3 gap-y-2 px-3 py-3 @lg:grid-cols-[minmax(0,1fr)_auto] @lg:items-center">
+                          <div className="min-w-0">
+                            <p className="break-words text-sm font-semibold text-slate-900">{t.nombre}</p>
+                            <p className="mt-0.5 text-xs text-slate-600">
+                              Despachadas <b className="text-slate-900">{formatMiles(despachadas)}</b>
+                              {' · '}En bodega <b className="text-slate-900">{formatMiles(stockEnvaseDe(t.id))}</b>
+                            </p>
+                          </div>
+                          {editarEnvases ? (
+                            <div className={`grid grid-cols-2 gap-3 @lg:w-80 ${sinFlechasMovil}`}>
+                              <div className="min-w-0">
+                                <span className="block text-xs font-medium text-slate-700">Buenos</span>
+                                <InputNumerico aria-label={`Cantidad de envases buenos de ${t.nombre}`}
+                                  aria-describedby={advertencia ? advertenciaId : undefined}
+                                  className={inputCompact} value={input.buenos}
+                                  onChange={valor => {
+                                    setError(null)
+                                    setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, buenos: valor === undefined ? '' : String(valor) } }))
+                                  }} />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="block text-xs font-medium text-slate-700">Malos</span>
+                                <InputNumerico aria-label={`Cantidad de envases malos de ${t.nombre}`}
+                                  aria-describedby={advertencia ? advertenciaId : undefined}
+                                  className={inputCompact} value={input.malos}
+                                  onChange={valor => {
+                                    setError(null)
+                                    setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, malos: valor === undefined ? '' : String(valor) } }))
+                                  }} />
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm font-bold @lg:text-right">
+                              <span className="text-emerald-800">+{formatMiles(devueltoEnvaseBuenoDe(seleccionado, t.id))} buenos</span>
+                              <span className="ml-3 text-amber-800">+{formatMiles(devueltoEnvaseMaloDe(seleccionado, t.id))} malos</span>
+                            </p>
+                          )}
+                          {advertencia && editarEnvases && <p id={advertenciaId} role="status" className="text-xs text-amber-800 @lg:col-span-2">{advertencia.mensaje}</p>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  <p className="border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
                     Solo los envases en estado “bueno” vuelven al stock de bodega.
                   </p>
-                </div>
+                </SeccionDevolucion>
 
                 {!soloLectura && (
                   <div className="border-t border-slate-100 pt-4">

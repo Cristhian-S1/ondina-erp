@@ -15,6 +15,7 @@ import { btnPrimary, btnSecondary, cardCls, inputCls, labelCls } from '../../../
 import { fmtFecha, fmtFechaHora, formatMiles, parseMiles } from '../../../lib/format'
 import EstadoVista from '../../../components/EstadoVista'
 import AmbitoBodega from '../components/AmbitoBodega'
+import LineaDespacho from '../components/LineaDespacho'
 import { useDatosBodega } from '../hooks/useDatosBodega'
 import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
@@ -686,47 +687,39 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
               </div>
             )}
 
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-700">Productos del despacho</p>
-              {lineas.map((linea, index) => {
-                const solicitado = lineas.filter(item => item.producto_id === linea.producto_id)
-                  .reduce((total, item) => total + parseMiles(item.cantidad), 0)
-                const errorCantidad = linea.producto_id && solicitado > stockDisponible(linea.producto_id)
-                  ? `Excede el stock en bodega: disponibles ${formatMiles(stockDisponible(linea.producto_id))}.` : undefined
-                const ayudaId = `disponible-despacho-${linea.id}`
-                const atributosProducto = atributosError(`despacho-producto-${linea.id}`)
-                return <div key={linea.id} className="grid min-w-0 grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_11rem_auto]">
-                  <div className="min-w-0">
-                    <label htmlFor={atributosProducto.id} className={labelCls}>Producto</label>
-                    <select className={inputCls} value={linea.producto_id} {...atributosProducto}
-                      aria-describedby={[atributosProducto['aria-describedby'], linea.producto_id ? ayudaId : undefined].filter(Boolean).join(' ') || undefined}
-                      onChange={event => {
-                        setError(null)
-                        setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, producto_id: event.target.value } : item))
-                      }}>
-                      <option value="">Selecciona producto...</option>
-                      {productosActivos.map(producto => <option key={producto.id} value={producto.id}
-                        disabled={lineas.some((item, i) => i !== index && item.producto_id === producto.id)}>
-                        {producto.nombre} (disp. {formatMiles(stockDisponible(producto.id))})
-                      </option>)}
-                    </select>
-                    {linea.producto_id && <span id={ayudaId} className="mt-1 block text-xs text-slate-500">
-                      Disponible en bodega: <b className="text-slate-700">{formatMiles(stockDisponible(linea.producto_id))}</b>
-                      {vendedorId && <> · Carga del vendedor: <b className="text-slate-700">{formatMiles(cargaDelVendedor(linea.producto_id))}</b></>}
-                    </span>}
-                  </div>
-                  <div className="min-w-0">
-                    <label htmlFor={`despacho-cantidad-${linea.id}`} className={labelCls}>Cantidad</label>
-                    <InputNumerico {...atributosError(`despacho-cantidad-${linea.id}`)} value={linea.cantidad} error={errorCantidad}
-                      onChange={valor => {
-                        setError(null)
-                        setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, cantidad: valor === undefined ? '' : String(valor) } : item))
-                      }} />
-                  </div>
-                  <button type="button" className={`${btnSecondary} sm:mt-6`} onClick={() => setLineas(prev => prev.filter(item => item.id !== linea.id))}>Quitar</button>
-                </div>
-              })}
-              <button type="button" className={btnSecondary} disabled={!!motivoLimite}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold text-slate-800">Productos del despacho</h3>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                  {lineas.length} {lineas.length === 1 ? 'línea' : 'líneas'}
+                </span>
+              </div>
+              <ul className="space-y-3">
+                {lineas.map((linea, index) => {
+                  const solicitado = lineas.filter(item => item.producto_id === linea.producto_id)
+                    .reduce((total, item) => total + parseMiles(item.cantidad), 0)
+                  const errorCantidad = linea.producto_id && solicitado > stockDisponible(linea.producto_id)
+                    ? `Excede el stock en bodega: disponibles ${formatMiles(stockDisponible(linea.producto_id))}.` : undefined
+                  return <LineaDespacho key={linea.id} indice={index} lineaId={linea.id}
+                    productoId={linea.producto_id} cantidad={linea.cantidad} productos={productosActivos}
+                    productosEnOtrasLineas={lineas.filter((item, i) => i !== index && item.producto_id).map(item => item.producto_id)}
+                    disponible={stockDisponible}
+                    cargaVendedor={vendedorId && linea.producto_id ? cargaDelVendedor(linea.producto_id) : undefined}
+                    errorCantidad={errorCantidad}
+                    atributosProducto={atributosError(`despacho-producto-${linea.id}`)}
+                    atributosCantidad={atributosError(`despacho-cantidad-${linea.id}`)}
+                    onProducto={productoId => {
+                      setError(null)
+                      setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, producto_id: productoId } : item))
+                    }}
+                    onCantidad={valor => {
+                      setError(null)
+                      setLineas(prev => prev.map(item => item.id === linea.id ? { ...item, cantidad: valor === undefined ? '' : String(valor) } : item))
+                    }}
+                    onQuitar={() => setLineas(prev => prev.filter(item => item.id !== linea.id))} />
+                })}
+              </ul>
+              <button type="button" className={`${btnSecondary} w-full sm:w-auto`} disabled={!!motivoLimite}
                 aria-describedby={motivoLimite ? 'limite-productos-despacho' : undefined}
                 onClick={() => setLineas(prev => prev.length < productosActivos.length ? [...prev, nuevaLinea()] : prev)}>
                 + Agregar producto
@@ -734,13 +727,13 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
               {motivoLimite && <p id="limite-productos-despacho" className="text-xs text-slate-600">{motivoLimite}</p>}
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-700">Bandejas del despacho</p>
+            <div className="space-y-2 rounded-xl border border-slate-300 bg-slate-50 p-3">
+              <h3 className="text-sm font-semibold text-slate-800">Bandejas del despacho</h3>
               {!bandejaTipo ? (
-                <p className="text-sm text-slate-500">No hay tipos de envase configurados.</p>
+                <p className="text-sm text-slate-600">No hay tipos de envase configurados.</p>
               ) : (
                 <>
-                  <div>
+                  <div className="max-w-[10rem]">
                     <label htmlFor="despacho-bandejas" className={labelCls}>Bandejas</label>
                     <InputNumerico {...atributosError('despacho-bandejas')} value={bandejasCantidad} error={errorBandejas}
                       onChange={valor => {
@@ -748,17 +741,17 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                         setBandejasManual({ hielo: totalHieloSolicitado, valor: valor === undefined ? '' : String(valor) })
                       }} />
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-600">
                     Se completan solas: 1 bandeja cada {CAPACIDAD_BANDEJA} bolsas de hielo.
                   </p>
                   {totalHieloSolicitado > 0 && parseMiles(bandejasCantidad) !== bandejasSugeridas && (
-                    <p className="text-xs text-amber-700">Sugerido: {formatMiles(bandejasSugeridas)}</p>
+                    <p className="text-xs text-amber-800">Sugerido: {formatMiles(bandejasSugeridas)}</p>
                   )}
                 </>
               )}
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 className={btnSecondary}

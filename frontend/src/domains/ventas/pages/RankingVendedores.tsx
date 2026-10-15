@@ -40,10 +40,10 @@ export default function RankingVendedores() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Ranking de vendedores</h1>
-        <p className="mt-1 text-sm text-slate-500">{descripcion}</p>
+        <p className="mt-1 text-sm text-slate-600">{descripcion}</p>
       </div>
 
-      <fieldset className="grid max-w-md grid-cols-2 gap-3">
+      <fieldset className="grid max-w-md grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-3">
         <legend className={labelCls}>Período</legend>
         <label className="text-sm text-slate-600">
           <span className="sr-only">Mes</span>
@@ -107,14 +107,14 @@ export default function RankingVendedores() {
                       {item.vendedor}
                       {esPropia && <span className="ml-2 text-xs font-semibold text-brand-800">(Tú)</span>}
                     </p>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-600">
                       {formatMiles(item.cantidad_ventas)} {item.cantidad_ventas === 1 ? 'venta' : 'ventas'}
                     </p>
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="font-semibold text-slate-900">{formatearMoneda(item.total_vendido)}</p>
-                  <p className="text-xs text-slate-500">Total vendido</p>
+                  <p className="text-xs text-slate-600">Total vendido</p>
                 </div>
               </li>
             )
