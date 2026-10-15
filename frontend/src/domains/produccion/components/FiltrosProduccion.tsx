@@ -24,7 +24,7 @@ export default function FiltrosProduccion({ valores, productos, onChange, etique
     </label>
     <label className={`${labelCls} min-w-0`}>Desde<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={valores.desde} {...aria} max={valores.hasta || undefined} onChange={event => onChange({ ...valores, desde: event.target.value })} /></label>
     <label className={`${labelCls} min-w-0`}>Hasta<input type="date" className={`${inputCls} min-w-0 max-w-full`} value={valores.hasta} {...aria} min={valores.desde || undefined} onChange={event => onChange({ ...valores, hasta: event.target.value })} /></label>
-    {invalido && <p id={errorRangoId} role="alert" className="text-sm text-red-600 sm:col-span-2">Desde debe ser anterior o igual a Hasta.</p>}
+    {invalido && <p id={errorRangoId} role="alert" className="text-sm text-red-700 sm:col-span-2">Desde debe ser anterior o igual a Hasta.</p>}
     <div className="flex items-end"><button type="button" className={btnSecondary} onClick={() => onChange(filtrosVacios)}>Limpiar filtros</button></div>
   </div>
 }

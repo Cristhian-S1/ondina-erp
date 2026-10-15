@@ -40,12 +40,12 @@ export default function HistorialProduccion({ sucursalId, productos, versionDato
     <FiltrosProduccion valores={filtros} productos={productos} onChange={setFiltros} />
 
     <div className={`${cardCls} min-w-0`}>
-      <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Historial de producción</h2><p className="mt-1 text-xs text-slate-500">Registros ordenados desde el más reciente. Horas de America/Santiago.</p></div>
+      <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Historial de producción</h2><p className="mt-1 text-xs text-slate-600">Registros ordenados desde el más reciente. Horas de America/Santiago.</p></div>
       {!rangoInvalido && consulta.isFetching && !consulta.isPending && <p role="status" className="px-5 py-2 text-sm text-slate-600">Actualizando...</p>}
       {!rangoInvalido && (cargando ? <EstadoVista variante="cargando" mensaje="Cargando historial..." /> : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null)}
       {!rangoInvalido && !cargando && !error && registros.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay registros para los filtros seleccionados." /> : null}
       {!rangoInvalido && !cargando && !error && registros.length > 0 ? <TablaProduccionResponsive
-        columnas={[{ titulo: 'Fecha y hora', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Observaciones' }]}
+        columnas={[{ titulo: 'Fecha y hora', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true, cantidad: true }, { titulo: 'Observaciones' }]}
         filas={registros.map(registro => ({ id: registro.id, celdas: [fmtFechaHora(registro.creado_en), productos.find(producto => producto.id === registro.producto_id)?.nombre ?? 'Nombre no disponible', formatMiles(registro.cantidad), registro.observaciones || '—'] }))}
       /> : null}
       {!rangoInvalido && <Paginacion pagina={pagina} tamanoPagina={TAMANO_PRODUCCION} total={consulta.data?.total ?? 0} onCambiar={setPagina} cargando={consulta.isFetching} etiqueta="Paginación del historial de producción" />}

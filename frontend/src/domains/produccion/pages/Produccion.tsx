@@ -46,7 +46,7 @@ export default function Produccion() {
   return <div className="min-w-0 space-y-6">
     <header className="min-w-0">
       <h1 className="text-2xl font-bold text-slate-900">Producción · {seccion.titulo}</h1>
-      <p className="mt-1 text-sm text-slate-500">{seccion.descripcion}</p>
+      <p className="mt-1 text-sm text-slate-600">{seccion.descripcion}</p>
     </header>
     {esAdmin && <SucursalSelector disabled={ocupado} value={sucursalId} onChange={id => setSeleccion({ perfilId: perfil.id, sucursalId: id })} />}
     <nav aria-label="Secciones de producción" className="flex min-w-0 flex-wrap gap-2 lg:hidden">
@@ -190,7 +190,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
       <div className={gridCls}>
         <form className={formCls} onSubmit={event => void guardarIncidencia(event)}>
           <h2 className="font-semibold text-slate-900">Incidencia descriptiva</h2>
-          <p className="text-sm text-slate-500">Registra una observación del turno. Esta incidencia no cambia las existencias; si hubo pérdida, registra una merma en la sección siguiente.</p>
+          <p className="text-sm text-slate-600">Registra una observación del turno. Esta incidencia no cambia las existencias; si hubo pérdida, registra una merma en la sección siguiente.</p>
           <label className={labelCls}>Descripción de la incidencia<textarea className={controlCls} rows={4} maxLength={1000} value={descripcionIncidencia} {...accesibilidad('incidencia-descripcion')} onChange={event => { corregir('incidencia-descripcion'); setDescripcionIncidencia(event.target.value) }} /></label>
         {errorCampo('incidencia-descripcion')}
           <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar incidencia'}</button>
@@ -207,7 +207,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
       </div>
       <div className={gridCls}>
         <form className={formCls} onSubmit={event => void guardarMerma(event)}>
-          <div><h2 className="font-semibold text-slate-900">Registrar merma</h2><p className="mt-1 text-sm text-slate-500">Registra productos dañados o perdidos para descontarlos del stock de bodega.</p></div>
+          <div><h2 className="font-semibold text-slate-900">Registrar merma</h2><p className="mt-1 text-sm text-slate-600">Registra productos dañados o perdidos para descontarlos del stock de bodega.</p></div>
           <label className={labelCls}>Producto<select className={controlCls} value={productoMermaId} {...accesibilidad('merma-producto')} onChange={event => { corregir('merma-producto'); setProductoMermaId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select></label>
         {errorCampo('merma-producto')}
           <div><label htmlFor="campo-merma-cantidad" className={labelCls}>Cantidad</label><InputNumerico {...accesibilidad('merma-cantidad')} className={controlCls} value={cantidadMerma} onChange={valor => { corregir('merma-cantidad'); setCantidadMerma(valor) }} /></div>
@@ -219,7 +219,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <section className={`${cardCls} min-w-0`}>
           <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Mermas recientes</h2>
           <div className="min-w-0 xl:max-h-[28rem] xl:overflow-y-auto"><EstadoConsulta consulta={consulta.mermas} cargando="Cargando mermas...">
-            {!consulta.mermas.data?.length ? <EstadoVista variante="vacio" mensaje="No hay mermas registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Motivo' }]} filas={consulta.mermas.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), item.producto_id ? nombreProducto(item.producto_id) : 'Producto', formatMiles(item.cantidad), item.motivo] }))} />}
+            {!consulta.mermas.data?.length ? <EstadoVista variante="vacio" mensaje="No hay mermas registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true, cantidad: true }, { titulo: 'Motivo' }]} filas={consulta.mermas.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), item.producto_id ? nombreProducto(item.producto_id) : 'Producto', formatMiles(item.cantidad), item.motivo] }))} />}
           </EstadoConsulta></div>
           <Paginacion pagina={consulta.mermas.pagina} tamanoPagina={TAMANO_PRODUCCION} total={consulta.mermas.total} onCambiar={consulta.mermas.setPagina} cargando={consulta.mermas.isFetching || guardando} etiqueta="Paginación de mermas" />
         </section>
@@ -227,10 +227,10 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     </div>}
 
     {seccion === 'envases' && <section className={`${cardCls} min-w-0`}>
-      <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Envases vacíos disponibles</h2><p className="mt-1 text-sm text-slate-500">Empaques retornables de la sucursal. Horas de America/Santiago.</p></div>
+      <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold">Envases vacíos disponibles</h2><p className="mt-1 text-sm text-slate-600">Empaques retornables de la sucursal. Horas de America/Santiago.</p></div>
       <EstadoConsulta consulta={consulta.envases} cargando="Cargando envases...">
         {!consulta.envases.data?.length ? <EstadoVista variante="vacio" mensaje="No hay envases retornables disponibles." /> : <div className="grid min-w-0 grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">{consulta.envases.data.map(item => <article className="min-w-0 rounded-xl border border-slate-200 p-5 [overflow-wrap:anywhere]" key={item.tipo_empaque_id}>
-          <p className="text-sm font-medium text-slate-600">{item.nombre}</p><p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(item.cantidad)}</p><p className="mt-2 text-xs text-slate-500">Retornable · actualizado {fmtFechaHora(item.modificado_en)}</p>
+          <p className="text-sm font-medium text-slate-600">{item.nombre}</p><p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(item.cantidad)}</p><p className="mt-2 text-xs text-slate-600">Retornable · actualizado {fmtFechaHora(item.modificado_en)}</p>
         </article>)}</div>}
       </EstadoConsulta>
     </section>}

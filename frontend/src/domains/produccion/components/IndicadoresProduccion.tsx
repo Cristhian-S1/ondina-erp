@@ -52,11 +52,11 @@ export default function IndicadoresProduccion({ sucursalId, productos, versionDa
       : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null}
     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
       <article className={`${cardCls} min-w-0 p-5`}>
-        <p className="text-sm text-slate-500">Unidades producidas</p>
+        <p className="text-sm text-slate-600">Unidades producidas</p>
         <p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(datoValido ? resumen.totalUnidades : null)}</p>
       </article>
       <article className={`${cardCls} min-w-0 p-5`}>
-        <p className="text-sm text-slate-500">Registros de producción</p>
+        <p className="text-sm text-slate-600">Registros de producción</p>
         <p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(datoValido ? resumen.totalRegistros : null)}</p>
       </article>
     </div>

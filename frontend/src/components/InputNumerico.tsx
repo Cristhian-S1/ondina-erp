@@ -118,7 +118,7 @@ export default function InputNumerico({ value, onChange, min = 0, max = Number.M
             actualizar(texto.slice(0, desde) + texto.slice(desde + 2), desde)
           }
         }} />
-      {conFlechas && <div className="mt-1 flex shrink-0 flex-col gap-1">
+      {conFlechas && <div className="mt-1 flex shrink-0 flex-row gap-1">
         <button type="button" aria-label="Aumentar" aria-controls={inputId} disabled={bloqueado || numero >= maximo} onClick={() => ajustar(1)} className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-600 disabled:opacity-50"><span aria-hidden="true">▴</span></button>
         <button type="button" aria-label="Disminuir" aria-controls={inputId} disabled={bloqueado || numero <= minimo} onClick={() => ajustar(-1)} className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-600 disabled:opacity-50"><span aria-hidden="true">▾</span></button>
       </div>}
