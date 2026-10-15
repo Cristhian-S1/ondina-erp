@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import Despachos from './Despachos'
-import { focusManager } from '@tanstack/react-query'
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthContext } from '@/context/auth-context'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
@@ -648,11 +648,11 @@ it('K1 R2-13 · producto y cantidad asocian su error local y conservan IDs al co
   const cantidad = within(dialogo).getByLabelText('Cantidad')
   const ids = [productoCampo.id, cantidad.id]
   fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
-  comprobarCampoK1(productoCampo, /agrega al menos un producto/)
+  comprobarCampoK1(productoCampo, /Selecciona un producto/)
   expect(productoCampo).toHaveFocus()
   fireEvent.change(productoCampo, { target: { value: hielo.id } })
   fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
-  comprobarCampoK1(cantidad, /agrega al menos un producto/)
+  comprobarCampoK1(cantidad, /Ingresa una cantidad/)
   expect(cantidad).toHaveFocus()
   fireEvent.change(cantidad, { target: { value: '101' } })
   comprobarCampoK1(cantidad, /Excede el stock en bodega/)
@@ -680,5 +680,60 @@ it('K1 R2-13 · conserva un error visible cuando se envía después de quitar to
   fireEvent.click(within(dialogo).getByRole('button', { name: 'Quitar' }))
   fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
   expect(within(dialogo).getByRole('alert')).toHaveTextContent('Selecciona un vendedor y agrega al menos un producto.')
+  expect(api.crearDespacho).not.toHaveBeenCalled()
+})
+
+
+it.each([
+  ['vendedor', 'Vendedor', 'Selecciona un vendedor.'],
+  ['producto', 'Producto', 'Selecciona un producto.'],
+  ['cantidad', 'Cantidad', 'Ingresa una cantidad mayor que cero.'],
+])('F1 V1-01 · el error de %s describe sólo el campo pendiente', async (paso, etiqueta, mensaje) => {
+  const dialogo = await abrirDespachoF2()
+  if (paso !== 'vendedor') fireEvent.change(within(dialogo).getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  if (paso === 'cantidad') fireEvent.change(within(dialogo).getByLabelText('Producto'), { target: { value: producto.id } })
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  const campo = within(dialogo).getByLabelText(etiqueta)
+  const error = document.getElementById(campo.getAttribute('aria-describedby')!)
+  expect(error).toHaveTextContent(mensaje)
+  expect(error).toHaveAttribute('role', 'alert')
+  expect(campo).toHaveFocus()
+  expect(api.crearDespacho).not.toHaveBeenCalled()
+})
+
+it.each(['carga', 'error'])('F1 V1-03 · conserva todo el borrador al atravesar %s sin datos de consulta', async fase => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([bandeja])
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(api.obtenerStockEnvases).mockResolvedValue([stockBandeja])
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  renderWithProviders(<QueryClientProvider client={client}><Despachos /></QueryClientProvider>)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: hielo.id } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  fireEvent.change(cantidad, { target: { value: '7' } })
+  fireEvent.change(screen.getByLabelText('Bandejas'), { target: { value: '3' } })
+
+  let resolver!: (productos: Producto[]) => void
+  let rechazar!: (error: Error) => void
+  vi.mocked(catalog.obtenerProductos).mockImplementationOnce(() => new Promise((resolve, reject) => { resolver = resolve; rechazar = reject }))
+  await act(async () => { void client.resetQueries({ queryKey: ['bodega'] }) })
+  expect(await screen.findByRole('status')).toHaveTextContent('Cargando')
+  expect(screen.queryByRole('dialog', { name: 'Nuevo despacho' })).not.toBeInTheDocument()
+  if (fase === 'error') {
+    await act(async () => rechazar(new Error('Catálogo temporalmente sin datos')))
+    expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los despachos')
+    expect(screen.queryByRole('dialog', { name: 'Nuevo despacho' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  } else {
+    await act(async () => resolver([hielo]))
+  }
+  const dialogo = await screen.findByRole('dialog', { name: 'Nuevo despacho' })
+  expect(within(dialogo).getByLabelText('Cantidad')).toHaveValue('7')
+  expect(within(dialogo).getByLabelText('Cantidad')).toBe(cantidad)
+  expect(within(dialogo).getByLabelText('Vendedor')).toHaveValue(vendedor.id)
+  expect(within(dialogo).getByLabelText('Producto')).toHaveValue(hielo.id)
+  expect(within(dialogo).getByLabelText('Bandejas')).toHaveValue('3')
   expect(api.crearDespacho).not.toHaveBeenCalled()
 })

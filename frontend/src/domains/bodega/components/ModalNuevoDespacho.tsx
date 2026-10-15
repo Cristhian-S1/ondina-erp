@@ -112,11 +112,15 @@ export default function ModalNuevoDespacho({ open, sucursalId, recursos, errorLe
     }
 
     const lineasValidas = lineas.filter((l) => l.producto_id && parseMiles(l.cantidad) > 0)
-    if (!vendedorId || lineasValidas.length === 0) {
+    if (!vendedorId) {
+      informarError('Selecciona un vendedor.', 'despacho-vendedor')
+      return
+    }
+    if (lineasValidas.length === 0) {
       const primeraLinea = lineas[0]
-      const campo = !vendedorId ? 'despacho-vendedor' : !primeraLinea ? ''
-        : primeraLinea.producto_id ? `despacho-cantidad-${primeraLinea.id}` : `despacho-producto-${primeraLinea.id}`
-      informarError('Selecciona un vendedor y agrega al menos un producto.', campo)
+      if (!primeraLinea) informarError('Selecciona un vendedor y agrega al menos un producto.', '')
+      else if (!primeraLinea.producto_id) informarError('Selecciona un producto.', `despacho-producto-${primeraLinea.id}`)
+      else informarError('Ingresa una cantidad mayor que cero.', `despacho-cantidad-${primeraLinea.id}`)
       return
     }
 

@@ -39,44 +39,50 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const load = () => historial.actualizar()
   const { toast, mostrar, cerrar } = useToast()
 
-  if (datos.isError && !datos.data) return <EstadoVista variante="error" mensaje="No fue posible cargar los despachos. Inténtalo de nuevo." onReintentar={() => void load()} />
-  if (datos.isPending) return <EstadoVista variante="cargando" />
+  const errorCompleto = datos.isError && !datos.data
+  const vistaBloqueada = errorCompleto || datos.isPending
 
   return (
     <div className="space-y-6">
       <Toast toast={toast} onClose={cerrar} />
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Despachos</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Registra salidas hacia vendedores y devoluciones de productos o envases.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-end gap-3">
-          <button type="button" className={btnSecondary} onClick={() => navigate('/devoluciones')}>Devoluciones</button>
-          <button type="button" className={btnPrimary} onClick={() => { cerrar(); setModalOpen(true) }}>Nuevo despacho</button>
-        </div>
-      </div>
-      {!modalOpen && datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <section className={`${cardCls} min-w-0`}>
-          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-semibold text-slate-900">Últimos despachos</h2>
-            <span className="text-xs text-slate-600">{historial.data?.total ?? 0} registros</span>
+      {vistaBloqueada ? (
+        errorCompleto
+          ? <EstadoVista variante="error" mensaje="No fue posible cargar los despachos. Inténtalo de nuevo." onReintentar={() => void load()} />
+          : <EstadoVista variante="cargando" />
+      ) : <>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Despachos</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Registra salidas hacia vendedores y devoluciones de productos o envases.
+            </p>
           </div>
-          <FiltrosHistorialDespachos esAdmin={perfil?.rol === 'administrador'} diaFiltro={diaFiltro}
-            fechaSeleccionada={fechaSeleccionada} vendedorFiltro={vendedorFiltro} vendedores={vendedores}
-            setDiaFiltro={setDiaFiltro} setFechaSeleccionada={setFechaSeleccionada}
-            setVendedorFiltro={setVendedorFiltro} setDespachoExpandido={setDespachoExpandido} />
-          <HistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque}
-            despachoExpandido={despachoExpandido} setDespachoExpandido={setDespachoExpandido}
-            onDevolucion={() => navigate('/devoluciones')} />
-          <Paginacion pagina={historial.pagina} total={historial.data?.total ?? 0}
-            onCambiar={historial.setPagina} cargando={historial.isFetching || enviando} etiqueta="Paginación de despachos" />
-        </section>
-        <DevolucionesHistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque} />
-      </div>
-      <ModalNuevoDespacho open={modalOpen} sucursalId={sucursalId} recursos={recursos.data}
+          <div className="flex flex-wrap items-end gap-3">
+            <button type="button" className={btnSecondary} onClick={() => navigate('/devoluciones')}>Devoluciones</button>
+            <button type="button" className={btnPrimary} onClick={() => { cerrar(); setModalOpen(true) }}>Nuevo despacho</button>
+          </div>
+        </div>
+        {!modalOpen && datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <section className={`${cardCls} min-w-0`}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <h2 className="text-base font-semibold text-slate-900">Últimos despachos</h2>
+              <span className="text-xs text-slate-600">{historial.data?.total ?? 0} registros</span>
+            </div>
+            <FiltrosHistorialDespachos esAdmin={perfil?.rol === 'administrador'} diaFiltro={diaFiltro}
+              fechaSeleccionada={fechaSeleccionada} vendedorFiltro={vendedorFiltro} vendedores={vendedores}
+              setDiaFiltro={setDiaFiltro} setFechaSeleccionada={setFechaSeleccionada}
+              setVendedorFiltro={setVendedorFiltro} setDespachoExpandido={setDespachoExpandido} />
+            <HistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque}
+              despachoExpandido={despachoExpandido} setDespachoExpandido={setDespachoExpandido}
+              onDevolucion={() => navigate('/devoluciones')} />
+            <Paginacion pagina={historial.pagina} total={historial.data?.total ?? 0}
+              onCambiar={historial.setPagina} cargando={historial.isFetching || enviando} etiqueta="Paginación de despachos" />
+          </section>
+          <DevolucionesHistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque} />
+        </div>
+      </>}
+      <ModalNuevoDespacho open={modalOpen && !vistaBloqueada} sucursalId={sucursalId} recursos={recursos.data}
         errorLectura={datos.isError} onClose={() => setModalOpen(false)} onActualizar={load}
         setOcupado={valor => { setEnviando(valor); setOcupado(valor) }}
         onRegistrado={async () => { mostrar('Despacho registrado.'); await load() }} />
