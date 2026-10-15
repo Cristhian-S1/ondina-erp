@@ -449,15 +449,21 @@ describe('M1 · tarjeta individual por línea de producto', () => {
     const tarjetas = screen.getAllByTestId('linea-producto-venta')
     tarjetas.forEach(tarjeta => {
       expect(tarjeta).toHaveClass('flex', '@4xl:table-row')
-      // Disponible como metadato junto al nombre; Cantidad y Precio comparten fila desde 360 px.
+      // Disponible como metadato junto al nombre; Cantidad y Precio comparten fila desde 400 px (bajo eso se apilan: 9.999.999 no cabe junto a las flechas).
       const celdas = within(tarjeta).getAllByRole('cell', { hidden: true })
       expect(celdas[0]).toHaveClass('order-[-2]')
       expect(within(tarjeta).getByText('Disponible').closest('td')).toHaveClass('order-[-1]')
-      expect(within(tarjeta).getByLabelText(/^Cantidad de /).closest('td')).toHaveClass('min-[360px]:basis-[calc(60%-0.375rem)]')
-      expect(within(tarjeta).getByLabelText(/^Precio unitario de /).closest('td')).toHaveClass('min-[360px]:basis-[calc(40%-0.375rem)]')
+      expect(within(tarjeta).getByLabelText(/^Cantidad de /).closest('td')).toHaveClass('min-[400px]:basis-[calc(60%-0.375rem)]')
+      expect(within(tarjeta).getByLabelText(/^Precio unitario de /).closest('td')).toHaveClass('min-[400px]:basis-[calc(40%-0.375rem)]')
     })
-    // La barra fija de total no tapa el último campo al enfocar.
-    expect(container.querySelector('form')).toHaveClass('pb-28', '[&_input]:scroll-mb-28')
+    // La barra fija de total no tapa el último campo ni los botones (Quitar) al enfocar.
+    expect(container.querySelector('form')).toHaveClass('pb-28', '[&_input]:scroll-mb-28', '[&_button]:scroll-mb-28')
+    // Etiquetas de Cantidad/Precio con altura común para alinear los inputs.
+    tarjetas.forEach(tarjeta => {
+      for (const campo of [/^Cantidad de /, /^Precio unitario de /]) {
+        expect(within(tarjeta).getByLabelText(campo).closest('td')).toHaveClass('min-[400px]:max-sm:[&_label]:h-10')
+      }
+    })
     expect(screen.getAllByLabelText(/^Cantidad de /)).toHaveLength(tarjetas.length)
   })
 })
