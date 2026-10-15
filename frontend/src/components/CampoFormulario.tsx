@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ReactNode } from 'react'
-import { errorTextCls, inputCls, inputErrorCls, labelCls } from '../../../lib/ui'
+import { errorTextCls, inputCls, inputErrorCls, labelCls } from '../lib/ui'
 
 interface AtributosCampo {
   id: string

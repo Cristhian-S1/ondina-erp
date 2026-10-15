@@ -112,6 +112,7 @@ export function runCli() {
     };
     console.log(`Bundle de ${budget.baseline.date} (${budget.baseline.commit}), margen +${budget.headroomPercent}%:`);
     if (budget.baseline.initialDate) console.log(`Base del conjunto inicial: ${budget.baseline.initialDate} (${budget.baseline.initialCommit}).`);
+    if (budget.baseline.cssDate) console.log(`Base del CSS: ${budget.baseline.cssDate} (${budget.baseline.cssCommit}).`);
     const header = ['Métrica'.padEnd(34), 'Base'.padStart(12), 'Presupuesto'.padStart(12), 'Actual'.padStart(12), 'Δ vs base'.padStart(10), 'Estado'].join('  ');
     console.log(header);
     console.log('-'.repeat(header.length));

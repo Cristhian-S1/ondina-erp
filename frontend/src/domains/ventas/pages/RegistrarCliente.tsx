@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import CampoFormulario from '../components/CampoFormulario'
+import CampoFormulario from '../../../components/CampoFormulario'
 import EstadoVista from '../../../components/EstadoVista'
 import Dialog from '../../../components/Dialog'
 import SucursalSelector from '../../../components/SucursalSelector'

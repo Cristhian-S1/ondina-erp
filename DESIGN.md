@@ -255,7 +255,7 @@ Usa siempre `components/EstadoVista.tsx` (no repitas el marcado):
   `formatMiles`/`parseMiles`), `min`/`max`, flechas ±1, `error` enlazado por
   ARIA. `onChange` entrega `number | undefined`. Úsalo para cantidades y
   montos; no reimplementes el formato.
-- **`domains/ventas/components/CampoFormulario.tsx`**: etiqueta + control +
+- **`components/CampoFormulario.tsx`**: etiqueta + control +
   mensaje de error con `id`/`aria-describedby`/`aria-invalid` ya conectados;
   entrega `className` con `inputCls`/`inputErrorCls` al render prop.
 

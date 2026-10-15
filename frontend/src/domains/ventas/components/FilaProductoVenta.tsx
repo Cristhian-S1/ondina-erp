@@ -4,7 +4,7 @@ import type { RegistrarVentaForm, RegistrarVentaFormInput } from '../schemas'
 import type { ProductoVenta } from '../types'
 import { btnDangerOutline } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
-import CampoFormulario from './CampoFormulario'
+import CampoFormulario from '../../../components/CampoFormulario'
 import InputNumerico from '../../../components/InputNumerico'
 
 export default function FilaProductoVenta({ control, index, productos, seleccionados, carga, onQuitar, puedeQuitar }: {

@@ -1,6 +1,6 @@
 import Paginacion from '../../../components/Paginacion'
 import { z } from 'zod'
-import CampoFormulario from '../components/CampoFormulario'
+import CampoFormulario from '../../../components/CampoFormulario'
 import EstadoVista from '../../../components/EstadoVista'
 import InputNumerico from '../../../components/InputNumerico'
 import { Controller, useForm } from 'react-hook-form'
