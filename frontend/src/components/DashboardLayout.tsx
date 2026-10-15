@@ -147,8 +147,11 @@ export default function DashboardLayout() {
           }`}
         >
           <img
-            src={logo}
+            src={sidebarHidden ? undefined : logo}
             alt="Ondina"
+            width={40}
+            height={40}
+            decoding="async"
             className="h-10 w-10 shrink-0 rounded-xl object-cover"
           />
           <span className={`text-lg font-bold text-white ${collapsed ? 'lg:hidden' : ''}`}>

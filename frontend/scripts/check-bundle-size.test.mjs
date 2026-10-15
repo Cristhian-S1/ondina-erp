@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync, copyFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -126,6 +126,43 @@ it('separa Supabase en un vendor precargado y mantiene la página como import di
   expect(manifest['index.html'].dynamicImports).toContain('pagina.js')
 })
 
+it('keeps the authenticated shell, domain metadata and form libraries outside the real login boot set', { timeout: 30000 }, () => {
+  const outDir = join(temporal(), 'dist')
+  const code = `import { build } from ${JSON.stringify(join(frontend, 'node_modules/vite/dist/node/index.js'))};
+    await build({ root: ${JSON.stringify(frontend)}, logLevel: 'silent', build: { outDir: ${JSON.stringify(outDir)}, manifest: true, sourcemap: 'hidden' } });`
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', code], { encoding: 'utf8', cwd: frontend, env: { ...process.env, NODE_ENV: 'production' } })
+  expect(result.status, result.stderr).toBe(0)
+  const manifest = JSON.parse(readFileSync(join(outDir, '.vite/manifest.json'), 'utf8'))
+  const html = readFileSync(join(outDir, 'index.html'), 'utf8')
+  const inline = html.match(/<style data-bundle-css="([^"]+)">([\s\S]*?)<\/style>/)
+  expect(inline).not.toBeNull()
+  expect(inline[2]).toBe(readFileSync(join(outDir, inline[1]), 'utf8'))
+  expect(html).not.toMatch(/<link\b[^>]*rel="stylesheet"/)
+  expect(readdirSync(join(outDir, 'assets'))).toContainEqual(expect.stringMatching(/^logo-.*\.jpg$/))
+  const initialJs = parseInitialAssets(html).initialJs
+    .map((file) => readFileSync(join(outDir, file), 'utf8')).join('\n')
+  expect(initialJs).not.toContain('data:image/jpeg;base64,')
+  const initialKeys = new Set()
+  function visit(key) {
+    if (initialKeys.has(key)) return
+    initialKeys.add(key)
+    for (const dependency of manifest[key].imports ?? []) visit(dependency)
+  }
+  visit('index.html')
+  const initialSources = [...initialKeys].flatMap((key) => {
+    const map = JSON.parse(readFileSync(join(outDir, `${manifest[key].file}.map`), 'utf8'))
+    return map.sources
+  }).join('\n')
+  expect(initialSources).not.toMatch(/src\/domains\//)
+  expect(initialSources).not.toMatch(/src\/(components\/DashboardLayout|pages\/Dashboard)\.tsx/)
+  expect(initialSources).not.toMatch(/node_modules\/(zod|react-hook-form)\//)
+  expect(initialSources).not.toMatch(/queryObserver\.js/)
+  const allSources = readdirSync(join(outDir, 'assets')).filter((file) => file.endsWith('.js.map'))
+    .flatMap((file) => JSON.parse(readFileSync(join(outDir, 'assets', file), 'utf8')).sources).join('\n')
+  expect(allSources).toContain('src/components/DashboardLayout.tsx')
+  expect(allSources).toContain('src/domains/ventas/pages/RegistrarVenta.tsx')
+})
+
 
 it('mide exactamente archivos únicos y excluye el JS lazy del total inicial', () => {
   const { root, entry, preload, css, extraCss, gzip } = fixture()
@@ -133,6 +170,27 @@ it('mide exactamente archivos únicos y excluye el JS lazy del total inicial', (
     entryJsGzipBytes: gzip(entry), entryCssGzipBytes: gzip(css), largestJsChunkRawBytes: 400,
     initialJsGzipBytes: gzip(entry) + gzip(preload), initialCssGzipBytes: gzip(css) + gzip(extraCss),
   })
+})
+
+it('counts emitted inline CSS and catches its growth even when the external asset stays small', () => {
+  const { root, budget, entry, preload, gzip } = fixture()
+  const inlineCss = contenido(1600)
+  writeFileSync(join(root, 'dist/index.html'), `<script type="module" src="/assets/entry.js"></script>
+    <link rel="modulepreload" href="/assets/vendor.js">
+    <style data-bundle-css="/assets/entry.css">${inlineCss}</style>`)
+  const measured = measureBundle(join(root, 'dist'))
+  expect(measured.initialJsGzipBytes).toBe(gzip(entry) + gzip(preload))
+  expect(measured.entryCssGzipBytes).toBe(gzip(inlineCss))
+  expect(measured.initialCssGzipBytes).toBe(gzip(inlineCss))
+  expect(evaluateBudget(measured, budget).find((m) => m.key === 'initialCssGzipBytes').exceeded).toBe(true)
+})
+
+it('counts inline and linked CSS together without losing a second stylesheet', () => {
+  const { root, css, extraCss, gzip } = fixture()
+  writeFileSync(join(root, 'dist/index.html'), `<script type="module" src="/assets/entry.js"></script>
+    <style data-bundle-css="/assets/entry.css">${css}</style>
+    <link rel="stylesheet" href="/assets/extra.css">`)
+  expect(measureBundle(join(root, 'dist')).initialCssGzipBytes).toBe(gzip(css) + gzip(extraCss))
 })
 
 it('acepta el límite redondeado y rechaza el primer byte adicional', () => {

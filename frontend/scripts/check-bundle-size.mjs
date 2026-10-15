@@ -20,6 +20,7 @@ export function parseInitialAssets(html) {
   const scripts = [];
   const preloads = [];
   const styles = [];
+  const inlineStyles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)].map((match) => match[1]);
   for (const tag of html.matchAll(/<(?:script|link)\b[^>]*>/gi)) {
     const attributes = Object.fromEntries(
       [...tag[0].matchAll(/([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)]
@@ -34,8 +35,9 @@ export function parseInitialAssets(html) {
     }
   }
   if (!scripts.length) throw new Error('dist/index.html no declara el script de entrada.');
-  if (!styles.length) throw new Error('dist/index.html no declara la hoja de estilos de entrada.');
-  return { entryJs: scripts[0], entryCss: styles[0], initialJs: [...scripts, ...preloads], initialCss: styles };
+  if (!styles.length && !inlineStyles.length) throw new Error('dist/index.html no declara la hoja de estilos de entrada.');
+  return { entryJs: scripts[0], entryCss: styles[0], initialJs: [...scripts, ...preloads], initialCss: styles,
+    ...(inlineStyles.length ? { inlineStyles } : {}) };
 }
 
 function assetFile(distDir, url) {
@@ -70,12 +72,14 @@ export function measureBundle(distDir) {
     return gzipCache.get(file);
   };
   const sumFiles = (urls) => [...new Set(urls.map((url) => assetFile(distDir, url)))].reduce((total, file) => total + gzipBytes(file), 0);
+  // Count the CSS actually embedded in HTML, not the unused external copy.
+  const inlineCss = (assets.inlineStyles ?? []).reduce((total, css) => total + gzipSync(css).length, 0);
   return {
     entryJsGzipBytes: gzipBytes(assetFile(distDir, assets.entryJs)),
-    entryCssGzipBytes: gzipBytes(assetFile(distDir, assets.entryCss)),
+    entryCssGzipBytes: assets.inlineStyles?.length ? gzipSync(assets.inlineStyles[0]).length : gzipBytes(assetFile(distDir, assets.entryCss)),
     largestJsChunkRawBytes: largestJsBytes(distDir),
     initialJsGzipBytes: sumFiles(assets.initialJs),
-    initialCssGzipBytes: sumFiles(assets.initialCss),
+    initialCssGzipBytes: sumFiles(assets.initialCss) + inlineCss,
   };
 }
 
