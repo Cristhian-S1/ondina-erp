@@ -17,11 +17,15 @@ describe('ErrorBoundary', () => {
     render(<ErrorBoundary><Broken /></ErrorBoundary>, { onCaughtError: () => {} })
     const alert = screen.getByRole('alert')
     expect(alert).toHaveTextContent('Ocurrió un error inesperado')
-    expect(alert).toHaveTextContent(/Código: [a-f0-9]{8}/)
+    expect(alert).toHaveTextContent(/Código: [a-f0-9-]{36}/)
     expect(alert).toHaveTextContent('Versión: dev')
     expect(screen.getByRole('button', { name: 'Recargar' })).toBeInTheDocument()
     expect(alert).not.toHaveTextContent('private profile')
     expect(log).toHaveBeenCalledTimes(1)
-    expect(log).toHaveBeenCalledWith(expect.stringMatching(/^[a-f0-9]{8}$/), 'TypeError')
+    expect(log).toHaveBeenCalledWith('ondina.error', expect.objectContaining({
+      operacionId: expect.stringMatching(/^[a-f0-9-]{36}$/), operacion: 'render', tipo: 'TypeError',
+    }))
+    expect(alert).toHaveTextContent(log.mock.calls[0][1].operacionId)
+    expect(JSON.stringify(log.mock.calls)).not.toContain('private profile')
   })
 })
