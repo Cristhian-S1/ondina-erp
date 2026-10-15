@@ -16,7 +16,7 @@ Un único `useForm`/`useFieldArray` y una fila por `field.id`; sin duplicación 
 
 `RegistrarVenta.test.tsx`: umbral 400 px en las dos celdas, `scroll-mb-28` en botones y altura común de etiquetas. Son aserciones estructurales: jsdom no calcula geometría, por eso la geometría se midió en Chrome real (abajo).
 
-En `frontend/`: `npm run lint` PASS; `npm run build` PASS; `npm run size` PASS (JS inicial gzip 149,351 KB / 164,284); `npm run test` PASS (ver commit). No se ejecutó `test:integration`.
+En `frontend/`: `npm run lint` PASS; `npm run build` PASS; `npm run size` PASS (JS inicial gzip 149,351 KB / 164,284); `npm run test` PASS, 786/786 en 66 archivos. No se ejecutó `test:integration`.
 
 ## Evidencia en navegador (Chrome, Supabase local, `ux-vendedor`, sin escrituras)
 
