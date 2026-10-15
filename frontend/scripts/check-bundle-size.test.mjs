@@ -142,6 +142,10 @@ it('keeps the authenticated shell, domain metadata and form libraries outside th
   const initialJs = parseInitialAssets(html).initialJs
     .map((file) => readFileSync(join(outDir, file), 'utf8')).join('\n')
   expect(initialJs).not.toContain('data:image/jpeg;base64,')
+  const initialCssFile = inline[1].replace(/^\//, '')
+  const emittedJs = readdirSync(join(outDir, 'assets')).filter((file) => file.endsWith('.js'))
+    .map((file) => readFileSync(join(outDir, 'assets', file), 'utf8')).join('\n')
+  expect(emittedJs).not.toContain(initialCssFile)
   const initialKeys = new Set()
   function visit(key) {
     if (initialKeys.has(key)) return

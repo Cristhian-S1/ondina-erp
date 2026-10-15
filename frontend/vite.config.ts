@@ -41,6 +41,8 @@ export default defineConfig({
   },
   preview: { headers: previewHeaders },
   build: {
+    // One inline sheet also prevents dynamic routes from requesting it again.
+    cssCodeSplit: false,
     // A hidden drawer must not transfer the logo inside a shared JavaScript chunk.
     assetsInlineLimit: (filePath) => filePath.replaceAll('\\', '/').endsWith('/assets/logo.jpg') ? false : undefined,
     rolldownOptions: {
