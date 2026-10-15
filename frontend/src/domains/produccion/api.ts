@@ -4,7 +4,6 @@ import { supabase } from '../../lib/supabase'
 import { obtenerTiposEmpaque } from '../../lib/catalog'
 import { mensajeErrorSupabase } from '../../lib/errors'
 import type { TipoEmpaque } from '../../types'
-import type { StockEnvases } from '../bodega/types'
 import type {
   EnvaseDisponible,
   IncidenciaProduccion,
@@ -15,6 +14,7 @@ import type {
   Produccion,
   FiltrosProduccion,
   IndicadorProduccionDiario,
+  StockBodegaProduccion,
 } from './types'
 
 const jornadaSantiago = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago', year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -122,7 +122,8 @@ export async function obtenerEnvasesDisponibles(
   try {
     // El stock no necesita el catálogo para iniciar su petición (A1-07).
     const [{ data, error }, empaques] = await Promise.all([
-      supabase.from('stock_envases').select('*').eq('sucursal_id', sucursalId).returns<StockEnvases[]>(),
+      supabase.from('stock_envases').select('*').eq('sucursal_id', sucursalId)
+        .returns<Pick<EnvaseDisponible, 'tipo_empaque_id' | 'cantidad' | 'modificado_en'>[]>(),
       catalogo,
     ])
     if (error) throw new Error(mensajeErrorSupabase(error))
@@ -164,15 +165,27 @@ export async function registrarMerma(
   }
 }
 
-export { obtenerStockBodega } from '../bodega/api'
+export async function obtenerStockBodega(sucursalId: string): Promise<StockBodegaProduccion[]> {
+  if (!sucursalId) return []
+  try {
+    const { data, error } = await supabase.from('stock_bodega').select('*')
+      .eq('sucursal_id', sucursalId).returns<StockBodegaProduccion[]>()
+    if (error) throw new Error(mensajeErrorSupabase(error))
+    return data ?? []
+  } catch (error: unknown) {
+    throw new Error(mensajeErrorSupabase(error), { cause: error })
+  }
+}
 
-export type RecursoProduccion = 'producciones' | 'mermas' | 'stock_envases' | 'stock_bodega' | 'incidencias_produccion'
+export type RecursoProduccion = 'producciones' | 'mermas' | 'stock_envases' | 'incidencias_produccion'
+
+let secuenciaCanal = 0
 
 export function subscribeProduccion(sucursalId: string, onChange: (recurso: RecursoProduccion) => void): () => Promise<void> {
-  const canal = supabase.channel(`produccion-${sucursalId}-${crypto.randomUUID()}`)
+  // Unique within this client even on LAN HTTP, where randomUUID is unavailable.
+  const canal = supabase.channel(`produccion-${sucursalId}-${++secuenciaCanal}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'producciones', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('producciones'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'mermas', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('mermas'))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_bodega', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('stock_bodega'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_envases', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('stock_envases'))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'incidencias_produccion', filter: `sucursal_id=eq.${sucursalId}` }, () => onChange('incidencias_produccion'))
     .subscribe()

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   obtenerEnvasesDisponibles,
+  obtenerStockBodega,
   obtenerHistorialProduccion,
   obtenerMermas,
   obtenerIndicadoresProduccion,
@@ -545,4 +546,22 @@ it.each([
     expect(registro).toBeGreaterThanOrEqual(Date.parse(inicio))
     expect(registro).toBeLessThanOrEqual(Date.parse(fin))
   }
+})
+
+describe('FX5 R5-03 · lectura de stock propia de Producción', () => {
+  beforeEach(() => { vi.clearAllMocks(); queryMock.select.mockReturnValue(queryMock); queryMock.eq.mockReturnValue(queryMock) })
+  it('lee el stock de la sucursal solicitada', async () => {
+    const stock = [{ sucursal_id: 's1', producto_id: 'p1', cantidad: 15, modificado_en: '2026-10-15T00:00:00Z' }]
+    returnsMock.mockResolvedValue({ data: stock, error: null })
+    expect(await obtenerStockBodega('s1')).toEqual(stock)
+    expect(queryMock.eq).toHaveBeenCalledWith('sucursal_id', 's1')
+  })
+  it('no consulta sin sucursal', async () => {
+    expect(await obtenerStockBodega('')).toEqual([])
+    expect(returnsMock).not.toHaveBeenCalled()
+  })
+  it('no convierte un error de lectura en stock vacío', async () => {
+    returnsMock.mockResolvedValue({ data: null, error: { message: 'Database unavailable' } })
+    await expect(obtenerStockBodega('s1')).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
+  })
 })

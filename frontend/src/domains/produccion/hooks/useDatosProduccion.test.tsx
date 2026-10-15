@@ -52,7 +52,7 @@ it('A1-07 · Realtime invalida sólo el recurso afectado y limpia al cambiar ide
   expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['mermas', 'stock'])
   invalidate.mockClear()
   act(() => oldCallback('producciones'))
-  expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['producciones', 'historial', 'indicadores'])
+  expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['producciones', 'historial', 'indicadores', 'envases', 'stock'])
   rerender({ user: 'u1', branch: 's2' })
   expect(firstCleanup).toHaveBeenCalledOnce()
   expect(api.subscribeProduccion).toHaveBeenLastCalledWith('s2', expect.any(Function))
@@ -117,6 +117,27 @@ it('C3-12 · stock se consulta sólo para incidencias y Realtime lo invalida con
   await waitFor(() => expect(result.current.stock.isSuccess).toBe(true))
   expect(api.obtenerStockBodega).toHaveBeenCalledWith('s1')
   invalidate.mockClear()
-  act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('stock_bodega'))
-  expect(invalidate).toHaveBeenCalledExactlyOnceWith({ queryKey: ['produccion', 'u1', 's1', 'stock'] })
+  act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('producciones'))
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ['produccion', 'u1', 's1', 'stock'] })
+})
+
+it('FX5 R5-01 · eventos publicados actualizan el saldo de merma sin esperar al foco', async () => {
+  let cantidad = 10
+  vi.mocked(api.obtenerStockBodega).mockImplementation(async () => [{ sucursal_id: 's1', producto_id: 'p1', cantidad, modificado_en: '2026-10-15T00:00:00Z' }])
+  const { client, wrapper } = setup()
+  client.setQueryDefaults(['produccion', 'otra-persona'], { gcTime: Infinity })
+  client.setQueryData(['produccion', 'otra-persona', 's1', 'stock'], [{ cantidad: 99 }])
+  const { result } = renderHook(() => useDatosProduccion('u1', 's1', 'incidencias'), { wrapper })
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(10))
+  const evento = vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]
+  cantidad = 18
+  act(() => evento('producciones'))
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(18))
+  cantidad = 16
+  act(() => evento('mermas'))
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(16))
+  cantidad = 12
+  await act(async () => { await result.current.invalidar('mermas') })
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(12))
+  expect(client.getQueryData(['produccion', 'otra-persona', 's1', 'stock'])).toEqual([{ cantidad: 99 }])
 })
