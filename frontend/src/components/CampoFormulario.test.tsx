@@ -43,15 +43,15 @@ describe('CampoFormulario', () => {
     expect(screen.getByText('Cantidad excesiva.')).toHaveAttribute('id', 'cantidad-estable-error')
   })
 
-  it('antepone la descripción adicional y conserva la ayuda al retirar el error', () => {
+  it('anuncia primero el error y conserva la ayuda al retirarlo', () => {
     const campo = (error?: string) => <><p id="ayuda-cantidad">Máximo disponible: 5.</p>
       <CampoFormulario id="cantidad" etiqueta="Cantidad" descripcionId="ayuda-cantidad" error={error}>
         {atributos => <input {...atributos} />}
       </CampoFormulario></>
     const { rerender } = render(campo('Excede lo disponible.'))
     const input = screen.getByLabelText('Cantidad')
-    expect(input).toHaveAttribute('aria-describedby', 'ayuda-cantidad cantidad-error')
-    expect(input).toHaveAccessibleDescription('Máximo disponible: 5. Excede lo disponible.')
+    expect(input).toHaveAttribute('aria-describedby', 'cantidad-error ayuda-cantidad')
+    expect(input).toHaveAccessibleDescription('Excede lo disponible. Máximo disponible: 5.')
     rerender(campo())
     expect(input).toHaveAttribute('aria-describedby', 'ayuda-cantidad')
     expect(input).toHaveAttribute('aria-invalid', 'false')

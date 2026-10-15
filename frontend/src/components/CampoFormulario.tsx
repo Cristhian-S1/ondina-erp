@@ -10,7 +10,7 @@ interface AtributosCampo {
 }
 
 // Optional id preserves caller-owned focus/arrow references; descripcionId adds
-// help before the error description; alerta opts the error into role="alert".
+// help after the error description; alerta opts the error into role="alert".
 // Existing callers retain generated IDs, classes and markup by default.
 export default function CampoFormulario({ id: idExterno, etiqueta, error, descripcionId, alerta = false, children }: {
   id?: string
@@ -25,7 +25,7 @@ export default function CampoFormulario({ id: idExterno, etiqueta, error, descri
   const errorId = `${id}-error`
   return <div className="min-w-0">
     <label htmlFor={id} className={labelCls}>{etiqueta}</label>
-    {children({ id, className: `${inputCls} ${error ? inputErrorCls : ''}`, 'aria-invalid': !!error, 'aria-describedby': [descripcionId, error ? errorId : undefined].filter(Boolean).join(' ') || undefined })}
+    {children({ id, className: `${inputCls} ${error ? inputErrorCls : ''}`, 'aria-invalid': !!error, 'aria-describedby': [error ? errorId : undefined, descripcionId].filter(Boolean).join(' ') || undefined })}
     {error && <p id={errorId} role={alerta ? 'alert' : undefined} className={errorTextCls}>{error}</p>}
   </div>
 }
