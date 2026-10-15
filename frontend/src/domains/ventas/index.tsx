@@ -6,7 +6,9 @@ import {
   ClipboardListIcon,
   DollarIcon,
   DropletIcon,
+  PercentIcon,
   ShoppingCartIcon,
+  TrophyIcon,
   UsersIcon,
 } from '../../components/icons'
 
@@ -61,13 +63,13 @@ const ventasModule: DomainModule = {
     {
       path: '/mi-comision',
       label: 'Mi comisión',
-      icon: DollarIcon,
+      icon: PercentIcon,
       roles: commissionRoles,
     },
     {
       path: '/ranking-vendedores',
       label: 'Ranking vendedores',
-      icon: ShoppingCartIcon,
+      icon: TrophyIcon,
       roles: allowedRoles,
     },
   ],

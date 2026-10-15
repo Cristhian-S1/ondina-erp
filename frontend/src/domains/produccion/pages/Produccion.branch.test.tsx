@@ -311,7 +311,7 @@ it.each([
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
 })
 
-it('P2 · incidencias y mermas vacías mantienen ambos extremos deshabilitados', async () => {
+it('P2 · incidencias y mermas vacías ocultan los botones de paginación', async () => {
   location.pathname = '/produccion/incidencias'
   vi.mocked(api.obtenerIncidencias).mockResolvedValue([])
   vi.mocked(api.obtenerMermas).mockResolvedValue([])
@@ -321,7 +321,6 @@ it('P2 · incidencias y mermas vacías mantienen ambos extremos deshabilitados',
   for (const name of ['Paginación de incidencias', 'Paginación de mermas']) {
     const nav = screen.getByRole('navigation', { name })
     expect(nav).toHaveTextContent('0 registros')
-    expect(within(nav).getByRole('button', { name: 'Página anterior' })).toBeDisabled()
-    expect(within(nav).getByRole('button', { name: 'Página siguiente' })).toBeDisabled()
+    expect(within(nav).queryAllByRole('button')).toHaveLength(0)
   }
 })

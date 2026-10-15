@@ -29,12 +29,12 @@ it('paginates expenses without changing the complete daily total', async () => {
   expect(screen.getByText('Total: $ 9.999')).toBeInTheDocument()
 })
 
-it('shows empty expenses with disabled navigation and a separately valid zero total', async () => {
+it('shows empty expenses without pagination buttons and a separately valid zero total', async () => {
   vi.mocked(api.obtenerPaginaGastos).mockResolvedValue({ filas: [], total: 0 })
   vi.mocked(api.obtenerTotalGastosHoy).mockResolvedValue(0)
   renderWithProviders(<Gastos />)
   await screen.findByText('No has registrado gastos hoy.')
   expect(screen.getByText('Total: $ 0')).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled()
-  expect(screen.getByRole('button', { name: 'Página siguiente' })).toBeDisabled()
+  expect(screen.queryByRole('button', { name: 'Página anterior' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Página siguiente' })).not.toBeInTheDocument()
 })

@@ -22,11 +22,17 @@ describe('Paginacion', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Página anterior' }))
     expect(props.onCambiar).toHaveBeenCalledWith(2)
   })
-  it('keeps both buttons disabled for an empty result and while loading', () => {
+  it('hides the buttons for an empty result and a single page', () => {
     const { rerender } = render(<Paginacion pagina={1} total={0} tamanoPagina={20} onCambiar={vi.fn()} />)
     expect(screen.getByRole('status')).toHaveTextContent('0 registros')
-    expect(screen.getAllByRole('button').every(button => button.hasAttribute('disabled'))).toBe(true)
-    rerender(<Paginacion pagina={2} total={45} tamanoPagina={20} onCambiar={vi.fn()} cargando />)
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    rerender(<Paginacion pagina={1} total={7} tamanoPagina={20} onCambiar={vi.fn()} />)
+    expect(screen.getByRole('status')).toHaveTextContent('7 registros')
+    expect(screen.getByRole('status')).not.toHaveTextContent('Página')
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+  })
+  it('keeps both buttons disabled while loading with several pages', () => {
+    render(<Paginacion pagina={2} total={45} tamanoPagina={20} onCambiar={vi.fn()} cargando />)
     expect(screen.getAllByRole('button').every(button => button.hasAttribute('disabled'))).toBe(true)
     expect(screen.getByRole('status')).toHaveTextContent('Actualizando')
   })

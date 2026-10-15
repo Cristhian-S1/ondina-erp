@@ -236,3 +236,23 @@ export function ChevronUpIcon(props: IconProps) {
     </Svg>
   )
 }
+
+export function TrophyIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M8 21h8M12 17v4" />
+      <path d="M7 4h10v5a5 5 0 0 1-10 0V4z" />
+      <path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3" />
+    </Svg>
+  )
+}
+
+export function PercentIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <line x1="19" y1="5" x2="5" y2="19" />
+      <circle cx="7" cy="7" r="2.5" />
+      <circle cx="17" cy="17" r="2.5" />
+    </Svg>
+  )
+}
