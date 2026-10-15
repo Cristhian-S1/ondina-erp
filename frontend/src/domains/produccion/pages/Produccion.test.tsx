@@ -42,8 +42,11 @@ vi.mock('../api', async (importOriginal) => {
   return {
     ...actual,
     obtenerProducciones: vi.fn(),
+  obtenerPaginaProducciones: vi.fn(async (scope: Parameters<typeof api.obtenerProducciones>[0]) => { const filas = await api.obtenerProducciones(scope); return { filas, total: filas.length } }),
     obtenerMermas: vi.fn(),
+  obtenerPaginaMermas: vi.fn(async (scope: Parameters<typeof api.obtenerMermas>[0]) => { const filas = await api.obtenerMermas(scope); return { filas, total: filas.length } }),
     obtenerIncidencias: vi.fn(),
+  obtenerPaginaIncidencias: vi.fn(async (scope: Parameters<typeof api.obtenerIncidencias>[0]) => { const filas = await api.obtenerIncidencias(scope); return { filas, total: filas.length } }),
     obtenerEnvasesDisponibles: vi.fn(),
     registrarProduccion: vi.fn(),
     registrarIncidencia: vi.fn(),

@@ -5,7 +5,7 @@ import HistorialProduccion from './HistorialProduccion'
 import IndicadoresProduccion from './IndicadoresProduccion'
 import { obtenerHistorialProduccion, obtenerIndicadoresProduccion } from '../api'
 
-vi.mock('../api', () => ({ obtenerHistorialProduccion: vi.fn(), obtenerIndicadoresProduccion: vi.fn() }))
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10, obtenerPaginaHistorial: vi.fn(async (filtros: Parameters<typeof obtenerHistorialProduccion>[0]) => { const filas = await obtenerHistorialProduccion(filtros); return { filas, total: filas.length } }), obtenerHistorialProduccion: vi.fn(), obtenerIndicadoresProduccion: vi.fn() }))
 beforeEach(() => vi.resetAllMocks())
 
 it('A1-05 · un primer fallo de historial excluye el vacío y permite reintentar esa lectura', async () => {

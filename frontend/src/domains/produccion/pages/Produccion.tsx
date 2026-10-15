@@ -1,3 +1,5 @@
+import Paginacion from '../../../components/Paginacion'
+import { TAMANO_PRODUCCION } from '../api'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
@@ -180,7 +182,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
       </form>
       {!catalogoInvalido && <EstadoConsulta consulta={consulta.producciones} cargando="Cargando producción reciente...">
-        <ProduccionReciente perfilId={perfil?.id ?? ''} sucursalId={sucursalId} productos={productos} recientes={consulta.producciones.data ?? []} />
+        <ProduccionReciente perfilId={perfil?.id ?? ''} sucursalId={sucursalId} productos={productos} recientes={consulta.producciones.data ?? []} paginacion={consulta.producciones} />
       </EstadoConsulta>}
     </div>}
 
@@ -200,6 +202,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
               <p className="inline-block rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 sm:bg-transparent sm:p-0 sm:font-normal sm:text-slate-600">{fmtFechaHora(item.creado_en)}</p><p className="whitespace-pre-wrap text-sm text-slate-900">{item.descripcion}</p>
             </li>)}</ul>}
           </EstadoConsulta></div>
+          <Paginacion pagina={consulta.incidencias.pagina} tamanoPagina={TAMANO_PRODUCCION} total={consulta.incidencias.total} onCambiar={consulta.incidencias.setPagina} cargando={consulta.incidencias.isFetching || guardando} etiqueta="Paginación de incidencias" />
         </section>
       </div>
       <div className={gridCls}>
@@ -218,6 +221,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
           <div className="min-w-0 xl:max-h-[28rem] xl:overflow-y-auto"><EstadoConsulta consulta={consulta.mermas} cargando="Cargando mermas...">
             {!consulta.mermas.data?.length ? <EstadoVista variante="vacio" mensaje="No hay mermas registradas." /> : <TablaProduccionResponsive columnas={[{ titulo: 'Fecha', sinSalto: true, insignia: true }, { titulo: 'Producto', destacada: true }, { titulo: 'Cantidad', numerica: true }, { titulo: 'Motivo' }]} filas={consulta.mermas.data.map(item => ({ id: item.id, celdas: [fmtFechaHora(item.creado_en), item.producto_id ? nombreProducto(item.producto_id) : 'Producto', formatMiles(item.cantidad), item.motivo] }))} />}
           </EstadoConsulta></div>
+          <Paginacion pagina={consulta.mermas.pagina} tamanoPagina={TAMANO_PRODUCCION} total={consulta.mermas.total} onCambiar={consulta.mermas.setPagina} cargando={consulta.mermas.isFetching || guardando} etiqueta="Paginación de mermas" />
         </section>
       </div>
     </div>}

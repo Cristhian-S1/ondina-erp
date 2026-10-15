@@ -1,7 +1,8 @@
+import { usePaginaProduccion } from './usePaginaProduccion'
 import { useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { obtenerProductos } from '../../../lib/catalog'
-import { obtenerEnvasesDisponibles, obtenerIncidencias, obtenerMermas, obtenerProducciones, subscribeProduccion } from '../api'
+import { obtenerEnvasesDisponibles, obtenerPaginaIncidencias, obtenerPaginaMermas, obtenerPaginaProducciones, subscribeProduccion } from '../api'
 import type { RecursoProduccion } from '../api'
 
 export type SeccionProduccion = 'registrar' | 'envases' | 'historial' | 'indicadores' | 'incidencias'
@@ -24,9 +25,15 @@ export function useDatosProduccion(perfilId: string, sucursalId: string, seccion
   const queryClient = useQueryClient()
   const key = (recurso: Consulta) => ['produccion', perfilId, sucursalId, recurso]
   const productos = useQuery({ queryKey: key('productos'), queryFn: () => obtenerProductos(true), enabled: seccion !== 'envases', retry: false })
-  const producciones = useQuery({ queryKey: key('producciones'), queryFn: () => obtenerProducciones(sucursalId), enabled: seccion === 'registrar', retry: false })
-  const mermas = useQuery({ queryKey: key('mermas'), queryFn: () => obtenerMermas(sucursalId), enabled: seccion === 'incidencias', retry: false })
-  const incidencias = useQuery({ queryKey: key('incidencias'), queryFn: () => obtenerIncidencias(sucursalId), enabled: seccion === 'incidencias', retry: false })
+  const pagProducciones = usePaginaProduccion(`${perfilId}:${sucursalId}:producciones`)
+  const pagMermas = usePaginaProduccion(`${perfilId}:${sucursalId}:mermas`)
+  const pagIncidencias = usePaginaProduccion(`${perfilId}:${sucursalId}:incidencias`)
+  const produccionesQuery = useQuery({ queryKey: [...key('producciones'), pagProducciones.pagina], queryFn: () => obtenerPaginaProducciones(sucursalId, pagProducciones.pagina), enabled: seccion === 'registrar', retry: false, placeholderData: (prev, query) => JSON.stringify(query?.queryKey.slice(0, -1)) === JSON.stringify(key('producciones')) ? keepPreviousData(prev) : undefined })
+  const mermasQuery = useQuery({ queryKey: [...key('mermas'), pagMermas.pagina], queryFn: () => obtenerPaginaMermas(sucursalId, pagMermas.pagina), enabled: seccion === 'incidencias', retry: false, placeholderData: (prev, query) => JSON.stringify(query?.queryKey.slice(0, -1)) === JSON.stringify(key('mermas')) ? keepPreviousData(prev) : undefined })
+  const incidenciasQuery = useQuery({ queryKey: [...key('incidencias'), pagIncidencias.pagina], queryFn: () => obtenerPaginaIncidencias(sucursalId, pagIncidencias.pagina), enabled: seccion === 'incidencias', retry: false, placeholderData: (prev, query) => JSON.stringify(query?.queryKey.slice(0, -1)) === JSON.stringify(key('incidencias')) ? keepPreviousData(prev) : undefined })
+  const producciones = { ...produccionesQuery, data: produccionesQuery.data?.filas, total: produccionesQuery.data?.total ?? 0, ...pagProducciones }
+  const mermas = { ...mermasQuery, data: mermasQuery.data?.filas, total: mermasQuery.data?.total ?? 0, ...pagMermas }
+  const incidencias = { ...incidenciasQuery, data: incidenciasQuery.data?.filas, total: incidenciasQuery.data?.total ?? 0, ...pagIncidencias }
   const envases = useQuery({ queryKey: key('envases'), queryFn: () => obtenerEnvasesDisponibles(sucursalId), enabled: seccion === 'envases' || seccion === 'registrar', retry: false })
 
   function invalidarConsultas(consultas: Consulta[]) {

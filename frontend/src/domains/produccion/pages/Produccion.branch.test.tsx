@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { makePerfil, renderWithProviders } from '@/test/render'
 import Produccion from './Produccion'
 import * as api from '../api'
@@ -12,13 +12,17 @@ vi.mock('@/lib/catalog', () => ({
   obtenerTiposEmpaque: vi.fn().mockResolvedValue([]),
   obtenerSucursales: vi.fn().mockResolvedValue([{ id: 's1', nombre: 'Norte' }, { id: 's2', nombre: 'Sur' }]),
 }))
-vi.mock('../api', () => ({
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10,
   obtenerHistorialProduccion: vi.fn().mockResolvedValue([]),
+  obtenerPaginaHistorial: vi.fn(async (scope: Parameters<typeof api.obtenerHistorialProduccion>[0]) => { const filas = await api.obtenerHistorialProduccion(scope); return { filas, total: filas.length } }),
   obtenerIndicadoresProduccion: vi.fn().mockResolvedValue([]),
   registrarIncidencia: vi.fn().mockResolvedValue(null),
   obtenerIncidencias: vi.fn().mockResolvedValue([]),
+  obtenerPaginaIncidencias: vi.fn(async (scope: Parameters<typeof api.obtenerIncidencias>[0]) => { const filas = await api.obtenerIncidencias(scope); return { filas, total: filas.length } }),
   obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]),
-  obtenerProducciones: vi.fn().mockResolvedValue([]), registrarMerma: vi.fn().mockResolvedValue(null), registrarProduccion: vi.fn().mockResolvedValue(null),
+  obtenerPaginaMermas: vi.fn(async (scope: Parameters<typeof api.obtenerMermas>[0]) => { const filas = await api.obtenerMermas(scope); return { filas, total: filas.length } }),
+  obtenerProducciones: vi.fn().mockResolvedValue([]),
+  obtenerPaginaProducciones: vi.fn(async (scope: Parameters<typeof api.obtenerProducciones>[0]) => { const filas = await api.obtenerProducciones(scope); return { filas, total: filas.length } }), registrarMerma: vi.fn().mockResolvedValue(null), registrarProduccion: vi.fn().mockResolvedValue(null),
   subscribeProduccion: vi.fn(() => vi.fn()),
 }))
 
@@ -63,7 +67,7 @@ describe('Producción operational branch', () => {
     expect(api.registrarProduccion).toHaveBeenCalledWith(expect.objectContaining({ sucursal_id: 's1', cantidad: 12 }))
     await selectBranch('s2')
     expect(await screen.findByLabelText('Cantidad')).toHaveValue('')
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText('Producción registrada. Las existencias se actualizaron automáticamente.')).not.toBeInTheDocument()
   })
 
   it('FX R2-07 · bloquea el selector hasta notificar el resultado de escritura', async () => {
@@ -305,4 +309,19 @@ it.each([
   expect(campo).toHaveFocus()
   expect(campo).toHaveAttribute('aria-invalid','true')
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+})
+
+it('P2 · incidencias y mermas vacías mantienen ambos extremos deshabilitados', async () => {
+  location.pathname = '/produccion/incidencias'
+  vi.mocked(api.obtenerIncidencias).mockResolvedValue([])
+  vi.mocked(api.obtenerMermas).mockResolvedValue([])
+  renderWithProviders(<Produccion />)
+  await screen.findByText('No hay incidencias registradas.')
+  await screen.findByText('No hay mermas registradas.')
+  for (const name of ['Paginación de incidencias', 'Paginación de mermas']) {
+    const nav = screen.getByRole('navigation', { name })
+    expect(nav).toHaveTextContent('0 registros')
+    expect(within(nav).getByRole('button', { name: 'Página anterior' })).toBeDisabled()
+    expect(within(nav).getByRole('button', { name: 'Página siguiente' })).toBeDisabled()
+  }
 })

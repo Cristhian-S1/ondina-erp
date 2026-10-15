@@ -4,7 +4,7 @@ import { renderWithProviders as render } from '../../../test/render'
 import ProduccionReciente from './ProduccionReciente'
 import { obtenerHistorialProduccion } from '../api'
 
-vi.mock('../api', () => ({ obtenerHistorialProduccion: vi.fn() }))
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10, obtenerPaginaHistorial: vi.fn(async (filtros: Parameters<typeof obtenerHistorialProduccion>[0]) => { const filas = await obtenerHistorialProduccion(filtros); return { filas, total: filas.length } }), obtenerHistorialProduccion: vi.fn() }))
 const productos = [{ id: 'p1', nombre: 'Hielo 5kg', activo: true }, { id: 'p2', nombre: 'Agua 20L', activo: true }] as never
 const recientes = [{ id: 'r1', producto_id: 'p1', cantidad: 10, creado_en: '2026-10-13T15:00:00Z', observaciones: null }] as never
 beforeEach(() => vi.clearAllMocks())

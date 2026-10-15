@@ -7,9 +7,12 @@ import * as api from '../api'
 import * as catalog from '../../../lib/catalog'
 
 vi.mock('../../../lib/catalog', () => ({ obtenerProductos: vi.fn().mockResolvedValue([]), obtenerTiposEmpaque: vi.fn().mockResolvedValue([]) }))
-vi.mock('../api', () => ({
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10,
   obtenerIncidencias: vi.fn().mockResolvedValue([]),
-  obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]), obtenerProducciones: vi.fn().mockResolvedValue([]),
+  obtenerPaginaIncidencias: vi.fn(async (scope: Parameters<typeof api.obtenerIncidencias>[0]) => { const filas = await api.obtenerIncidencias(scope); return { filas, total: filas.length } }),
+  obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]),
+  obtenerPaginaMermas: vi.fn(async (scope: Parameters<typeof api.obtenerMermas>[0]) => { const filas = await api.obtenerMermas(scope); return { filas, total: filas.length } }), obtenerProducciones: vi.fn().mockResolvedValue([]),
+  obtenerPaginaProducciones: vi.fn(async (scope: Parameters<typeof api.obtenerProducciones>[0]) => { const filas = await api.obtenerProducciones(scope); return { filas, total: filas.length } }),
   subscribeProduccion: vi.fn(() => vi.fn()),
 }))
 beforeEach(() => vi.clearAllMocks())
@@ -74,4 +77,31 @@ it.each([
   const { result } = renderHook(() => useDatosProduccion('u1', 's1', 'registrar'), { wrapper })
   await act(async () => { await result.current.invalidar(recurso) })
   expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(esperados)
+})
+
+it.each([
+  ['producciones', 'obtenerPaginaProducciones', 'registrar'],
+  ['mermas', 'obtenerPaginaMermas', 'incidencias'],
+  ['incidencias', 'obtenerPaginaIncidencias', 'incidencias'],
+] as const)('P2 · %s pagina y vuelve a página 1 al cambiar sucursal', async (resource, service, section) => {
+  vi.mocked(api[service]).mockImplementation(async branch => ({ filas: [{ id: branch } as never], total: 301 }))
+  const { wrapper } = setup()
+  const { result, rerender } = renderHook(({ branch }) => useDatosProduccion('u1', branch, section), { wrapper, initialProps: { branch: 's1' } })
+  await waitFor(() => expect(result.current[resource].isSuccess).toBe(true))
+  act(() => result.current[resource].setPagina(2))
+  await waitFor(() => expect(api[service]).toHaveBeenLastCalledWith('s1', 2))
+  rerender({ branch: 's2' })
+  await waitFor(() => expect(api[service]).toHaveBeenLastCalledWith('s2', 1))
+  expect(result.current[resource].pagina).toBe(1)
+})
+
+it('P2 · Realtime invalida también todas las páginas inactivas del recurso', async () => {
+  const { client, wrapper } = setup()
+  const prefix = ['produccion', 'u1', 's1']
+  for (const resource of ['producciones', 'historial', 'indicadores']) client.setQueryData([...prefix, resource, 'cached-page-9'], 'cached')
+  client.setQueryData(['produccion', 'another-user', 's1', 'historial', 2], 'private')
+  renderHook(() => useDatosProduccion('u1', 's1', 'envases'), { wrapper })
+  act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('producciones'))
+  for (const resource of ['producciones', 'historial', 'indicadores']) expect(client.getQueryState([...prefix, resource, 'cached-page-9'])?.isInvalidated).toBe(true)
+  expect(client.getQueryState(['produccion', 'another-user', 's1', 'historial', 2])?.isInvalidated).toBe(false)
 })

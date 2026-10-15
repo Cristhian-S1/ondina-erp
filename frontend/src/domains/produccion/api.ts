@@ -1,3 +1,5 @@
+import { rangoPagina } from '../../lib/paginacion'
+import type { Pagina } from '../../lib/paginacion'
 import { supabase } from '../../lib/supabase'
 import { obtenerTiposEmpaque } from '../../lib/catalog'
 import { mensajeErrorSupabase } from '../../lib/errors'
@@ -43,78 +45,74 @@ export async function obtenerIndicadoresProduccion(
   hasta: string,
 ): Promise<IndicadorProduccionDiario[]> {
   try {
-    const { data, error } = await supabase
-      .from('v_indicadores_produccion_diarios')
-      .select('*')
-      .eq('sucursal_id', sucursalId)
-      .gte('fecha', desde)
-      .lte('fecha', hasta)
-      .order('fecha', { ascending: false })
-      .returns<IndicadorProduccionDiario[]>()
-    if (error) throw new Error(mensajeErrorSupabase(error))
-    return data ?? []
+    const filas: IndicadorProduccionDiario[] = []
+    // Aggregates stay complete; transport batches do not paginate the displayed total.
+    for (let offset = 0; ; offset += 500) {
+      const { data, count, error } = await supabase.from('v_indicadores_produccion_diarios')
+        .select('*', { count: 'exact' }).eq('sucursal_id', sucursalId)
+        .gte('fecha', desde).lte('fecha', hasta)
+        .order('fecha', { ascending: false }).order('producto_id', { ascending: true })
+        .range(offset, offset + 499).returns<IndicadorProduccionDiario[]>()
+      if (error) throw new Error(mensajeErrorSupabase(error))
+      filas.push(...(data ?? []))
+      if ((data?.length ?? 0) < 500 || (count != null && offset + 500 >= count)) return filas
+    }
   } catch (error: unknown) {
     throw new Error(mensajeErrorSupabase(error), { cause: error })
   }
 }
 
-export async function obtenerProducciones(sucursalId: string): Promise<Produccion[]> {
-  try {
-    const { data, error } = await supabase
-      .from('producciones')
-      .select('*')
-      .eq('sucursal_id', sucursalId)
-      .eq('anulado', false)
-      .order('creado_en', { ascending: false })
-      .limit(30)
-      .returns<Produccion[]>()
-    if (error) throw new Error(mensajeErrorSupabase(error))
-    return data ?? []
-  } catch (error: unknown) {
-    throw new Error(mensajeErrorSupabase(error), { cause: error })
-  }
-}
+// Ten cards per page keeps mobile histories short without changing card design.
+export const TAMANO_PRODUCCION = 10
 
-export async function obtenerHistorialProduccion(filtros: FiltrosProduccion): Promise<Produccion[]> {
+export async function obtenerPaginaHistorial(filtros: FiltrosProduccion, pagina = 1, tamano = TAMANO_PRODUCCION): Promise<Pagina<Produccion>> {
   try {
-    let consulta = supabase
-      .from('producciones')
-      .select('*')
-      .eq('sucursal_id', filtros.sucursalId)
-      .eq('anulado', false)
-      .order('creado_en', { ascending: false })
-      .limit(filtros.limite ?? 200)
-
+    let consulta = supabase.from('producciones').select('*', { count: 'exact' })
+      .eq('sucursal_id', filtros.sucursalId).eq('anulado', false)
+      .order('creado_en', { ascending: false }).order('id', { ascending: false })
     if (filtros.productoId) consulta = consulta.eq('producto_id', filtros.productoId)
     if (filtros.desde) consulta = consulta.gte('creado_en', limiteJornada(filtros.desde, false))
     if (filtros.hasta) consulta = consulta.lte('creado_en', limiteJornada(filtros.hasta, true))
-
-    const { data, error } = await consulta.returns<Produccion[]>()
+    const { data, count, error } = await consulta.range(...rangoPagina(pagina, tamano)).returns<Produccion[]>()
     if (error) throw new Error(mensajeErrorSupabase(error))
-    return data ?? []
-  } catch (error: unknown) {
-    throw new Error(mensajeErrorSupabase(error), { cause: error })
-  }
+    return { filas: data ?? [], total: count ?? 0 }
+  } catch (error: unknown) { throw new Error(mensajeErrorSupabase(error), { cause: error }) }
 }
 
-export async function obtenerMermas(sucursalId: string): Promise<MermaProduccion[]> {
-  try {
-    const { data, error } = await supabase
-      .from('mermas')
-      .select('*')
-      .eq('sucursal_id', sucursalId)
-      .eq('anulado', false)
-      .is('despacho_id', null)
-      .not('producto_id', 'is', null)
-      .order('creado_en', { ascending: false })
-      .limit(30)
-      .returns<MermaProduccion[]>()
+export function obtenerPaginaProducciones(sucursalId: string, pagina = 1) {
+  return obtenerPaginaHistorial({ sucursalId }, pagina)
+}
 
+export async function obtenerPaginaMermas(sucursalId: string, pagina = 1, tamano = TAMANO_PRODUCCION): Promise<Pagina<MermaProduccion>> {
+  try {
+    const { data, count, error } = await supabase.from('mermas').select('*', { count: 'exact' })
+      .eq('sucursal_id', sucursalId).eq('anulado', false).is('despacho_id', null).not('producto_id', 'is', null)
+      .order('creado_en', { ascending: false }).order('id', { ascending: false })
+      .range(...rangoPagina(pagina, tamano)).returns<MermaProduccion[]>()
     if (error) throw new Error(mensajeErrorSupabase(error))
-    return data ?? []
-  } catch (error: unknown) {
-    throw new Error(mensajeErrorSupabase(error), { cause: error })
-  }
+    return { filas: data ?? [], total: count ?? 0 }
+  } catch (error: unknown) { throw new Error(mensajeErrorSupabase(error), { cause: error }) }
+}
+
+export async function obtenerPaginaIncidencias(sucursalId: string, pagina = 1, tamano = TAMANO_PRODUCCION): Promise<Pagina<IncidenciaProduccion>> {
+  try {
+    const { data, count, error } = await supabase.from('incidencias_produccion').select('*', { count: 'exact' })
+      .eq('sucursal_id', sucursalId).order('creado_en', { ascending: false }).order('id', { ascending: false })
+      .range(...rangoPagina(pagina, tamano)).returns<IncidenciaProduccion[]>()
+    if (error) throw new Error(mensajeErrorSupabase(error))
+    return { filas: data ?? [], total: count ?? 0 }
+  } catch (error: unknown) { throw new Error(mensajeErrorSupabase(error), { cause: error }) }
+}
+
+// Legacy array contracts; application histories consume the paged services above.
+export async function obtenerProducciones(sucursalId: string): Promise<Produccion[]> {
+  return (await obtenerPaginaHistorial({ sucursalId }, 1, 30)).filas
+}
+export async function obtenerHistorialProduccion(filtros: FiltrosProduccion): Promise<Produccion[]> {
+  return (await obtenerPaginaHistorial(filtros, 1, filtros.limite ?? 200)).filas
+}
+export async function obtenerMermas(sucursalId: string): Promise<MermaProduccion[]> {
+  return (await obtenerPaginaMermas(sucursalId, 1, 30)).filas
 }
 
 export async function obtenerEnvasesDisponibles(
@@ -179,15 +177,7 @@ export function subscribeProduccion(sucursalId: string, onChange: (recurso: Recu
 }
 
 export async function obtenerIncidencias(sucursalId: string): Promise<IncidenciaProduccion[]> {
-  try {
-    const { data, error } = await supabase.from('incidencias_produccion')
-      .select('*').eq('sucursal_id', sucursalId)
-      .order('creado_en', { ascending: false }).limit(30).returns<IncidenciaProduccion[]>()
-    if (error) throw new Error(mensajeErrorSupabase(error))
-    return data ?? []
-  } catch (error: unknown) {
-    throw new Error(mensajeErrorSupabase(error), { cause: error })
-  }
+  return (await obtenerPaginaIncidencias(sucursalId, 1, 30)).filas
 }
 
 export async function registrarIncidencia(datos: NuevaIncidenciaProduccion): Promise<string | null> {

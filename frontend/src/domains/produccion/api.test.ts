@@ -21,6 +21,7 @@ const queryMock = {
   eq: vi.fn(),
   order: vi.fn(),
   limit: vi.fn(),
+  range: vi.fn(),
   returns: returnsMock,
   insert: insertMock,
   gte: gteMock,
@@ -34,6 +35,8 @@ vi.mock('../../lib/supabase', () => ({
     from: vi.fn(() => queryMock),
   },
 }))
+
+beforeEach(() => { queryMock.range.mockReturnValue(queryMock) })
 
 describe('obtenerProducciones', () => {
   beforeEach(() => {
@@ -316,7 +319,7 @@ describe('obtenerHistorialProduccion', () => {
       '2026-08-13T03:59:59.999Z',
     )
 
-    expect(queryMock.limit).toHaveBeenCalledWith(100)
+    expect(queryMock.range).toHaveBeenCalledWith(0, 99)
   })
 
   it('usa el límite por defecto cuando no se especifica uno', async () => {
@@ -329,7 +332,7 @@ describe('obtenerHistorialProduccion', () => {
       sucursalId: 'sucursal-1',
     })
 
-    expect(queryMock.limit).toHaveBeenCalledWith(200)
+    expect(queryMock.range).toHaveBeenCalledWith(0, 199)
   })
 
   it('lanza un error cuando falla la consulta del historial', async () => {
