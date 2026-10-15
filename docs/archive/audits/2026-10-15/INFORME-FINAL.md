@@ -70,7 +70,33 @@ El detalle por lote está en `2026-10-13/frontend-ux/` (A1–A3, B1–B7, F1–F
 | #90 | Recuperación de contraseña y corte de cuentas desactivadas (#44) | Aprobar `https://ondina-erp.vercel.app/restablecer`, definir la URL estable de desarrollo, SMTP, y decidir CAPTCHA/MFA |
 | #91 | Publicar sólo con CI verde del commit exacto; plan de #39 | Protección de ramas, `enforce_admins`, autoaprobación de producción y secretos de Vercel (diff exacto en `2026-10-15/operacion/O4-plan-39.md`, rama `chore/vercel-unificar`) |
 
-## Decisiones pendientes y limitaciones
+## Actualización 2026-10-15 (sesión 2: OND-c07.13)
+
+Evidencia en `2026-10-15/frontend-c07-13/`. Orquestación con Orca (Run `run_d281c7e81cb3`): Codex `gpt-6.1-sol` (K1, F1, V2, I1), Claude Sonnet 5.5 (K2, K3, F2, V1, V3) y OpenCode GLM-5.3-Flash (M1).
+
+- **Decisiones del responsable:**
+  - Se actualizó la línea base de CSS a 8.405 B (límite 9.246 B) en `69070fc`.
+  - La evidencia de más de 30 MB se resolverá con *squash* al fusionar.
+  - Se aprobaron el ensayo de integración de los PR y la propuesta de R1-14.
+- **R2-13:**
+  - `CampoFormulario` pasó a `components/` y ganó las props opcionales `id`, `descripcionId` y `alerta`; Ventas no cambia.
+  - Bodega (modal de despacho, líneas y Devoluciones) y Producción (registrar, incidencia y merma) usan el patrón accesible.
+  - Los errores de envío se anuncian con `role="alert"`, y el error se anuncia antes que la ayuda.
+  - Entregas K1/K2 y correcciones F1/F2, tras las revisiones cruzadas V1 y V2.
+- **R1-12:** `Despachos.tsx` pasó de 776 a 85 líneas, con filtros, historial, detalle y modal en `bodega/components/`. El borrador del modal sobrevive a los estados de carga y error.
+- **R1-14:** propuesta de RPC aditiva `vendedores_historial_sucursal`, con la misma compuerta de rol y sucursal y una prueba pgTAP.
+  - Sólo se validó en Supabase local, dentro de una transacción con `ROLLBACK`; no se aplicó nada.
+  - Documento: `R1-14-propuesta.md`. Tarea de backend: `OND-c07.23`.
+- **Integración de los PR (I1):** se recomienda fusionar #87 → #91 y después #84 → #89 → #90. Las ramas de ensayo son locales y no se publicaron: `prueba/integ-84-89-90`, `prueba/integ-87-91` y `prueba/integ-conjunta-87-91-84-89-90`.
+  - Hay conflictos sólo en importaciones de `App.tsx` y en documentación y workflows; están resueltos y documentados.
+  - #90 necesita un ajuste en el guard del bundle para su marcador de recuperación (commit `aeaf8e8` de la rama de ensayo).
+- **Verificación:**
+  - Lint, build, size y 824 pruebas unitarias (también sin `.env.local`) más 22 de integración en `feature/frontend-ux`.
+  - En el ensayo conjunto, 872 pruebas unitarias y 24 de integración.
+  - Barrido visual V3 aprobado a 412, 768, 1024 y 1280 px.
+- **Pendiente menor:** `OND-c07.24` (P4), el menú móvil sigue abierto si se cambia de breakpoint sin recargar (M1). Lo observado en V1 al recargar fue un artefacto del método.
+
+## Decisiones pendientes y limitaciones (al cierre de la sesión 1)
 
 1. **Presupuesto de CSS:** el CSS de entrada mide 8.405 B y el límite es 8.422 B. Creció un 9,8 % por la UI móvil aprobada. Hay que decidir si se actualiza la línea base de `frontend/bundle-budget.json`; si no, el próximo cambio de estilos hará fallar el CI.
 2. **Orden de integración:** #84 se solapa con #89 y #90 en `App.tsx`, `main.tsx`, `ErrorBoundary.tsx`, `Login.tsx` y `ProtectedRoute.tsx`, y #87 se solapa con #91 en `docs/engineering/deployment.md`. Conviene fusionar una y rebasar la otra.
