@@ -1,0 +1,201 @@
+{
+  "chunks": [
+    {
+      "archivo": "index-C1GGblb6.js",
+      "raw": 328097,
+      "gzip": 103427
+    },
+    {
+      "archivo": "vendor-supabase-1yby8ldT.js",
+      "raw": 214047,
+      "gzip": 54467
+    },
+    {
+      "archivo": "schemas-nuNyoMKR.js",
+      "raw": 133853,
+      "gzip": 40074
+    },
+    {
+      "archivo": "index-CNCJm2qp.css",
+      "raw": 41915,
+      "gzip": 7937
+    },
+    {
+      "archivo": "Produccion-BT8jBBjU.js",
+      "raw": 30558,
+      "gzip": 8092
+    },
+    {
+      "archivo": "Despachos-BtZ1zdGA.js",
+      "raw": 22202,
+      "gzip": 5987
+    },
+    {
+      "archivo": "RegistrarVenta-DTPzu4XL.js",
+      "raw": 19574,
+      "gzip": 6595
+    },
+    {
+      "archivo": "Devoluciones-BDbDycNG.js",
+      "raw": 16898,
+      "gzip": 5352
+    },
+    {
+      "archivo": "Clientes-BgvAO9Wg.js",
+      "raw": 11769,
+      "gzip": 3646
+    },
+    {
+      "archivo": "ui-CS0TC6sB.js",
+      "raw": 10193,
+      "gzip": 3806
+    },
+    {
+      "archivo": "Stock-DzQI9IJI.js",
+      "raw": 6810,
+      "gzip": 2293
+    },
+    {
+      "archivo": "api-CYIkJmdE.js",
+      "raw": 5931,
+      "gzip": 1869
+    },
+    {
+      "archivo": "Gastos-BDcNKmIa.js",
+      "raw": 5885,
+      "gzip": 2469
+    },
+    {
+      "archivo": "filtrosHistorial-KjGbvWhe.js",
+      "raw": 5548,
+      "gzip": 2417
+    },
+    {
+      "archivo": "Ventas-BEz1wQ-4.js",
+      "raw": 4226,
+      "gzip": 1220
+    },
+    {
+      "archivo": "api-2jcUGbit.js",
+      "raw": 4086,
+      "gzip": 897
+    },
+    {
+      "archivo": "MiComision-BXRzX9X1.js",
+      "raw": 3844,
+      "gzip": 1251
+    },
+    {
+      "archivo": "RankingVendedores-Dq-2D-jl.js",
+      "raw": 3707,
+      "gzip": 1559
+    },
+    {
+      "archivo": "InputNumerico-D1-yp8-7.js",
+      "raw": 3491,
+      "gzip": 1536
+    },
+    {
+      "archivo": "Carga-CUoEW28Q.js",
+      "raw": 2334,
+      "gzip": 1026
+    },
+    {
+      "archivo": "paginacion-p9ZZ2gF2.js",
+      "raw": 1360,
+      "gzip": 664
+    },
+    {
+      "archivo": "Dialog-BdE7DslI.js",
+      "raw": 1272,
+      "gzip": 721
+    },
+    {
+      "archivo": "toast-utils-DG0oTK4e.js",
+      "raw": 1176,
+      "gzip": 669
+    },
+    {
+      "archivo": "SucursalSelector-Bhk4IQ0n.js",
+      "raw": 1123,
+      "gzip": 578
+    },
+    {
+      "archivo": "Paginacion-Wwy1MP3U.js",
+      "raw": 910,
+      "gzip": 520
+    },
+    {
+      "archivo": "ModulePage-CJIUfmlZ.js",
+      "raw": 838,
+      "gzip": 460
+    },
+    {
+      "archivo": "catalog-BBY5dP3I.js",
+      "raw": 749,
+      "gzip": 322
+    },
+    {
+      "archivo": "Administracion-B1_B_vjb.js",
+      "raw": 231,
+      "gzip": 210
+    },
+    {
+      "archivo": "useCargaVendedor-DH3P0nX3.js",
+      "raw": 228,
+      "gzip": 201
+    },
+    {
+      "archivo": "Ubicaciones-DB1Ak7yO.js",
+      "raw": 226,
+      "gzip": 204
+    },
+    {
+      "archivo": "Auditoria-0RFRg7vh.js",
+      "raw": 223,
+      "gzip": 205
+    },
+    {
+      "archivo": "Reportes-CTD1tyr8.js",
+      "raw": 220,
+      "gzip": 198
+    }
+  ],
+  "totales": {
+    "jsRaw": 841609,
+    "jsGzip": 252935,
+    "cssRaw": 41915,
+    "cssGzip": 7937,
+    "archivos": 32
+  },
+  "bootSet": {
+    "error": "dist/.vite/manifest.json no existe; corre `npx vite build --manifest` para boot set y extras"
+  },
+  "extrasPorRuta": null,
+  "comparacion": [
+    {
+      "metrica": "JS de entrada (gzip)",
+      "baseBytes": 95970,
+      "limiteBytes": 105567,
+      "actualBytes": 103609,
+      "deltaPct": 7.96,
+      "estado": "OK"
+    },
+    {
+      "metrica": "CSS de entrada (gzip)",
+      "baseBytes": 43502,
+      "limiteBytes": 47852,
+      "actualBytes": 7960,
+      "deltaPct": -81.7,
+      "estado": "OK"
+    },
+    {
+      "metrica": "Chunk JS más grande (sin comprimir)",
+      "baseBytes": 301916,
+      "limiteBytes": 332108,
+      "actualBytes": 328097,
+      "deltaPct": 8.67,
+      "estado": "OK"
+    }
+  ]
+}

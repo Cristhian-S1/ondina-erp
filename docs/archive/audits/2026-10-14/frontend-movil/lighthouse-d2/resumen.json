@@ -1,0 +1,2392 @@
+{
+  "generado": "2026-10-15T00:36:49.148Z",
+  "base": "http://127.0.0.1:5183",
+  "runs": [
+    {
+      "device": "movil-412x915",
+      "page": "login",
+      "run": 1,
+      "file": "movil-412x915-login-run1.lhr.json",
+      "elapsedS": 12.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.87,
+          "displayValue": "1.9 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.98,
+          "displayValue": "1.9 s"
+        },
+        {
+          "id": "max-potential-fid",
+          "titulo": "Max Potential First Input Delay",
+          "score": 0.98,
+          "displayValue": "80 ms"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.2 s"
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 171
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 100 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 102782,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 57155,
+              "wastedPercent": 55.191793395561874
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0.5,
+          "displayValue": null,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 171
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1891.5736,
+      "lcpMs": 1891.5736,
+      "tbtMs": 33.5,
+      "cls": 0,
+      "transferBytes": 176067,
+      "requests": 7,
+      "finalUrl": "http://127.0.0.1:5183/login",
+      "fetchTime": "2026-10-15T00:34:17.896Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "login",
+      "run": 1,
+      "file": "desktop-1280x800-login-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.3,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.63,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.63,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.96,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "1,980 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 307
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 100 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 102782,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 57155,
+              "wastedPercent": 55.191793395561874
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 307
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 80,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1978.4853,
+      "lcpMs": 1978.4853,
+      "tbtMs": 1.5,
+      "cls": 0,
+      "transferBytes": 176067,
+      "requests": 7,
+      "finalUrl": "http://127.0.0.1:5183/login",
+      "fetchTime": "2026-10-15T00:34:29.349Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "dashboard",
+      "run": 1,
+      "file": "movil-412x915-dashboard-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "offscreen-images",
+          "titulo": "Defer offscreen images",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3725,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,ASIDE,0,DIV,0,IMG",
+                "selector": "div.flex > aside#menu-lateral > div.flex > img.h-10",
+                "snippet": "<img alt=\"Ondina\" class=\"h-10 w-10 shrink-0 rounded-xl object-cover\" src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA…\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZC…",
+              "totalBytes": 3725,
+              "wastedBytes": 3725,
+              "wastedPercent": 100
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 307
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 89 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 91004,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 47276,
+              "wastedPercent": 45.65228660907325
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 307
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1964.67,
+      "lcpMs": 2266.1998000000003,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177680,
+      "requests": 10,
+      "finalUrl": "http://127.0.0.1:5183/",
+      "fetchTime": "2026-10-15T00:34:40.607Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "dashboard",
+      "run": 1,
+      "file": "desktop-1280x800-dashboard-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.3,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.53,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.63,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.92,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "2,280 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 313
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 89 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 91004,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 47276,
+              "wastedPercent": 45.65228660907325
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 313
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 78,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1976.8779,
+      "lcpMs": 2278.4017,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 177680,
+      "requests": 10,
+      "finalUrl": "http://127.0.0.1:5183/",
+      "fetchTime": "2026-10-15T00:34:50.866Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "registrar-venta",
+      "run": 1,
+      "file": "movil-412x915-registrar-venta-run1.lhr.json",
+      "elapsedS": 10.7,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.77,
+          "displayValue": "3.0 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "cumulative-layout-shift",
+          "titulo": "Cumulative Layout Shift",
+          "score": 0.71,
+          "displayValue": "0.168",
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.95,
+          "displayValue": "3.0 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,050 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "layout-shifts",
+          "titulo": "Avoid large layout shifts",
+          "score": 0,
+          "displayValue": "2 layout shifts found",
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,1,MAIN,0,FORM,1,FIELDSET",
+                "selector": "div.flex > main.flex-1 > form.min-w-0 > fieldset.min-w-0",
+                "snippet": "<fieldset class=\"min-w-0 space-y-6 border-0 p-0\">",
+                "nodeLabel": "1 · Cliente\nCliente de tu cartera\nSelecciona un cliente...\nAlmacén Don Pedro\nBo…"
+              }
+            },
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,2,FOOTER",
+                "selector": "div#root > div.flex > div.flex > footer.px-4",
+                "snippet": "<footer class=\"px-4 pb-3 text-right text-xs text-slate-600 sm:px-6\">",
+                "nodeLabel": "Versión dev"
+              }
+            }
+          ]
+        },
+        {
+          "id": "td-has-header",
+          "titulo": "`<td>` elements in a large `<table>` do not have table headers.",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,1,MAIN,0,FORM,1,FIELDSET,1,SECTION,1,DIV,0,TABLE",
+                "selector": "fieldset.min-w-0 > section.rounded-2xl > div.min-w-0 > table.block",
+                "snippet": "<table role=\"table\" class=\"block w-full lg:table\">",
+                "nodeLabel": "PRODUCTO\tDISPONIBLE\tCANTIDAD\tPRECIO UNIT.\tSUBTOTAL\t\nLínea 1\nBidón POL\nProducto …",
+                "explanation": "Fix all of the following:\n  Some non-empty data cells do not have table headers"
+              }
+            }
+          ]
+        },
+        {
+          "id": "offscreen-images",
+          "titulo": "Defer offscreen images",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3725,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,ASIDE,0,DIV,0,IMG",
+                "selector": "div.flex > aside#menu-lateral > div.flex > img.h-10",
+                "snippet": "<img alt=\"Ondina\" class=\"h-10 w-10 shrink-0 rounded-xl object-cover\" src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA…\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZC…",
+              "totalBytes": 3725,
+              "wastedBytes": 3725,
+              "wastedPercent": 100
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 304
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 110 KiB",
+          "wastedMs": 750,
+          "wastedBytes": 112402,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43655,
+              "wastedPercent": 79.9117926004831
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 40847,
+              "wastedPercent": 39.44427333798878
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/schemas-nuNyoMKR.js",
+              "totalBytes": 40118,
+              "wastedBytes": 27900,
+              "wastedPercent": 69.54410292425624
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0.5,
+          "displayValue": "Est savings of 3 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3481,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/productos?select=id%2Cnombre%2Ctipo%2Ctipo_empaque_id%2Cprecio_base%2Cactivo%2Ccreado_en%2Ctipos_empaque%28id%2Cnombre%2Ccategoria%29&activo=eq.true&order=nombre.asc",
+              "totalBytes": 2451,
+              "wastedBytes": 2043
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/carga_vendedor?select=producto_id%2Cvendedor_id%2Ccantidad%2Cmodificado_en%2Cproducto%3Aproductos%28id%2Cnombre%2Ctipo%2Cprecio_base%29&vendedor_id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72",
+              "totalBytes": 1787,
+              "wastedBytes": 1438
+            }
+          ]
+        },
+        {
+          "id": "inspector-issues",
+          "titulo": "Issues were logged in the `Issues` panel in Chrome Devtools",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "cls-culprits-insight",
+          "titulo": "Layout shift culprits",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "forced-reflow-insight",
+          "titulo": "Forced reflow",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 304
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 85,
+        "accessibility": 100,
+        "best-practices": 96
+      },
+      "fcpMs": 1957.7069,
+      "lcpMs": 3049.5603499999997,
+      "tbtMs": 0,
+      "cls": 0.16760623036052708,
+      "transferBytes": 242524,
+      "requests": 22,
+      "finalUrl": "http://127.0.0.1:5183/ventas/registrar",
+      "fetchTime": "2026-10-15T00:35:01.231Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "registrar-venta",
+      "run": 1,
+      "file": "desktop-1280x800-registrar-venta-run1.lhr.json",
+      "elapsedS": 10.8,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.31,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.32,
+          "displayValue": "3.0 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.64,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "max-potential-fid",
+          "titulo": "Max Potential First Input Delay",
+          "score": 0.96,
+          "displayValue": "100 ms"
+        },
+        {
+          "id": "cumulative-layout-shift",
+          "titulo": "Cumulative Layout Shift",
+          "score": 0.57,
+          "displayValue": "0.22",
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.79,
+          "displayValue": "3.0 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,050 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "layout-shifts",
+          "titulo": "Avoid large layout shifts",
+          "score": 0,
+          "displayValue": "2 layout shifts found",
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,1,MAIN,0,FORM,1,FIELDSET",
+                "selector": "div.flex > main.flex-1 > form.min-w-0 > fieldset.min-w-0",
+                "snippet": "<fieldset class=\"min-w-0 space-y-6 border-0 p-0\">",
+                "nodeLabel": "1 · Cliente\nCliente de tu cartera\nSelecciona un cliente...\nAlmacén Don Pedro\nBo…"
+              }
+            },
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,2,FOOTER",
+                "selector": "div#root > div.flex > div.flex > footer.px-4",
+                "snippet": "<footer class=\"px-4 pb-3 text-right text-xs text-slate-600 sm:px-6\">",
+                "nodeLabel": "Versión dev"
+              }
+            }
+          ]
+        },
+        {
+          "id": "td-has-header",
+          "titulo": "`<td>` elements in a large `<table>` do not have table headers.",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,1,MAIN,0,FORM,1,FIELDSET,1,SECTION,1,DIV,0,TABLE",
+                "selector": "fieldset.min-w-0 > section.rounded-2xl > div.min-w-0 > table.block",
+                "snippet": "<table role=\"table\" class=\"block w-full lg:table\">",
+                "nodeLabel": "PRODUCTO\tDISPONIBLE\tCANTIDAD\tPRECIO UNIT.\tSUBTOTAL\t\n\nProducto 1\nSelecciona...\nB…",
+                "explanation": "Fix all of the following:\n  Some non-empty data cells do not have table headers"
+              }
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 304
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 110 KiB",
+          "wastedMs": 750,
+          "wastedBytes": 112402,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43655,
+              "wastedPercent": 79.9117926004831
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 40847,
+              "wastedPercent": 39.44427333798878
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/schemas-nuNyoMKR.js",
+              "totalBytes": 40118,
+              "wastedBytes": 27900,
+              "wastedPercent": 69.54410292425624
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0.5,
+          "displayValue": "Est savings of 3 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3481,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/productos?select=id%2Cnombre%2Ctipo%2Ctipo_empaque_id%2Cprecio_base%2Cactivo%2Ccreado_en%2Ctipos_empaque%28id%2Cnombre%2Ccategoria%29&activo=eq.true&order=nombre.asc",
+              "totalBytes": 2451,
+              "wastedBytes": 2043
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/carga_vendedor?select=producto_id%2Cvendedor_id%2Ccantidad%2Cmodificado_en%2Cproducto%3Aproductos%28id%2Cnombre%2Ctipo%2Cprecio_base%29&vendedor_id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72",
+              "totalBytes": 1787,
+              "wastedBytes": 1438
+            }
+          ]
+        },
+        {
+          "id": "inspector-issues",
+          "titulo": "Issues were logged in the `Issues` panel in Chrome Devtools",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "cls-culprits-insight",
+          "titulo": "Layout shift culprits",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0.5,
+          "displayValue": null,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 304
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 62,
+        "accessibility": 100,
+        "best-practices": 96
+      },
+      "fcpMs": 1957.2965,
+      "lcpMs": 3048.9447500000006,
+      "tbtMs": 50,
+      "cls": 0.22030195988064172,
+      "transferBytes": 242524,
+      "requests": 22,
+      "finalUrl": "http://127.0.0.1:5183/ventas/registrar",
+      "fetchTime": "2026-10-15T00:35:11.940Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "despachos",
+      "run": 1,
+      "file": "movil-412x915-despachos-run1.lhr.json",
+      "elapsedS": 10.7,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.67,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.93,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "uses-rel-preconnect",
+          "titulo": "Preconnect to required origins",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "wastedMs": 150.00855,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321",
+              "wastedMs": 150.00855
+            }
+          ]
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,380 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "offscreen-images",
+          "titulo": "Defer offscreen images",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3725,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,ASIDE,0,DIV,0,IMG",
+                "selector": "div.flex > aside#menu-lateral > div.flex > img.h-10",
+                "snippet": "<img alt=\"Ondina\" class=\"h-10 w-10 shrink-0 rounded-xl object-cover\" src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA…\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZC…",
+              "totalBytes": 3725,
+              "wastedBytes": 3725,
+              "wastedPercent": 100
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85106,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43384,
+              "wastedPercent": 79.41515877799114
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 41722,
+              "wastedPercent": 40.28865828482211
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0,
+          "displayValue": "Est savings of 13 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 13084,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&of…",
+              "totalBytes": 8140,
+              "wastedBytes": 6975
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b348-f1e…",
+              "totalBytes": 3490,
+              "wastedBytes": 2680
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/carga_vendedor?select=*&vendedor_id=in.%2820000000-0000-0000-0001-000000000004%2Cc5dabc9c-80cb-48fa-ac3f-0960ac71cd72%29",
+              "totalBytes": 2110,
+              "wastedBytes": 1823
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b34…",
+              "totalBytes": 2373,
+              "wastedBytes": 1606
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 90,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1952.2685,
+      "lcpMs": 3379.2883500000003,
+      "tbtMs": 0,
+      "cls": 0.03169398907103825,
+      "transferBytes": 229943,
+      "requests": 39,
+      "finalUrl": "http://127.0.0.1:5183/despachos",
+      "fetchTime": "2026-10-15T00:35:23.774Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "despachos",
+      "run": 1,
+      "file": "desktop-1280x800-despachos-run1.lhr.json",
+      "elapsedS": 10.8,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.31,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.25,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.64,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.72,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,410 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 302
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85106,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43384,
+              "wastedPercent": 79.41515877799114
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 41722,
+              "wastedPercent": 40.28865828482211
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0,
+          "displayValue": "Est savings of 13 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 13084,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&of…",
+              "totalBytes": 8140,
+              "wastedBytes": 6975
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b348-f1e…",
+              "totalBytes": 3490,
+              "wastedBytes": 2680
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/carga_vendedor?select=*&vendedor_id=in.%2820000000-0000-0000-0001-000000000004%2Cc5dabc9c-80cb-48fa-ac3f-0960ac71cd72%29",
+              "totalBytes": 2110,
+              "wastedBytes": 1823
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b34…",
+              "totalBytes": 2373,
+              "wastedBytes": 1606
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 302
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1953.5848,
+      "lcpMs": 3412.9627999999993,
+      "tbtMs": 15,
+      "cls": 0.03432114624505929,
+      "transferBytes": 229950,
+      "requests": 39,
+      "finalUrl": "http://127.0.0.1:5183/despachos",
+      "fetchTime": "2026-10-15T00:35:34.413Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "devoluciones",
+      "run": 1,
+      "file": "movil-412x915-devoluciones-run1.lhr.json",
+      "elapsedS": 10.6,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.66,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "max-potential-fid",
+          "titulo": "Max Potential First Input Delay",
+          "score": 0.98,
+          "displayValue": "80 ms"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.93,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,420 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "offscreen-images",
+          "titulo": "Defer offscreen images",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3725,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,ASIDE,0,DIV,0,IMG",
+                "selector": "div.flex > aside#menu-lateral > div.flex > img.h-10",
+                "snippet": "<img alt=\"Ondina\" class=\"h-10 w-10 shrink-0 rounded-xl object-cover\" src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA…\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZC…",
+              "totalBytes": 3725,
+              "wastedBytes": 3725,
+              "wastedPercent": 100
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85495,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43384,
+              "wastedPercent": 79.41515877799114
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 42111,
+              "wastedPercent": 40.664652015210514
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0,
+          "displayValue": "Est savings of 13 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 13084,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&of…",
+              "totalBytes": 8140,
+              "wastedBytes": 6975
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b348-f1e…",
+              "totalBytes": 3490,
+              "wastedBytes": 2680
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/carga_vendedor?select=*&vendedor_id=in.%2820000000-0000-0000-0001-000000000004%2Cc5dabc9c-80cb-48fa-ac3f-0960ac71cd72%29",
+              "totalBytes": 2110,
+              "wastedBytes": 1823
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b34…",
+              "totalBytes": 2373,
+              "wastedBytes": 1606
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 90,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1951.7589,
+      "lcpMs": 3421.7222,
+      "tbtMs": 33,
+      "cls": 0,
+      "transferBytes": 226102,
+      "requests": 36,
+      "finalUrl": "http://127.0.0.1:5183/devoluciones",
+      "fetchTime": "2026-10-15T00:35:45.195Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "devoluciones",
+      "run": 1,
+      "file": "desktop-1280x800-devoluciones-run1.lhr.json",
+      "elapsedS": 10.6,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.3,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.26,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.63,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.72,
+          "displayValue": "3.4 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "3,380 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85495,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43384,
+              "wastedPercent": 79.41515877799114
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 42111,
+              "wastedPercent": 40.664652015210514
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0,
+          "displayValue": "Est savings of 13 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 13084,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despachos?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&order=creado_en.desc%2Cid.desc&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&of…",
+              "totalBytes": 8140,
+              "wastedBytes": 6975
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/despacho_detalles?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b348-f1e…",
+              "totalBytes": 3490,
+              "wastedBytes": 2680
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/carga_vendedor?select=*&vendedor_id=in.%2820000000-0000-0000-0001-000000000004%2Cc5dabc9c-80cb-48fa-ac3f-0960ac71cd72%29",
+              "totalBytes": 2110,
+              "wastedBytes": 1823
+            },
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/devoluciones_productos?select=*&despacho_id=in.%28968febb3-3530-4bfc-9a69-c5b1874ea095%2Cdb7ef793-37fb-48ba-9a12-d378d6026b92%2C27ded6ce-54bc-4b50-bdfd-2e897a23c12d%2C0b47a76e-4999-47a5-b34…",
+              "totalBytes": 2373,
+              "wastedBytes": 1606
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1970.9059,
+      "lcpMs": 3379.2428,
+      "tbtMs": 0,
+      "cls": 0.0317436688590667,
+      "transferBytes": 226100,
+      "requests": 36,
+      "finalUrl": "http://127.0.0.1:5183/devoluciones",
+      "fetchTime": "2026-10-15T00:35:55.802Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "stock",
+      "run": 1,
+      "file": "movil-412x915-stock-run1.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.91,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.98,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "offscreen-images",
+          "titulo": "Defer offscreen images",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3725,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,ASIDE,0,DIV,0,IMG",
+                "selector": "div.flex > aside#menu-lateral > div.flex > img.h-10",
+                "snippet": "<img alt=\"Ondina\" class=\"h-10 w-10 shrink-0 rounded-xl object-cover\" src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA…\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZC…",
+              "totalBytes": 3725,
+              "wastedBytes": 3725,
+              "wastedPercent": 100
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 84 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85993,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43655,
+              "wastedPercent": 79.9117926004831
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 42338,
+              "wastedPercent": 40.88360051352266
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 96,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1952.5605,
+      "lcpMs": 2444.8407500000003,
+      "tbtMs": 0,
+      "cls": 0.003533100421033772,
+      "transferBytes": 191841,
+      "requests": 22,
+      "finalUrl": "http://127.0.0.1:5183/stock",
+      "fetchTime": "2026-10-15T00:36:06.478Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "stock",
+      "run": 1,
+      "file": "desktop-1280x800-stock-run1.lhr.json",
+      "elapsedS": 10.6,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.38,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.53,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.71,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.92,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "2,290 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 302
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 84 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85772,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43655,
+              "wastedPercent": 79.9117926004831
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 42117,
+              "wastedPercent": 40.67044591697644
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0.5,
+          "displayValue": null,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 302
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 79,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1803.4743,
+      "lcpMs": 2291.2114500000007,
+      "tbtMs": 0,
+      "cls": 0.0001397197723388672,
+      "transferBytes": 191841,
+      "requests": 22,
+      "finalUrl": "http://127.0.0.1:5183/stock",
+      "fetchTime": "2026-10-15T00:36:17.006Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "produccion",
+      "run": 1,
+      "file": "movil-412x915-produccion-run1.lhr.json",
+      "elapsedS": 11,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.82,
+          "displayValue": "2.9 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "cumulative-layout-shift",
+          "titulo": "Cumulative Layout Shift",
+          "score": 0.93,
+          "displayValue": "0.086",
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.96,
+          "displayValue": "2.9 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "2,860 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "offscreen-images",
+          "titulo": "Defer offscreen images",
+          "score": 0.5,
+          "displayValue": "Est savings of 4 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3725,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,ASIDE,0,DIV,0,IMG",
+                "selector": "div.flex > aside#menu-lateral > div.flex > img.h-10",
+                "snippet": "<img alt=\"Ondina\" class=\"h-10 w-10 shrink-0 rounded-xl object-cover\" src=\"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA…\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/7QCEUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAGgcAigAYkZC…",
+              "totalBytes": 3725,
+              "wastedBytes": 3725,
+              "wastedPercent": 100
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 304
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 79 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 80792,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 41324,
+              "wastedPercent": 39.90443111508213
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 39468,
+              "wastedPercent": 72.24597156619527
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0.5,
+          "displayValue": "Est savings of 3 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3085,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&anulado=eq.false&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+              "totalBytes": 3896,
+              "wastedBytes": 3085
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 304
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 92,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1958.8363,
+      "lcpMs": 2856.8249,
+      "tbtMs": 0,
+      "cls": 0.08649840970821603,
+      "transferBytes": 201025,
+      "requests": 20,
+      "finalUrl": "http://127.0.0.1:5183/produccion/historial",
+      "fetchTime": "2026-10-15T00:36:28.861Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop-1280x800",
+      "page": "produccion",
+      "run": 1,
+      "file": "desktop-1280x800-produccion-run1.lhr.json",
+      "elapsedS": 11,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.31,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.37,
+          "displayValue": "2.8 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.64,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "cumulative-layout-shift",
+          "titulo": "Cumulative Layout Shift",
+          "score": 0.87,
+          "displayValue": "0.108",
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.83,
+          "displayValue": "2.9 s"
+        },
+        {
+          "id": "largest-contentful-paint-element",
+          "titulo": "Largest Contentful Paint element",
+          "score": 0,
+          "displayValue": "2,850 ms",
+          "items": [
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "layout-shifts",
+          "titulo": "Avoid large layout shifts",
+          "score": 0,
+          "displayValue": "3 layout shifts found",
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,1,MAIN,0,DIV,2,DIV,2,SECTION,1,DIV,2,NAV",
+                "selector": "div.min-w-0 > section.min-w-0 > div.rounded-2xl > nav.flex",
+                "snippet": "<nav aria-label=\"Paginación del historial de producción\" aria-busy=\"false\" class=\"flex min-w-0 flex-wrap items-center justify-center gap-2 border-t border-s…\">",
+                "nodeLabel": "Página 1 de 9 · 81 registros\n\nAnterior\nSiguiente"
+              }
+            },
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,1,MAIN,0,DIV,2,DIV,2,SECTION",
+                "selector": "main.flex-1 > div.min-w-0 > div.min-w-0 > section.min-w-0",
+                "snippet": "<section aria-busy=\"false\" class=\"min-w-0 space-y-4\">",
+                "nodeLabel": "Producto\nTodos\nBidón 10L\nBidón PET\nBidón POL\nHielo CUBO\nHielo FRAPE\nHielo SACO\n…"
+              }
+            },
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,1,DIV,2,FOOTER",
+                "selector": "div#root > div.flex > div.flex > footer.px-4",
+                "snippet": "<footer class=\"px-4 pb-3 text-right text-xs text-slate-600 sm:px-6\">",
+                "nodeLabel": "Versión dev"
+              }
+            }
+          ]
+        },
+        {
+          "id": "render-blocking-resources",
+          "titulo": "Eliminate render-blocking resources",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 0,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 79 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 80792,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-C1GGblb6.js",
+              "totalBytes": 103557,
+              "wastedBytes": 41324,
+              "wastedPercent": 39.90443111508213
+            },
+            {
+              "url": "http://127.0.0.1:5183/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 39468,
+              "wastedPercent": 72.24597156619527
+            }
+          ]
+        },
+        {
+          "id": "uses-text-compression",
+          "titulo": "Enable text compression",
+          "score": 0.5,
+          "displayValue": "Est savings of 3 KiB",
+          "wastedMs": 0,
+          "wastedBytes": 3085,
+          "items": [
+            {
+              "url": "http://127.0.0.1:54321/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000001&anulado=eq.false&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+              "totalBytes": 3896,
+              "wastedBytes": 3085
+            }
+          ]
+        },
+        {
+          "id": "cls-culprits-insight",
+          "titulo": "Layout shift culprits",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {}
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        },
+        {
+          "id": "render-blocking-insight",
+          "titulo": "Render blocking requests",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "items": [
+            {
+              "url": "http://127.0.0.1:5183/assets/index-CNCJm2qp.css",
+              "totalBytes": 8674,
+              "wastedMs": 301
+            }
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1952.7709,
+      "lcpMs": 2847.5705000000003,
+      "tbtMs": 0,
+      "cls": 0.10849763262947366,
+      "transferBytes": 201025,
+      "requests": 20,
+      "finalUrl": "http://127.0.0.1:5183/produccion/historial",
+      "fetchTime": "2026-10-15T00:36:39.787Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    }
+  ],
+  "lighthouseVersion": "12.8.2",
+  "metodo": {
+    "categorias": "performance,accessibility,best-practices",
+    "dispositivos": {
+      "mobile": [],
+      "movil-412x915": [
+        "--screenEmulation.width=412",
+        "--screenEmulation.height=915",
+        "--screenEmulation.deviceScaleFactor=2.625",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "tablet-768x1024": [
+        "--screenEmulation.width=768",
+        "--screenEmulation.height=1024",
+        "--screenEmulation.deviceScaleFactor=2",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "tablet-1024x1366": [
+        "--screenEmulation.width=1024",
+        "--screenEmulation.height=1366",
+        "--screenEmulation.deviceScaleFactor=2",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "desktop": [
+        "--preset=desktop"
+      ],
+      "desktop-1280x800": [
+        "--screenEmulation.width=1280",
+        "--screenEmulation.height=800",
+        "--screenEmulation.deviceScaleFactor=1",
+        "--screenEmulation.mobile=false",
+        "--formFactor=desktop"
+      ]
+    },
+    "autenticacion": "sesión real por el formulario de /login (CDP sobre el Chrome persistente); token supabase-js en localStorage",
+    "flagsAutenticadas": [
+      "--disable-storage-reset",
+      "+ Network.clearBrowserCache (CDP) antes de cada corrida: cache HTTP fría"
+    ],
+    "servidor": "servidor-local-a3.mjs (static dist + cabeceras vercel.json con connect-src += Supabase local; NO vite preview)"
+  },
+  "medianas": {
+    "movil-412x915": {
+      "login": {
+        "runs": 1,
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1891.5736,
+        "lcpMs": 1891.5736,
+        "tbtMs": 33.5,
+        "cls": 0,
+        "transferBytes": 176067
+      },
+      "dashboard": {
+        "runs": 1,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1964.67,
+        "lcpMs": 2266.1998000000003,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 177680
+      },
+      "registrar-venta": {
+        "runs": 1,
+        "performance": 85,
+        "accessibility": 100,
+        "best-practices": 96,
+        "fcpMs": 1957.7069,
+        "lcpMs": 3049.5603499999997,
+        "tbtMs": 0,
+        "cls": 0.16760623036052708,
+        "transferBytes": 242524
+      },
+      "despachos": {
+        "runs": 1,
+        "performance": 90,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1952.2685,
+        "lcpMs": 3379.2883500000003,
+        "tbtMs": 0,
+        "cls": 0.03169398907103825,
+        "transferBytes": 229943
+      },
+      "devoluciones": {
+        "runs": 1,
+        "performance": 90,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1951.7589,
+        "lcpMs": 3421.7222,
+        "tbtMs": 33,
+        "cls": 0,
+        "transferBytes": 226102
+      },
+      "stock": {
+        "runs": 1,
+        "performance": 96,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1952.5605,
+        "lcpMs": 2444.8407500000003,
+        "tbtMs": 0,
+        "cls": 0.003533100421033772,
+        "transferBytes": 191841
+      },
+      "produccion": {
+        "runs": 1,
+        "performance": 92,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1958.8363,
+        "lcpMs": 2856.8249,
+        "tbtMs": 0,
+        "cls": 0.08649840970821603,
+        "transferBytes": 201025
+      }
+    },
+    "desktop-1280x800": {
+      "login": {
+        "runs": 1,
+        "performance": 80,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1978.4853,
+        "lcpMs": 1978.4853,
+        "tbtMs": 1.5,
+        "cls": 0,
+        "transferBytes": 176067
+      },
+      "dashboard": {
+        "runs": 1,
+        "performance": 78,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1976.8779,
+        "lcpMs": 2278.4017,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 177680
+      },
+      "registrar-venta": {
+        "runs": 1,
+        "performance": 62,
+        "accessibility": 100,
+        "best-practices": 96,
+        "fcpMs": 1957.2965,
+        "lcpMs": 3048.9447500000006,
+        "tbtMs": 50,
+        "cls": 0.22030195988064172,
+        "transferBytes": 242524
+      },
+      "despachos": {
+        "runs": 1,
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1953.5848,
+        "lcpMs": 3412.9627999999993,
+        "tbtMs": 15,
+        "cls": 0.03432114624505929,
+        "transferBytes": 229950
+      },
+      "devoluciones": {
+        "runs": 1,
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1970.9059,
+        "lcpMs": 3379.2428,
+        "tbtMs": 0,
+        "cls": 0.0317436688590667,
+        "transferBytes": 226100
+      },
+      "stock": {
+        "runs": 1,
+        "performance": 79,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1803.4743,
+        "lcpMs": 2291.2114500000007,
+        "tbtMs": 0,
+        "cls": 0.0001397197723388672,
+        "transferBytes": 191841
+      },
+      "produccion": {
+        "runs": 1,
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1952.7709,
+        "lcpMs": 2847.5705000000003,
+        "tbtMs": 0,
+        "cls": 0.10849763262947366,
+        "transferBytes": 201025
+      }
+    }
+  },
+  "fallos": []
+}
