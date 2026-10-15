@@ -158,6 +158,16 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
+it('C3-05 · muestra un avatar neutro y el ID del vendedor ausente del catálogo', async () => {
+  vi.mocked(api.obtenerVendedores).mockResolvedValue([])
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([{ ...makeDespachoHoy(), vendedor_id: 'inactive-123456' }])
+  renderWithProviders(<Despachos />)
+  const fila = await screen.findByRole('button', { name: /Vendedor no disponible/ })
+  expect(fila).toHaveTextContent('inactive')
+  expect(within(fila).queryByText('VN')).not.toBeInTheDocument()
+  expect(within(fila).getByText('?')).toHaveAttribute('aria-hidden', 'true')
+})
+
 describe('HU-13 · Despachos', () => {
   it('muestra el estado vacío cuando no hay despachos para la sucursal', async () => {
     renderWithProviders(<Despachos />)

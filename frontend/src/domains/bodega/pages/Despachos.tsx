@@ -55,17 +55,19 @@ const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['todo', 'Todo'],
 ]
 
-function AvatarNombre({ nombre }: { nombre: string }) {
+function AvatarNombre({ nombre }: { nombre?: string }) {
   const iniciales = nombre
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0])
-    .join('')
-    .toUpperCase()
+    ? nombre
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0])
+      .join('')
+      .toUpperCase()
+    : '?'
 
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
+    <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
       {iniciales}
     </span>
   )
@@ -447,9 +449,9 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                       className="flex min-w-0 w-full flex-col items-start gap-3 p-4 text-left sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="flex min-w-0 items-center gap-3">
-                        <AvatarNombre nombre={d.vendedorNombre} />
+                        <AvatarNombre nombre={d.vendedorDisponible ? d.vendedorNombre : undefined} />
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">
+                          <p className={`${d.vendedorDisponible ? 'truncate' : 'break-words'} text-sm font-semibold text-slate-900`}>
                             {d.vendedorNombre}
                           </p>
                           <p className="text-xs text-slate-600">{fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)}</p>
