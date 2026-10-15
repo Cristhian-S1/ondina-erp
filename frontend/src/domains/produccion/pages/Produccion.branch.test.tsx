@@ -214,9 +214,9 @@ it('FX R2-03 · el Toast se cierra automáticamente y la validación persiste', 
     // Reabrir una notificación crea el temporizador del hook con el reloj simulado.
     fireEvent.change(screen.getByLabelText('Descripción de la incidencia'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrar incidencia' }))
-    expect(screen.getAllByRole('alert')[0]).toHaveTextContent('Describe la incidencia')
+    expect(screen.getByText('Describe la incidencia en un máximo de 1000 caracteres.')).toBeVisible()
     act(() => vi.advanceTimersByTime(4000))
-    expect(screen.getByRole('alert')).toHaveTextContent('Describe la incidencia')
+    expect(screen.getByText('Describe la incidencia en un máximo de 1000 caracteres.')).toBeVisible()
     expect(screen.getByLabelText('Descripción de la incidencia')).toHaveAttribute('aria-invalid', 'true')
   } finally { vi.useRealTimers() }
 })
@@ -228,7 +228,7 @@ it('conserva el formulario al consultar otra sección y limpia la notificación 
   fireEvent.change(screen.getByLabelText('Observaciones (opcional)'), { target: { value: 'Turno de mañana' } })
   // Sin producto: validación pública, sin enviar una escritura.
   fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
-  await screen.findAllByRole('alert')
+  await waitFor(() => expect(screen.getByLabelText('Producto')).toHaveAttribute('aria-invalid', 'true'))
   location.pathname = '/produccion/historial'
   rerender(<Produccion />)
   await screen.findByText('Historial de producción')
@@ -263,7 +263,9 @@ it.each([
   fireEvent.click(screen.getByRole('button', { name: boton }))
   expect(screen.getByLabelText(campo)).toHaveAttribute('aria-invalid', 'true')
   const id = screen.getByLabelText(campo).getAttribute('aria-describedby')!
-  expect(document.getElementById(id)).toHaveAttribute('role', 'alert')
+  const texto = document.getElementById(id)!.textContent!
+  expect(texto).toMatch(/\S/)
+  expect(screen.getAllByText(texto)).toHaveLength(1)
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
   expect(document.getElementById(id)).toBeVisible()
 })
@@ -287,11 +289,11 @@ it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el ca
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
   expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid', 'true')
   fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
-  expect(screen.getByLabelText('Motivo')).toHaveAttribute('aria-describedby', 'error-merma-motivo')
+  expect(screen.getByLabelText('Motivo')).toHaveAccessibleDescription(/Indica el motivo/)
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
-  expect(screen.getByRole('alert')).toHaveTextContent('Indica el motivo')
+  expect(screen.getByText(/Indica el motivo/)).toBeVisible()
   fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Pérdida de producto' } })
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(screen.queryByText(/Indica el motivo/)).not.toBeInTheDocument()
   expect(api.registrarMerma).not.toHaveBeenCalled()
 })
 
@@ -306,7 +308,8 @@ it.each([
   const campo = screen.getByLabelText(nombre)
   screen.getByRole('button', { name: boton }).focus()
   fireEvent.click(screen.getByRole('button', { name: boton }))
-  expect(await screen.findByRole('alert')).toBeVisible()
+  await waitFor(() => expect(campo).toHaveAttribute('aria-invalid', 'true'))
+  expect(document.getElementById(campo.getAttribute('aria-describedby')!)).toBeVisible()
   expect(campo).toHaveFocus()
   expect(campo).toHaveAttribute('aria-invalid','true')
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
@@ -400,4 +403,45 @@ it('C3-12 · fallo de stock no muestra cero ni permite escribir y su reintento c
   await screen.findByText('Disponible: 8')
   expect(screen.getByLabelText('Cantidad')).toHaveValue('2')
   expect(screen.getByLabelText('Motivo')).toHaveValue('Rotura')
+})
+
+it.each([
+  ['registrar', 'Registrar producción', 'Producto'],
+  ['registrar', 'Registrar producción', 'Cantidad'],
+  ['incidencias', 'Registrar incidencia', 'Descripción de la incidencia'],
+  ['incidencias', 'Registrar merma', 'Producto'],
+  ['incidencias', 'Registrar merma', 'Cantidad'],
+  ['incidencias', 'Registrar merma', 'Motivo'],
+])('R2-13 · %s: «%s» vincula label, aria-invalid y un único mensaje en «%s»', async (seccion, boton, etiqueta) => {
+  location.pathname = `/produccion/${seccion}`
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  if (etiqueta === 'Cantidad') fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  if (etiqueta === 'Motivo') {
+    fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+    fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  }
+  fireEvent.click(screen.getByRole('button', { name: boton }))
+  const control = screen.getByLabelText(etiqueta)
+  expect(document.querySelector(`label[for="${control.id}"]`)).toHaveTextContent(etiqueta)
+  expect(control).toHaveAttribute('aria-invalid', 'true')
+  const ids = control.getAttribute('aria-describedby')!.split(' ')
+  const mensajes = ids.map(id => document.getElementById(id)!).filter(el => el.id.endsWith('-error'))
+  expect(mensajes).toHaveLength(1)
+  expect(mensajes[0]).toHaveTextContent(/\S/)
+  expect(screen.getAllByText(mensajes[0].textContent!)).toHaveLength(1)
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+})
+
+it('R2-13 · la cantidad de merma enlaza el error y la ayuda «Disponible»', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  await screen.findByText('Disponible: 8')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '9' } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription(/Disponible: 8.*Excede el stock en bodega/)
+  expect(screen.getAllByText(/Excede el stock en bodega/)).toHaveLength(1)
 })
