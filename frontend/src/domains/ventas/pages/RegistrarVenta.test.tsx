@@ -436,4 +436,28 @@ describe('M1 · tarjeta individual por línea de producto', () => {
     expect(screen.getAllByLabelText(/^Cantidad de /)).toHaveLength(3)
     expect(screen.getAllByLabelText(/^Precio unitario de /)).toHaveLength(3)
   })
+
+  it('C3-01/C3-02 · umbral tabla/tarjeta por ancho del contenedor, un único árbol y tarjeta compacta', async () => {
+    setup()
+    const { container } = renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Bidón POL/ })
+    const tabla = screen.getByRole('table')
+    const contenedor = tabla.parentElement?.parentElement
+    expect(contenedor).toHaveClass('@container')
+    expect(tabla).toHaveClass('@4xl:table')
+    expect(container.innerHTML).not.toMatch(/(^|[\s"])lg:(table|hidden)/)
+    const tarjetas = screen.getAllByTestId('linea-producto-venta')
+    tarjetas.forEach(tarjeta => {
+      expect(tarjeta).toHaveClass('flex', '@4xl:table-row')
+      // Disponible como metadato junto al nombre; Cantidad y Precio comparten fila desde 360 px.
+      const celdas = within(tarjeta).getAllByRole('cell', { hidden: true })
+      expect(celdas[0]).toHaveClass('order-[-2]')
+      expect(within(tarjeta).getByText('Disponible').closest('td')).toHaveClass('order-[-1]')
+      expect(within(tarjeta).getByLabelText(/^Cantidad de /).closest('td')).toHaveClass('min-[360px]:basis-[calc(60%-0.375rem)]')
+      expect(within(tarjeta).getByLabelText(/^Precio unitario de /).closest('td')).toHaveClass('min-[360px]:basis-[calc(40%-0.375rem)]')
+    })
+    // La barra fija de total no tapa el último campo al enfocar.
+    expect(container.querySelector('form')).toHaveClass('pb-28', '[&_input]:scroll-mb-28')
+    expect(screen.getAllByLabelText(/^Cantidad de /)).toHaveLength(tarjetas.length)
+  })
 })

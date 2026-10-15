@@ -243,7 +243,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
   return <>
     <PersistenciaBorradorVenta storageKey={storageKey} identidad={identidad} activo={draftActivo} subscribe={subscribe} getValues={getValues} />
     <Toast toast={toast} onClose={cerrar} />
-    <form onSubmit={event => void handleSubmit(onSubmit)(event)} className="min-w-0 space-y-6 pb-28 sm:pb-0" noValidate>
+    <form onSubmit={event => void handleSubmit(onSubmit)(event)} className="min-w-0 space-y-6 pb-28 sm:pb-0 [&_input]:scroll-mb-28 [&_select]:scroll-mb-28 sm:[&_input]:scroll-mb-0 sm:[&_select]:scroll-mb-0" noValidate>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <div><h1 className="text-2xl font-bold text-slate-900">Registrar venta</h1><p className="mt-1 text-sm text-slate-600">Elige cliente, productos y forma de pago para confirmar tu venta.</p></div>
         <button type="button" className={btnSecondary} onClick={() => navigate('/ventas')}>Cancelar</button>
@@ -266,10 +266,10 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
           <button type="button" className={btnSecondary} disabled={!!motivoLimite} aria-describedby={motivoLimite ? limiteId : undefined} onClick={() => append({ productoId: '', cantidad: 0, precioUnitario: 0 })}><PlusCircleIcon className="h-4 w-4" />Agregar producto</button>
           {motivoLimite && <span id={limiteId} className={errorTextCls}>{motivoLimite}</span>}
         </div>
-        <div className="min-w-0 lg:overflow-x-auto"><table role="table" className="block w-full lg:table">
-          <thead role="rowgroup" className="sr-only lg:not-sr-only lg:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
-          <tbody role="rowgroup" className="block space-y-3 bg-slate-50 p-3 lg:table-row-group lg:space-y-0 lg:bg-transparent lg:p-0">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
-        </table></div>
+        <div className="@container min-w-0"><div className="min-w-0 @4xl:overflow-x-auto"><table role="table" className="block w-full @4xl:table">
+          <thead role="rowgroup" className="sr-only @4xl:not-sr-only @4xl:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
+          <tbody role="rowgroup" className="block space-y-3 bg-slate-50 p-2 sm:p-3 @4xl:table-row-group @4xl:space-y-0 @4xl:bg-transparent @4xl:p-0">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
+        </table></div></div>
         {errors.detalles?.message && <p className={`px-5 py-2 ${errorTextCls}`}>{errors.detalles.message}</p>}
       </section>
       <section className={cardCls}>
