@@ -26,7 +26,7 @@ const estadoEtiqueta: Record<EstadoDespacho, string> = {
 
 const estadoBadge: Record<EstadoDespacho, string> = {
   pendiente: 'rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600',
-  productos: 'rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700',
+  productos: 'rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800',
   envases: 'rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700',
   completo: 'rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700',
 }
@@ -304,7 +304,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Devoluciones</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             Registra lo que el vendedor devuelve al finalizar su ruta, por despacho.
           </p>
         </div>
@@ -314,7 +314,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
       {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
       {historial.errorIndividual && <EstadoVista variante="error" mensaje="No fue posible actualizar el despacho seleccionado. Inténtalo de nuevo." onReintentar={() => void load()} />}
       {error && (
-        <p id="error-devolucion" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p id="error-devolucion" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
       <div className={`${cardCls} min-w-0`}>
@@ -378,7 +378,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
         <aside className={`${cardCls} min-w-0`}>
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Despachos</h2>
-            <p className="text-sm text-slate-500">Selecciona uno para registrar la devolución</p>
+            <p className="text-sm text-slate-600">Selecciona uno para registrar la devolución</p>
           </div>
 
           {despachosFiltrados.length === 0 ? (
@@ -404,7 +404,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                         </p>
                         <span className={estadoBadge[dEstado]}>{estadoEtiqueta[dEstado]}</span>
                       </div>
-                      <p className="mt-0.5 text-xs text-slate-500">
+                      <p className="mt-0.5 text-xs text-slate-600">
                         {fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)} · {d.totalUnidades} unid.
                       </p>
                     </button>
@@ -427,7 +427,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
                   <h2 ref={detalleTitulo} tabIndex={-1} className="text-base font-semibold text-slate-900">
                     Devolución de {despachoSeleccionado.vendedorNombre}
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600">
                     {fmtFecha(despachoSeleccionado.creado_en)} ·{' '}
                     {despachoSeleccionado.totalUnidades} unid. despachadas
                   </p>

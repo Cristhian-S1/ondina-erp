@@ -43,7 +43,7 @@ function ClientesCartera() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             {esAdmin
               ? 'Cartera de clientes por vendedor: elige sucursal y vendedor.'
               : 'Cartera de clientes de tu ruta.'}
@@ -120,7 +120,7 @@ function ClientesCartera() {
                       <td className={tdCls}>
                         <p className="font-medium text-slate-900">{c.nombre}</p>
                         {c.numero_local && (
-                          <p className="text-xs text-slate-500">Local {c.numero_local}</p>
+                          <p className="text-xs text-slate-600">Local {c.numero_local}</p>
                         )}
                       </td>
                       <td className={tdCls}>
@@ -158,21 +158,21 @@ function ClientesCartera() {
                 </div>
                 <dl className="space-y-1 px-4 py-3 text-sm">
                   <div className="flex justify-between gap-3">
-                    <dt className="text-slate-500">Dirección</dt>
+                    <dt className="text-slate-600">Dirección</dt>
                     <dd className="text-right text-slate-900">{c.direccion}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-slate-500">Teléfono</dt>
+                    <dt className="text-slate-600">Teléfono</dt>
                     <dd className="text-right text-slate-900">{c.telefono ?? '—'}</dd>
                   </div>
                   {c.numero_local && (
                     <div className="flex justify-between gap-3">
-                      <dt className="text-slate-500">Local</dt>
+                      <dt className="text-slate-600">Local</dt>
                       <dd className="text-right text-slate-900">{c.numero_local}</dd>
                     </div>
                   )}
                   <div className="flex justify-between gap-3">
-                    <dt className="text-slate-500">Registrado</dt>
+                    <dt className="text-slate-600">Registrado</dt>
                     <dd className="text-right text-slate-900">{fmtFecha(c.creado_en)}</dd>
                   </div>
                 </dl>

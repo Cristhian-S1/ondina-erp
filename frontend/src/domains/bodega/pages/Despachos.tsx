@@ -335,7 +335,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Despachos</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             Registra salidas hacia vendedores y devoluciones de productos o envases.
           </p>
         </div>
@@ -356,7 +356,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
       {!modalOpen && datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
       {error && !modalOpen && (
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
@@ -452,7 +452,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                           <p className="truncate text-sm font-semibold text-slate-900">
                             {d.vendedorNombre}
                           </p>
-                          <p className="text-xs text-slate-500">{fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)}</p>
+                          <p className="text-xs text-slate-600">{fmtFechaHora(d.creado_en)} · #{d.id.slice(0, 8)}</p>
                         </div>
                       </div>
                       <div className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0">
@@ -478,11 +478,11 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                     {expandido && (
                       <div id={`despacho-${d.id}`} className="space-y-3 border-t border-slate-100 px-4 py-3">
                         <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                             Productos despachados
                           </p>
                           {detalles.length === 0 ? (
-                            <p className="mt-1 text-sm text-slate-500">Sin detalles registrados.</p>
+                            <p className="mt-1 text-sm text-slate-600">Sin detalles registrados.</p>
                           ) : (
                             <ul className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
                               {detalles.map((det) => (
@@ -509,7 +509,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
                         {envasesDeDespacho(d.id).length > 0 && (
                           <div>
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                               Envases despachados
                             </p>
                             <ul className="mt-2 overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -534,7 +534,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                         {(devs.productos.length > 0 || devs.envases.length > 0) && (
                           <div>
                             <div className="flex items-center justify-between">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                                 Devoluciones
                               </p>
                               {llegada && (
@@ -553,7 +553,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                                     {productos.find((p) => p.id === dv.producto_id)?.nombre ??
                                       'Producto'}
                                   </span>
-                                  <span className="font-medium text-amber-700">−{formatMiles(dv.cantidad)}</span>
+                                  <span className="font-medium text-amber-800">−{formatMiles(dv.cantidad)}</span>
                                 </li>
                               ))}
                               {devs.envases.map((de) => (
@@ -569,7 +569,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                                     className={
                                       de.estado === 'bueno'
                                         ? 'font-medium text-emerald-700'
-                                        : 'font-medium text-amber-700'
+                                        : 'font-medium text-amber-800'
                                     }
                                   >
                                     +{formatMiles(de.cantidad)} {de.estado === 'bueno' ? 'buenas' : 'malas'}
@@ -601,7 +601,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
         <aside className={`${cardCls} min-w-0`}>
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Devoluciones de esta página</h2>
-            <p className="text-sm text-slate-500">Agrupadas por despacho</p>
+            <p className="text-sm text-slate-600">Agrupadas por despacho</p>
           </div>
 
           {gruposDevolucion.length === 0 ? (
@@ -612,7 +612,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                 <li key={g.despachoId} className="px-4 py-3">
                   <div className="flex min-w-0 flex-col items-start gap-1">
                     <p className="max-w-full truncate text-sm font-semibold text-slate-900">{g.vendedor}</p>
-                    <span className="text-xs text-slate-500">{fmtFechaHora(g.fecha)} · #{g.despachoId.slice(0, 8)}</span>
+                    <span className="text-xs text-slate-600">{fmtFechaHora(g.fecha)} · #{g.despachoId.slice(0, 8)}</span>
                   </div>
                   <ul className="mt-2 space-y-1">
                     {g.lineas.map((l) => (
@@ -620,14 +620,14 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
                         <span className="flex min-w-0 items-center gap-2 text-slate-700">
                           <span
                             className={`h-2 w-2 shrink-0 rounded-full ${
-                              l.tipo === 'producto' ? 'bg-amber-500' : 'bg-emerald-500'
+                              l.tipo === 'producto' ? 'bg-amber-600' : 'bg-emerald-600'
                             }`}
                           />
                           <span className="truncate">{l.descripcion}</span>
                         </span>
                         <span
                           className={`shrink-0 font-medium ${
-                            l.tipo === 'producto' ? 'text-amber-700' : 'text-emerald-700'
+                            l.tipo === 'producto' ? 'text-amber-800' : 'text-emerald-700'
                           }`}
                         >
                           {l.tipo === 'producto' ? `−${formatMiles(l.cantidad)}` : `+${formatMiles(l.cantidad)}`}
@@ -664,11 +664,11 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
 
             {vendedorId && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                   Carga actual del vendedor
                 </p>
                 {cargaVendedorSeleccionado.length === 0 ? (
-                  <p className="mt-1 text-sm text-slate-500">Sin carga registrada.</p>
+                  <p className="mt-1 text-sm text-slate-600">Sin carga registrada.</p>
                 ) : (
                   <ul className="mt-2 space-y-1">
                     {cargaVendedorSeleccionado.map((c) => (

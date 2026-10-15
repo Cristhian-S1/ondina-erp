@@ -146,7 +146,7 @@ export default function Stock() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Stock</h1>
-        <p className="mt-1 text-sm text-slate-500">Consulta existencias por sucursal.</p>
+        <p className="mt-1 text-sm text-slate-600">Consulta existencias por sucursal.</p>
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3">

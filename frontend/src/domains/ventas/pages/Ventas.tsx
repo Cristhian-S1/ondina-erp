@@ -21,7 +21,7 @@ export default function Ventas() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Ventas</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           {esAdmin
             ? 'Accesos rápidos de ventas y la carga asignada a tu usuario.'
             : 'Resumen de tu ruta: carga asignada y accesos rápidos.'}
@@ -40,7 +40,7 @@ export default function Ventas() {
             <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-800">
               Registrar venta
             </p>
-            <p className="text-xs text-slate-500">Productos, cliente y forma de pago</p>
+            <p className="text-xs text-slate-600">Productos, cliente y forma de pago</p>
           </div>
         </Link>
 
@@ -55,7 +55,7 @@ export default function Ventas() {
             <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-800">
               Clientes
             </p>
-            <p className="text-xs text-slate-500">{esAdmin ? 'Cartera por vendedor y alta nueva' : 'Tu cartera y alta nueva'}</p>
+            <p className="text-xs text-slate-600">{esAdmin ? 'Cartera por vendedor y alta nueva' : 'Tu cartera y alta nueva'}</p>
           </div>
         </Link>
 
@@ -70,7 +70,7 @@ export default function Ventas() {
             <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-800">
               Mi carga
             </p>
-            <p className="text-xs text-slate-500">{esAdmin ? 'Carga de tu usuario' : 'Productos asignados'}</p>
+            <p className="text-xs text-slate-600">{esAdmin ? 'Carga de tu usuario' : 'Productos asignados'}</p>
           </div>
         </Link>
 
@@ -85,7 +85,7 @@ export default function Ventas() {
             <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-800">
               Gastos
             </p>
-            <p className="text-xs text-slate-500">Combustible, averías, otros</p>
+            <p className="text-xs text-slate-600">Combustible, averías, otros</p>
           </div>
         </Link>
       </div>

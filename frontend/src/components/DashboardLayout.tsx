@@ -190,7 +190,7 @@ export default function DashboardLayout() {
               className={({ isActive }) =>
                 `flex min-h-11 min-w-11 items-center gap-3 rounded-lg py-2.5 text-sm transition-colors ${
                   isActive
-                    ? 'bg-brand-600 text-white'
+                    ? 'bg-brand-700 text-white shadow-[inset_4px_0_0_#fff]'
                     : 'text-slate-300 hover:bg-brand-800 hover:text-white'
                 } ${collapsed ? 'lg:justify-center lg:px-0' : 'px-4'}`
               }
@@ -251,7 +251,7 @@ export default function DashboardLayout() {
               <p className="text-sm font-semibold leading-tight text-slate-900">
                 {perfil.nombres} {perfil.apellidos}
               </p>
-              <p className="text-xs leading-tight text-slate-500">{rolEtiqueta[perfil.rol]}</p>
+              <p className="text-xs leading-tight text-slate-600">{rolEtiqueta[perfil.rol]}</p>
             </div>
           </div>
         </header>
@@ -259,7 +259,7 @@ export default function DashboardLayout() {
         <main className="flex-1 p-4 sm:p-6">
           <Outlet />
         </main>
-        <footer className="px-4 pb-3 text-right text-xs text-slate-500 sm:px-6" title={`Versión de la aplicación: ${__APP_VERSION__}`}>
+        <footer className="px-4 pb-3 text-right text-xs text-slate-600 sm:px-6" title={`Versión de la aplicación: ${__APP_VERSION__}`}>
           Versión {__APP_VERSION__}
         </footer>
       </div>

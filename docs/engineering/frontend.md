@@ -93,8 +93,8 @@ Mantine (`@mantine/core`, `@mantine/dates`, `@mantine/hooks`) and `dayjs` were r
 
 ## Accessibility and contrast
 
-- Table headers use `thCls` (`text-slate-600`): 7.24:1 on `slate-50`, against the 2.45:1 the previous `slate-400` measured (AA requires 4.5:1). The version footer uses `text-slate-500` (4.55:1 on `slate-50`). Do not lower text grays on light backgrounds to meet a layout idea.
-- Interactive targets are at least 44 px: `inputCls`, `btnPrimary`, `btnSecondary` and `btnDanger` carry `min-h-11`; icon-only buttons (menu toggle, `Cerrar menú`, Toast close, Dialog close) are `min-h-11 min-w-11`; drawer nav items are the same height.
+- Table headers use `thCls` (`text-slate-600`): 7.24:1 on `slate-50`, against the 2.45:1 the previous `slate-400` measured (AA requires 4.5:1). Secondary text uses `text-slate-600` (6.92:1 on `slate-100`); `text-slate-500` is reserved for decorative icons (4.35:1 on `slate-100`). Error text uses `red-700` (`errorTextCls`, `errorBlockCls`). Do not lower text grays on light backgrounds to meet a layout idea.
+- Interactive targets are at least 44 px: `inputCls`, `btnPrimary`, `btnSecondary`, `btnDanger` and `btnDangerOutline` carry `min-h-11`; icon-only buttons (menu toggle, `Cerrar menú`, Toast close, Dialog close) are `min-h-11 min-w-11`; drawer nav items are the same height.
 - Live regions and semantics come from the roles of `EstadoVista`, `Toast` and `Dialog` (`status`, `alert`, `dialog`, `aria-modal`, `inert`); keep them intact when restyling.
 - Use one responsive DOM/form tree: tables may become cards below 640 px, but must not duplicate React Hook Form registrations.
 

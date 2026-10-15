@@ -1,6 +1,6 @@
 import InputNumerico from '../../../components/InputNumerico'
 import { formatMiles } from '../../../lib/format'
-import { inputCls, labelCls } from '../../../lib/ui'
+import { btnDangerOutline, inputCls, labelCls } from '../../../lib/ui'
 import type { Producto } from '../../../types'
 
 interface AtributosCampo {
@@ -44,7 +44,7 @@ export default function LineaDespacho({
           {elegido ? elegido.nombre : 'Sin producto seleccionado'}
         </span>
         <button type="button" onClick={onQuitar}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-red-300 bg-white px-3 text-sm font-semibold text-red-700 transition hover:bg-red-50">
+          className={`${btnDangerOutline} shrink-0 !px-3`}>
           Quitar
         </button>
       </div>

@@ -2,7 +2,7 @@ import { useController } from 'react-hook-form'
 import type { Control } from 'react-hook-form'
 import type { RegistrarVentaForm, RegistrarVentaFormInput } from '../schemas'
 import type { ProductoVenta } from '../types'
-import { btnDanger } from '../../../lib/ui'
+import { btnDangerOutline } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
 import CampoFormulario from './CampoFormulario'
 import InputNumerico from '../../../components/InputNumerico'
@@ -55,6 +55,6 @@ export default function FilaProductoVenta({ control, index, productos, seleccion
       </CampoFormulario>
     </td>
     <td role="cell" className={`col-span-2 flex items-baseline justify-between border-t border-slate-200 pt-3 text-sm font-semibold text-slate-900 lg:table-cell lg:border-0 ${celda}`}><span className="text-xs font-medium text-slate-600 lg:hidden">Subtotal</span><span>$ {formatMiles(subtotal)}</span></td>
-    <td role="cell" className={`col-span-2 ${celda} lg:text-right`}><button type="button" className={`${btnDanger} w-full lg:w-auto`} onClick={onQuitar} disabled={!puedeQuitar}>Quitar</button></td>
+    <td role="cell" className={`col-span-2 ${celda} lg:text-right`}><button type="button" className={`${btnDangerOutline} w-full lg:w-auto`} onClick={onQuitar} disabled={!puedeQuitar}>Quitar</button></td>
   </tr>
 }

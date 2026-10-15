@@ -245,7 +245,7 @@ function FormularioVenta({ identidad }: { identidad: RefObject<string | undefine
     <Toast toast={toast} onClose={cerrar} />
     <form onSubmit={event => void handleSubmit(onSubmit)(event)} className="min-w-0 space-y-6 pb-28 sm:pb-0" noValidate>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-        <div><h1 className="text-2xl font-bold text-slate-900">Registrar venta</h1><p className="mt-1 text-sm text-slate-500">Elige cliente, productos y forma de pago para confirmar tu venta.</p></div>
+        <div><h1 className="text-2xl font-bold text-slate-900">Registrar venta</h1><p className="mt-1 text-sm text-slate-600">Elige cliente, productos y forma de pago para confirmar tu venta.</p></div>
         <button type="button" className={btnSecondary} onClick={() => navigate('/ventas')}>Cancelar</button>
       </div>
       {motivos.map((motivo, index) => <div key={motivoIds[index]}>

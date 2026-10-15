@@ -17,24 +17,23 @@ sin archivo `tailwind.config.js`. Los design tokens viven en
 Token central del producto. Se usa en sidebar, botones primarios, enlaces activos
 y bordes de foco.
 
-> **Propuesta pendiente de aprobación (D1).** Los valores de esta sección son
-> los vigentes en `index.css`. La escala `brand` no es monótona (50 y 100 más
-> oscuros que 200; 500 más apagado que 400) y blanco sobre `brand-600` mide
-> 4,06:1 (no cumple AA para texto normal). La propuesta con contrastes
-> calculados está en
-> `docs/archive/audits/2026-10-14/frontend-movil/D1-propuesta.md`. No cambies
-> estos valores hasta que se apruebe.
+> **Valores definitivos (D2, 2026-10-14).** Aprobados por el responsable y
+> aplicados en `index.css`: escala `brand` 50–500 monótona y `brand-600`
+> oscurecido a `#2c7bb1` (blanco sobre `brand-600` mide 4,59:1, AA). Los
+> contrastes calculados están en
+> `docs/archive/audits/2026-10-14/frontend-movil/D1-propuesta.md` y
+> `D2-contrastes.txt`.
 
 | Token            | Hex       | Uso típico                                        |
 | ---------------- | --------- | -------------------------------------------------- |
-| `brand-50`       | `#cbebfc` | fondos tenues, badges                              |
-| `brand-100`      | `#a4dbf9` | avatar, acentos suaves                             |
-| `brand-200`      | `#bfdcf8` | bordes de botones secundarios (`border-brand-200`) |
-| `brand-300`      | `#89c3eb` | bordes decorativos                                 |
-| `brand-400`      | `#56c4ec` | iconos en hover                                    |
-| `brand-500`      | `#749ccc` | _no muy usado_                                     |
-| `brand-600`      | `#3284bd` | **botón primario**, nav activa, foco               |
-| `brand-700`      | `#2b72a3` | hover de primario                                  |
+| `brand-50`       | `#f0f8fe` | fondos tenues, badges                              |
+| `brand-100`      | `#e0f1ff` | avatar, acentos suaves                             |
+| `brand-200`      | `#c4e4ff` | bordes de botones secundarios (`border-brand-200`) |
+| `brand-300`      | `#9ed1fa` | bordes decorativos                                 |
+| `brand-400`      | `#77b9ec` | iconos en hover                                    |
+| `brand-500`      | `#56a0d7` | _no muy usado_                                     |
+| `brand-600`      | `#2c7bb1` | **botón primario** (4,59:1 con blanco), foco              |
+| `brand-700`      | `#2b72a3` | hover de primario, **nav activa** (5,20:1)         |
 | `brand-800`      | `#245f8a` | bordes del sidebar                                 |
 | `brand-900`      | `#1c4e70` | **fondo del sidebar**                              |
 
@@ -49,7 +48,7 @@ Base para textos, fondos, bordes y tablas.
 | `slate-300` | bordes de inputs (`border-slate-300`), bordes dashed |
 | `slate-400` | **no usar para texto** (2,63:1 sobre blanco); sólo iconos/decorativos |
 | `slate-600` | texto secundario y encabezados de tabla (6,92:1 sobre `slate-100`) |
-| `slate-500` | placeholders y texto sobre blanco (4,76:1); sobre `slate-100` mide 4,35:1: usa `slate-600` |
+| `slate-500` | sólo iconos decorativos y placeholders; **no usar como texto** (4,35:1 sobre `slate-100`) |
 | `slate-700` | labels de formulario                                 |
 | `slate-900` | títulos y texto principal                           |
 | `slate-950` | overlays de modal (`bg-slate-950/60`)               |
@@ -61,16 +60,16 @@ Cada rol tiene un badge con fondo + texto:
 | Rol            | Clase                                   |
 | -------------- | --------------------------------------- |
 | `vendedor`     | `bg-sky-100 text-sky-700`                |
-| `bodega`       | `bg-amber-100 text-amber-700`           |
+| `bodega`       | `bg-amber-100 text-amber-800`           |
 | `produccion`   | `bg-violet-100 text-violet-700`          |
 | `administrador`| `bg-emerald-100 text-emerald-700`       |
 
 ### 1.4 Estados
 
-- Error / alerta: `errorBlockCls` (`bg-red-50 text-red-600`, ver nota D1), `errorTextCls` bajo campos, `inputErrorCls` en el borde del input, `bg-red-600` hover `bg-red-700` (botón danger).
-- Advertencia (devoluciones producto): badge `bg-amber-100 text-amber-700`; punto de estado `bg-amber-500`.
-- Éxito / devoluciones envase: badge `bg-emerald-100 text-emerald-700`; punto de estado `bg-emerald-500`.
-- Contrastes de estos pares y su propuesta: D1 (pendiente de aprobación).
+- Error / alerta: `errorBlockCls` (`bg-red-50 text-red-700`, 5,87:1), `errorTextCls` bajo campos (`text-red-700`), `inputErrorCls` en el borde del input, `bg-red-600` hover `bg-red-700` (`btnDanger`, sólo acciones destructivas irreversibles) y `btnDangerOutline` (borde y texto `red-700`) para "Quitar" en tarjetas móviles.
+- Advertencia (devoluciones producto): badge `bg-amber-100 text-amber-800`; punto de estado `bg-amber-600`.
+- Éxito / devoluciones envase: badge `bg-emerald-100 text-emerald-700`; punto de estado `bg-emerald-600`.
+- Contrastes de estos pares: `D2-contrastes.txt` (todos AA salvo estados `disabled`).
 
 ---
 
@@ -127,7 +126,7 @@ body { @apply bg-slate-100 text-slate-800 antialiased; }
 
 ### 4.2 Nav
 
-- Item: `rounded-lg py-2.5 px-4 text-sm gap-3`. Activo `bg-brand-600 text-white`;
+- Item: `rounded-lg py-2.5 px-4 text-sm gap-3`. Activo `bg-brand-700 text-white shadow-[inset_4px_0_0_#fff]` (barra blanca de 4 px);
   inactivo `text-slate-300 hover:bg-brand-800 hover:text-white`.
 - Icono del item: `h-5 w-5 shrink-0`.
 - Las rutas se definen por `DomainModule` (ver `types/module.ts`); el header de
@@ -150,12 +149,13 @@ reutilizar sin repetir Tailwind. Úsalos siempre que aplique.
 | `inputCls`       | inputs/selects: borde slate-300, foco `brand-600` con ring     |
 | `btnPrimary`     | fondo `brand-600`, hover `brand-700`, texto blanco             |
 | `btnSecondary`   | borde `brand-200`, fondo blanco, texto `brand-800`             |
-| `btnDanger`      | fondo `red-600`, hover `red-700`                               |
+| `btnDanger`      | fondo `red-600`, hover `red-700` (acciones irreversibles)      |
+| `btnDangerOutline` | borde y texto `red-700`, fondo blanco, hover `red-50` ("Quitar") |
 | `cardCls`        | `rounded-2xl border border-slate-200 bg-white shadow-sm`       |
 | `thCls`          | cabecera de tabla: `text-xs uppercase tracking-wide text-slate-600`|
 | `tdCls`          | celda: `text-sm text-slate-900`                                |
-| `errorTextCls`   | texto de error de campo bajo un input (`text-xs text-red-600`) |
-| `errorBlockCls`  | bloque de error de mutación (`bg-red-50 text-red-600`)         |
+| `errorTextCls`   | texto de error de campo bajo un input (`text-xs text-red-700`) |
+| `errorBlockCls`  | bloque de error de mutación (`bg-red-50 text-red-700`)         |
 | `inputErrorCls`  | borde rojo para inputs inválidos                               |
 | `soloNumeros`    | handler de teclado para restringir a dígitos                   |
 
@@ -229,12 +229,12 @@ Para nuevas necesidades, agrega un export siguiendo el mismo patrón `Svg`.
 
 ```tsx
 <div className="inline-flex rounded-lg bg-slate-100 p-1">
-  <button className={activo ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}>
+  <button className={activo ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-800'}>
 ```
 
 ### 7.5 Formulario repetible (líneas de despacho)
 
-Grid `sm:grid-cols-[minmax(0,1fr)_7rem_auto]`, botón "Quitar" y "+ Agregar".
+Grid `sm:grid-cols-[minmax(0,1fr)_7rem_auto]`, botón "Quitar" (`btnDangerOutline`) y "+ Agregar".
 Bajo 640 px cada línea es una tarjeta (ver 7.7).
 
 ### 7.6 Estado vacío y carga

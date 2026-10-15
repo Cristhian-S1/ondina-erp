@@ -71,7 +71,7 @@ export default function Gastos() {
       <Toast toast={toast} onClose={cerrar} />
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Gastos extras</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           Registra gastos de ruta del día. En esta versión no se adjuntan comprobantes.
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function Gastos() {
           </CampoFormulario>
           <CampoFormulario etiqueta="Monto (CLP)" error={errors.monto?.message}>
             {atributos => <Controller control={control} name="monto" render={({ field }) => <div className="relative">
-              <span aria-hidden="true" className="pointer-events-none absolute top-[calc(50%+0.125rem)] left-3 -translate-y-1/2 text-sm text-slate-500">$</span>
+              <span aria-hidden="true" className="pointer-events-none absolute top-[calc(50%+0.125rem)] left-3 -translate-y-1/2 text-sm text-slate-600">$</span>
               <InputNumerico {...atributos} {...field} className={`${atributos.className} pl-7`} value={field.value === undefined ? undefined : Number(field.value)} onChange={field.onChange} conFlechas={false} /></div>} />}
           </CampoFormulario>
           <CampoFormulario etiqueta="Motivo" error={errors.motivo?.message}>
@@ -127,12 +127,12 @@ export default function Gastos() {
                   <p className="truncate text-sm font-medium text-slate-900">
                     {g.motivo}
                     {g.anulado && (
-                      <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                      <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
                         Anulado
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-600">
                     {TIPOS.find((t) => t.value === g.tipo)?.label ?? g.tipo} · {fmtFechaHora(g.creado_en)}
                   </p>
                 </div>

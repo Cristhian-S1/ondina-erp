@@ -45,7 +45,7 @@ export default function Login() {
             className="mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm"
           />
           <h1 className="text-2xl font-bold text-brand-900">Ondina</h1>
-          <p className="mt-1 text-sm text-slate-500">Inicia sesión para continuar</p>
+          <p className="mt-1 text-sm text-slate-600">Inicia sesión para continuar</p>
         </div>
 
         <div>

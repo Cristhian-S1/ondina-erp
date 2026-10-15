@@ -110,7 +110,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         noValidate
       >
         {esAdmin && sucursalExterna === undefined && <SucursalSelector value={sucursalId} onChange={(id) => { setSucursalLocal(id); setValue('vendedor_id', '') }} disabled={crear.isPending} />}
-        {esAdmin && !sucursalId && <p className="text-sm text-slate-500">Selecciona una sucursal y un vendedor para registrar el cliente.</p>}
+        {esAdmin && !sucursalId && <p className="text-sm text-slate-600">Selecciona una sucursal y un vendedor para registrar el cliente.</p>}
         {esAdmin && <>
           <CampoFormulario etiqueta="Vendedor responsable" error={errors.vendedor_id?.message}>
             {atributos => <select {...atributos} disabled={!sucursalId || vendedores.isLoading || !!vendedores.error || crear.isPending} {...register('vendedor_id')}>
