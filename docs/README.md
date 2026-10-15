@@ -13,6 +13,7 @@ Read the row relevant to the current task, then the linked source. Root instruct
 | Change SQL, Auth, RLS or stock rules | [Database](engineering/database.md) |
 | Configure Supabase Auth, passwords or sessions | [Auth configuration](engineering/auth.md) |
 | Configure CI/Vercel environments | [Deployment](engineering/deployment.md) |
+| Monitor availability, errors or rehearse alerts | [Observability](engineering/observability.md) |
 | Use Beads, CodeGraph or Mem0 | [Agent tools](agents/tools.md) |
 | Clarify domain terminology or an ADR | [Domain documentation](agents/domain.md) |
 | Choose an installed skill | [Skill catalog](skills.md) |

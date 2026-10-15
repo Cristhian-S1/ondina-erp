@@ -7,3 +7,7 @@
 - Siguiente paso: implementar el contrato de las pruebas; usar el mismo script del workflow contra Supabase LOCAL sin imprimir tokens; no modificar SQL ni servicios remotos.
 - Verificación pendiente: `actionlint .github/workflows/health.yml` si disponible; en `frontend/`: `npm run lint`, `npm run build`, `npm run size`, `npm run test`; no integración.
 - No se lanzaron servidores ni procesos persistentes; no hay ensayo sintético ni evidencia visual; no se envió `worker_done` por orden de pausa.
+
+## Reanudación, 2026-10-15
+
+Nota histórica de pausa resuelta: implementación y verificación local entregadas en [O3-observabilidad-54.md](O3-observabilidad-54.md). El WIP original se rehízo en commits coherentes; la configuración y aceptación operativa remotas siguen pendientes según el informe.
