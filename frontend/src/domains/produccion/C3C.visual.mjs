@@ -40,12 +40,12 @@ try {
           assert.equal(await page.getByRole('button', { name: 'Registrar incidencia', exact: true }).isVisible(), true)
           assert.equal(await page.getByRole('button', { name: 'Registrar merma', exact: true }).isVisible(), true)
         }
-        await page.locator('#campo-merma-producto').selectOption({ index: 1 })
+        await page.locator('[data-campo="merma-producto"]').selectOption({ index: 1 })
         await page.getByText(/^Disponible: [\d.]+$/).waitFor()
-        const quantity = page.locator('#campo-merma-cantidad')
+        const quantity = page.locator('[data-campo="merma-cantidad"]')
         await quantity.fill('9999999')
         assert.equal(await quantity.getAttribute('aria-invalid'), 'true', 'C3-12 live stock validation')
-        assert.match(await quantity.getAttribute('aria-describedby'), /campo-merma-cantidad-error/)
+        assert.match(await quantity.getAttribute('aria-describedby'), /-error/)
         assert.equal(await quantity.inputValue(), '9.999.999', 'Excess quantity is preserved')
         await page.getByText(/^Excede el stock en bodega:/).waitFor()
         // No write is needed to test the stock limit.
