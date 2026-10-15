@@ -3,6 +3,7 @@ import type { Perfil } from '../types'
 
 export interface AuthContextValue {
   perfil: Perfil | null
+  recovery?: boolean
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>

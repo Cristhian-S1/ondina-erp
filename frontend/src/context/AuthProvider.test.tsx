@@ -27,8 +27,8 @@ function OpenForm() {
   return <input aria-label="Open form" value={value} onChange={(event) => setValue(event.target.value)} />
 }
 function Consumer() {
-  const { perfil, loading, signOut } = useAuth()
-  return <><p>{loading ? 'loading' : perfil?.id ?? 'anonymous'}</p>
+  const { perfil, loading, recovery, signOut } = useAuth()
+  return <><output aria-label="Recovery">{String(recovery)}</output><p>{loading ? 'loading' : perfil?.id ?? 'anonymous'}</p>
     {perfil && <output aria-label="Profile permissions">{perfil.rol}:{perfil.sucursal_id}</output>}
     <button onClick={() => void signOut().catch(() => {})}>Logout</button>
     {!loading && perfil && <OpenForm />}</>
@@ -41,6 +41,7 @@ function setup() {
 beforeEach(() => {
   vi.resetAllMocks()
   sessionStorage.clear()
+  localStorage.clear()
   auth.getSession.mockResolvedValue({ data: { session: session('user-1') }, error: null })
   auth.single.mockResolvedValue({ data: makePerfil(), error: null })
   auth.signOut.mockResolvedValue({ error: null })
@@ -279,5 +280,54 @@ describe('AuthProvider session isolation', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+const recoverySession = (sessionId = 'recovery-1') => ({
+  ...session('user-1'),
+  access_token: `header.${btoa(JSON.stringify({ session_id: sessionId }))}.signature`,
+}) as Session
+
+describe('AuthProvider recovery boundaries', () => {
+  it.each(['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION'])(
+    'keeps the recovery session outside the ERP on %s', async (event) => {
+      const client = setup()
+      await screen.findByText('user-1')
+      client.setQueryData(['private'], 'cached')
+      act(() => change('PASSWORD_RECOVERY', recoverySession()))
+      expect(screen.getByLabelText('Recovery')).toHaveTextContent('true')
+      expect(screen.getByText('anonymous')).toBeInTheDocument()
+      expect(client.getQueryData(['private'])).toBeUndefined()
+      auth.single.mockClear()
+      await act(async () => {
+        change(event, recoverySession())
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      })
+      expect(screen.getByLabelText('Recovery')).toHaveTextContent('true')
+      expect(auth.single).not.toHaveBeenCalled()
+    },
+  )
+  it('recognizes recovery on reload without fetching a profile', async () => {
+    localStorage.setItem('ondina:recovery-session', 'recovery-1')
+    auth.getSession.mockResolvedValue({ data: { session: recoverySession() }, error: null })
+    setup()
+    await waitFor(() => expect(screen.getByLabelText('Recovery')).toHaveTextContent('true'))
+    expect(auth.single).not.toHaveBeenCalled()
+  })
+  it('permits a fresh password login with a different session id', async () => {
+    setup()
+    await screen.findByText('user-1')
+    act(() => change('PASSWORD_RECOVERY', recoverySession()))
+    await act(async () => change('SIGNED_IN', recoverySession('new-password-session')))
+    await screen.findByText('user-1')
+    expect(screen.getByLabelText('Recovery')).toHaveTextContent('false')
+  })
+  it('clears recovery on sign out', async () => {
+    setup()
+    await screen.findByText('user-1')
+    act(() => change('PASSWORD_RECOVERY', recoverySession()))
+    act(() => change('SIGNED_OUT', null))
+    expect(screen.getByLabelText('Recovery')).toHaveTextContent('false')
+    expect(localStorage.getItem('ondina:recovery-session')).toBeNull()
   })
 })
