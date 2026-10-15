@@ -16,20 +16,19 @@ import { obtenerPaginaHistorial, TAMANO_PRODUCCION } from '../api'
 interface HistorialProduccionProps {
   sucursalId: string
   productos: Producto[]
-  versionDatos?: number
-  perfilId?: string
+  perfilId: string
 }
 
-export default function HistorialProduccion({ sucursalId, productos, versionDatos = 0, perfilId = '' }: HistorialProduccionProps) {
+export default function HistorialProduccion({ sucursalId, productos, perfilId }: HistorialProduccionProps) {
   const [filtros, setFiltros] = useState<ValoresFiltros>(filtrosVacios)
   const { productoId, desde, hasta } = filtros
   const rangoInvalido = rangoInvertido(filtros)
   const { pagina, setPagina } = usePaginaProduccion(JSON.stringify([perfilId, sucursalId, filtros]))
   const consulta = useQuery({
-    queryKey: ['produccion', perfilId, sucursalId, 'historial', productoId, desde, hasta, versionDatos, pagina],
+    queryKey: ['produccion', perfilId, sucursalId, 'historial', productoId, desde, hasta, pagina],
     queryFn: () => obtenerPaginaHistorial({ sucursalId, productoId, desde, hasta }, pagina),
     retry: false,
-    placeholderData: (prev, query) => JSON.stringify(query?.queryKey.slice(0, -1)) === JSON.stringify(['produccion', perfilId, sucursalId, 'historial', productoId, desde, hasta, versionDatos]) ? keepPreviousData(prev) : undefined,
+    placeholderData: (prev, query) => JSON.stringify(query?.queryKey.slice(0, -1)) === JSON.stringify(['produccion', perfilId, sucursalId, 'historial', productoId, desde, hasta]) ? keepPreviousData(prev) : undefined,
     enabled: !rangoInvalido,
   })
   const registros = consulta.data?.filas ?? []

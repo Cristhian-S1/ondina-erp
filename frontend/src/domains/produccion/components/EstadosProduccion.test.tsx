@@ -10,7 +10,7 @@ beforeEach(() => vi.resetAllMocks())
 
 it('A1-05 · un primer fallo de historial excluye el vacío y permite reintentar esa lectura', async () => {
   vi.mocked(obtenerHistorialProduccion).mockRejectedValueOnce(new Error('fallo')).mockResolvedValue([])
-  renderWithProviders(<HistorialProduccion sucursalId="s1" productos={[]} versionDatos={0} />)
+  renderWithProviders(<HistorialProduccion perfilId="" sucursalId="s1" productos={[]} />)
   await screen.findByRole('alert')
   expect(screen.queryByText(/No hay registros/)).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
@@ -20,9 +20,9 @@ it('A1-05 · un primer fallo de historial excluye el vacío y permite reintentar
 
 it('A1-05 · un fallo tras éxito de historial oculta las filas anteriores', async () => {
   vi.mocked(obtenerHistorialProduccion).mockResolvedValueOnce([{ id: 'r1', sucursal_id: 's1', producto_id: 'p1', cantidad: 783, observaciones: 'Turno anterior', anulado: false, creado_por: 'u1', creado_en: '2026-10-13T02:15:59Z' }]).mockRejectedValue(new Error('fallo'))
-  const { rerender } = renderWithProviders(<HistorialProduccion sucursalId="s1" productos={[]} versionDatos={0} />)
+  renderWithProviders(<HistorialProduccion perfilId="" sucursalId="s1" productos={[]} />)
   await screen.findByText('Turno anterior')
-  rerender(<HistorialProduccion sucursalId="s1" productos={[]} versionDatos={1} />)
+  fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-10-01' } })
   await screen.findByRole('alert')
   expect(screen.queryByText('Turno anterior')).not.toBeInTheDocument()
   expect(screen.queryByText(/No hay registros/)).not.toBeInTheDocument()
@@ -30,7 +30,7 @@ it('A1-05 · un fallo tras éxito de historial oculta las filas anteriores', asy
 
 it('A1-05 · indicadores fallidos muestran guiones, sin ceros ni vacío y recuperan con Reintentar', async () => {
   vi.mocked(obtenerIndicadoresProduccion).mockRejectedValueOnce(new Error('fallo')).mockResolvedValue([])
-  renderWithProviders(<IndicadoresProduccion sucursalId="s1" productos={[]} versionDatos={0} />)
+  renderWithProviders(<IndicadoresProduccion perfilId="" sucursalId="s1" productos={[]} />)
   await screen.findByRole('alert')
   expect(screen.queryByText('0')).not.toBeInTheDocument()
   expect(screen.queryByText(/No hay producción/)).not.toBeInTheDocument()
@@ -42,9 +42,9 @@ it('A1-05 · indicadores fallidos muestran guiones, sin ceros ni vacío y recupe
 
 it('A1-05 · indicadores no presentan datos anteriores al fallar tras éxito', async () => {
   vi.mocked(obtenerIndicadoresProduccion).mockResolvedValueOnce([{ sucursal_id: 's1', producto_id: 'p1', fecha: '2026-10-13', cantidad: 783, registros: 1 }]).mockRejectedValue(new Error('fallo'))
-  const { rerender } = renderWithProviders(<IndicadoresProduccion sucursalId="s1" productos={[]} versionDatos={0} />)
+  renderWithProviders(<IndicadoresProduccion perfilId="" sucursalId="s1" productos={[]} />)
   await screen.findAllByText('783')
-  rerender(<IndicadoresProduccion sucursalId="s1" productos={[]} versionDatos={1} />)
+  fireEvent.change(screen.getByLabelText('Período'), { target: { value: '7dias' } })
   await screen.findByRole('alert')
   expect(screen.queryByText('783')).not.toBeInTheDocument()
   expect(screen.getAllByText('—')).toHaveLength(2)
@@ -52,7 +52,7 @@ it('A1-05 · indicadores no presentan datos anteriores al fallar tras éxito', a
 
 it('UX-02/09 · historial contiene etiquetas de tarjeta en una sola fila y fecha sin segundos de Santiago', async () => {
   vi.mocked(obtenerHistorialProduccion).mockResolvedValue([{ id: 'r1', sucursal_id: 's1', producto_id: 'p1', cantidad: 783, observaciones: 'Turno anterior', anulado: false, creado_por: 'u1', creado_en: '2026-10-13T02:15:59Z' }])
-  renderWithProviders(<HistorialProduccion sucursalId="s1" productos={[]} />)
+  renderWithProviders(<HistorialProduccion perfilId="" sucursalId="s1" productos={[]} />)
   const fila = (await screen.findByText('Turno anterior')).closest('tr')!
   expect(fila).toHaveTextContent('Fecha y hora')
   expect(fila).toHaveTextContent('Producto')
@@ -68,7 +68,7 @@ it.each(['historial', 'indicadores'] as const)('A1-05 · %s oculta datos retenid
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   vi.mocked(obtenerHistorialProduccion).mockResolvedValueOnce([{ id: 'r1', sucursal_id: 's1', producto_id: 'p1', cantidad: 783, observaciones: 'Turno anterior', anulado: false, creado_por: 'u1', creado_en: '2026-10-13T02:15:59Z' }]).mockRejectedValue(new Error('fallo'))
   vi.mocked(obtenerIndicadoresProduccion).mockResolvedValueOnce([{ sucursal_id: 's1', producto_id: 'p1', fecha: '2026-10-13', cantidad: 783, registros: 1 }]).mockRejectedValue(new Error('fallo'))
-  render(<QueryClientProvider client={client}>{seccion === 'historial' ? <HistorialProduccion sucursalId="s1" productos={[]} /> : <IndicadoresProduccion sucursalId="s1" productos={[]} />}</QueryClientProvider>)
+  render(<QueryClientProvider client={client}>{seccion === 'historial' ? <HistorialProduccion perfilId="" sucursalId="s1" productos={[]} /> : <IndicadoresProduccion perfilId="" sucursalId="s1" productos={[]} />}</QueryClientProvider>)
   await screen.findAllByText('783')
   await act(async () => { await client.invalidateQueries({ queryKey: ['produccion', '', 's1', seccion] }) })
   await screen.findByRole('alert')
@@ -83,7 +83,7 @@ it('UX-09 · los períodos usan días de Santiago aunque el navegador esté en U
   vi.setSystemTime(new Date('2026-10-13T01:30:00Z'))
   vi.mocked(obtenerIndicadoresProduccion).mockResolvedValue([])
   try {
-    renderWithProviders(<IndicadoresProduccion sucursalId="s1" productos={[]} />)
+    renderWithProviders(<IndicadoresProduccion perfilId="" sucursalId="s1" productos={[]} />)
     await screen.findByText('No hay producción en el período.')
     expect(obtenerIndicadoresProduccion).toHaveBeenLastCalledWith('s1', '2026-10-12', '2026-10-12')
     fireEvent.change(screen.getByLabelText('Período'), { target: { value: '7dias' } })
@@ -100,7 +100,7 @@ it.each(['historial', 'indicadores'] as const)('FX R2-01 · %s mantiene datos y 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   vi.mocked(obtenerHistorialProduccion).mockResolvedValueOnce([{ id: 'r1', sucursal_id: 's1', producto_id: 'p1', cantidad: 783, observaciones: 'Turno anterior', anulado: false, creado_por: 'u1', creado_en: '2026-10-13T02:15:59Z' }]).mockReturnValueOnce(new Promise(() => {}))
   vi.mocked(obtenerIndicadoresProduccion).mockResolvedValueOnce([{ sucursal_id: 's1', producto_id: 'p1', fecha: '2026-10-13', cantidad: 783, registros: 1 }]).mockReturnValueOnce(new Promise(() => {}))
-  render(<QueryClientProvider client={client}>{seccion === 'historial' ? <HistorialProduccion sucursalId="s1" productos={[]} /> : <IndicadoresProduccion sucursalId="s1" productos={[]} />}</QueryClientProvider>)
+  render(<QueryClientProvider client={client}>{seccion === 'historial' ? <HistorialProduccion perfilId="" sucursalId="s1" productos={[]} /> : <IndicadoresProduccion perfilId="" sucursalId="s1" productos={[]} />}</QueryClientProvider>)
   const nodos = await screen.findAllByText('783')
   act(() => { void client.invalidateQueries({ queryKey: ['produccion', '', 's1', seccion] }) })
   await screen.findByText('Actualizando...')

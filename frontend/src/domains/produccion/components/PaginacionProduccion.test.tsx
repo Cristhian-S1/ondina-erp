@@ -9,7 +9,7 @@ beforeEach(() => {
   vi.mocked(api.obtenerPaginaHistorial).mockResolvedValue({ filas: [{ id: 'p1', producto_id: 'x', cantidad: 20, observaciones: 'Fila visible' } as never], total: 301 })
 })
 it('pages history on the server, keeps rows while pending, and resets when filters change', async () => {
-  renderWithProviders(<HistorialProduccion sucursalId="s1" productos={[]} />)
+  renderWithProviders(<HistorialProduccion perfilId="" sucursalId="s1" productos={[]} />)
   await screen.findByText('Fila visible')
   expect(screen.getByRole('navigation', { name: 'Paginación del historial de producción' })).toHaveTextContent('301 registros')
   let resolver!: (value: Awaited<ReturnType<typeof api.obtenerPaginaHistorial>>) => void
