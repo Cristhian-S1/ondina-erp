@@ -10,7 +10,7 @@ import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
 import { useDatosProduccion } from '../hooks/useDatosProduccion'
 import type { SeccionProduccion } from '../hooks/useDatosProduccion'
-import { btnPrimary, btnSecondary, cardCls, inputCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary, cardCls } from '../../../lib/ui'
 import { fmtFechaHora, formatMiles } from '../../../lib/format'
 import { registrarIncidencia, registrarMerma, registrarProduccion } from '../api'
 import CampoFormulario from '../../../components/CampoFormulario'
@@ -33,7 +33,6 @@ const secciones: { id: SeccionProduccion; titulo: string; descripcion: string }[
 const formCls = `${cardCls} min-w-0 space-y-4 self-start p-5`
 const gridCls = 'grid min-w-0 grid-cols-1 gap-6 items-start xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]'
 const ctrlExtra = 'min-w-0 max-w-full'
-const ctrlCls = `${inputCls} ${ctrlExtra}`
 
 export default function Produccion() {
   const { perfil } = useAuth()
@@ -152,7 +151,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     const validacion = validarMerma(datos)
     if (validacion) return invalidar(!productoMermaId ? 'merma-producto' : (!Number.isInteger(datos.cantidad) || datos.cantidad <= 0) ? 'merma-cantidad' : 'merma-motivo', validacion)
     if (!consulta.stock.isSuccess || consulta.stock.error) return invalidar('merma-cantidad', 'No fue posible verificar el stock. Actualiza la disponibilidad antes de registrar.')
-    if (errorStockMerma) { document.querySelector<HTMLElement>('[data-campo="merma-cantidad"]')?.focus(); return }
+    if (errorStockMerma) return invalidar('merma-cantidad', errorStockMerma)
     setGuardando(true)
     cerrar()
     const mensaje = await registrarMerma(datos)
@@ -175,8 +174,8 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
     {seccion === 'registrar' && <div className={gridCls}>
       <form className={formCls} onSubmit={event => void guardarProduccion(event)}>
         <h2 className="font-semibold text-slate-900">Nueva producción</h2>
-        <CampoFormulario etiqueta="Producto" error={errores['produccion-producto']}>{atributos => <select {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="produccion-producto" value={productoId} onChange={event => { corregir('produccion-producto'); setProductoId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select>}</CampoFormulario>
-        <CampoFormulario etiqueta="Cantidad">{atributos => <InputNumerico {...atributos} className={ctrlCls} data-campo="produccion-cantidad" value={cantidad} error={errorEnvases ?? errores['produccion-cantidad']} onChange={valor => { corregir('produccion-cantidad'); setCantidad(valor) }} />}</CampoFormulario>
+        <CampoFormulario etiqueta="Producto" error={errores['produccion-producto']} alerta={!!errores['produccion-producto']}>{atributos => <select {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="produccion-producto" value={productoId} onChange={event => { corregir('produccion-producto'); setProductoId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select>}</CampoFormulario>
+        <CampoFormulario etiqueta="Cantidad" error={errorEnvases ?? errores['produccion-cantidad']} alerta={!!errores['produccion-cantidad']}>{atributos => <InputNumerico {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="produccion-cantidad" value={cantidad} onChange={valor => { corregir('produccion-cantidad'); setCantidad(valor) }} />}</CampoFormulario>
         <CampoFormulario etiqueta="Observaciones (opcional)">{atributos => <textarea {...atributos} className={`${atributos.className} ${ctrlExtra}`} rows={3} maxLength={1000} value={observaciones} onChange={event => setObservaciones(event.target.value)} />}</CampoFormulario>
         <button disabled={guardando || catalogoInvalido} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar producción'}</button>
       </form>
@@ -190,7 +189,7 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
         <form className={formCls} onSubmit={event => void guardarIncidencia(event)}>
           <h2 className="font-semibold text-slate-900">Incidencia descriptiva</h2>
           <p className="text-sm text-slate-600">Registra una observación del turno. Esta incidencia no cambia las existencias; si hubo pérdida, registra una merma en la sección siguiente.</p>
-          <CampoFormulario etiqueta="Descripción de la incidencia" error={errores['incidencia-descripcion']}>{atributos => <textarea {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="incidencia-descripcion" rows={4} maxLength={1000} value={descripcionIncidencia} onChange={event => { corregir('incidencia-descripcion'); setDescripcionIncidencia(event.target.value) }} />}</CampoFormulario>
+          <CampoFormulario etiqueta="Descripción de la incidencia" error={errores['incidencia-descripcion']} alerta={!!errores['incidencia-descripcion']}>{atributos => <textarea {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="incidencia-descripcion" rows={4} maxLength={1000} value={descripcionIncidencia} onChange={event => { corregir('incidencia-descripcion'); setDescripcionIncidencia(event.target.value) }} />}</CampoFormulario>
           <button disabled={guardando} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar incidencia'}</button>
         </form>
         <section className={`${cardCls} min-w-0`}>
@@ -206,11 +205,11 @@ function ProduccionSucursal({ sucursalId, seccion, setOcupado }: { sucursalId: s
       <div className={gridCls}>
         <form className={formCls} onSubmit={event => void guardarMerma(event)}>
           <div><h2 className="font-semibold text-slate-900">Registrar merma</h2><p className="mt-1 text-sm text-slate-600">Registra productos dañados o perdidos para descontarlos del stock de bodega.</p></div>
-          <CampoFormulario etiqueta="Producto" error={errores['merma-producto']}>{atributos => <select {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="merma-producto" value={productoMermaId} onChange={event => { corregir('merma-producto'); setProductoMermaId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select>}</CampoFormulario>
-          <CampoFormulario etiqueta="Cantidad">{atributos => <InputNumerico {...atributos} className={ctrlCls} data-campo="merma-cantidad" value={cantidadMerma} error={errorStockMerma ?? errores['merma-cantidad']} aria-describedby={productoMermaId ? 'disponible-merma' : undefined} onChange={valor => { corregir('merma-cantidad'); setCantidadMerma(valor) }} />}</CampoFormulario>
+          <CampoFormulario etiqueta="Producto" error={errores['merma-producto']} alerta={!!errores['merma-producto']}>{atributos => <select {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="merma-producto" value={productoMermaId} onChange={event => { corregir('merma-producto'); setProductoMermaId(event.target.value) }}><option value="">Selecciona...</option>{opcionesProducto}</select>}</CampoFormulario>
+          <CampoFormulario etiqueta="Cantidad" error={errorStockMerma ?? errores['merma-cantidad']} alerta={!!errores['merma-cantidad']} descripcionId={productoMermaId ? 'disponible-merma' : undefined}>{atributos => <InputNumerico {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="merma-cantidad" value={cantidadMerma} onChange={valor => { corregir('merma-cantidad'); setCantidadMerma(valor) }} />}</CampoFormulario>
           {productoMermaId && <p id="disponible-merma" className="text-sm text-slate-600">Disponible: {stockMerma === undefined ? '—' : formatMiles(stockMerma)}</p>}
           <EstadoConsulta consulta={consulta.stock} cargando="Cargando stock de bodega..." mensaje="No fue posible verificar el stock de bodega. Reintenta la lectura." />
-          <CampoFormulario etiqueta="Motivo" error={errores['merma-motivo']}>{atributos => <textarea {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="merma-motivo" rows={4} maxLength={1000} value={motivoMerma} onChange={event => { corregir('merma-motivo'); setMotivoMerma(event.target.value) }} placeholder="Ej.: Bidón dañado durante producción" />}</CampoFormulario>
+          <CampoFormulario etiqueta="Motivo" error={errores['merma-motivo']} alerta={!!errores['merma-motivo']}>{atributos => <textarea {...atributos} className={`${atributos.className} ${ctrlExtra}`} data-campo="merma-motivo" rows={4} maxLength={1000} value={motivoMerma} onChange={event => { corregir('merma-motivo'); setMotivoMerma(event.target.value) }} placeholder="Ej.: Bidón dañado durante producción" />}</CampoFormulario>
           <button disabled={guardando || catalogoInvalido || !consulta.stock.isSuccess || !!consulta.stock.error} className={btnPrimary}>{guardando ? 'Registrando...' : 'Registrar merma'}</button>
         </form>
         <section className={`${cardCls} min-w-0`}>

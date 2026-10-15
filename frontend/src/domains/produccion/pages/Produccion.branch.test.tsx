@@ -266,6 +266,7 @@ it.each([
   const texto = document.getElementById(id)!.textContent!
   expect(texto).toMatch(/\S/)
   expect(screen.getAllByText(texto)).toHaveLength(1)
+  expect(document.getElementById(id)).toHaveAttribute('role', 'alert')
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
   expect(document.getElementById(id)).toBeVisible()
 })
@@ -429,6 +430,7 @@ it.each([
   const mensajes = ids.map(id => document.getElementById(id)!).filter(el => el.id.endsWith('-error'))
   expect(mensajes).toHaveLength(1)
   expect(mensajes[0]).toHaveTextContent(/\S/)
+  expect(mensajes[0]).toHaveAttribute('role', 'alert')
   expect(screen.getAllByText(mensajes[0].textContent!)).toHaveLength(1)
   expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
 })
@@ -442,6 +444,41 @@ it('R2-13 · la cantidad de merma enlaza el error y la ayuda «Disponible»', as
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '9' } })
   const cantidad = screen.getByLabelText('Cantidad')
   expect(cantidad).toHaveAttribute('aria-invalid', 'true')
-  expect(cantidad).toHaveAccessibleDescription(/Disponible: 8.*Excede el stock en bodega/)
+  expect(cantidad.getAttribute('aria-describedby')!.split(' ')).toContain('disponible-merma')
+  expect(cantidad).toHaveAccessibleDescription(/Disponible: 8/)
+  expect(cantidad).toHaveAccessibleDescription(/Excede el stock en bodega/)
   expect(screen.getAllByText(/Excede el stock en bodega/)).toHaveLength(1)
+})
+
+it('F2 V2-01 · Enter con el foco en Cantidad anuncia el error de envío como alert', async () => {
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  cantidad.focus()
+  const formulario = cantidad.closest('form')!
+  fireEvent.submit(formulario)
+  const mensaje = document.getElementById(`${cantidad.id}-error`)!
+  expect(cantidad).toHaveFocus()
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(mensaje).toHaveAttribute('role', 'alert')
+  expect(screen.getAllByText(mensaje.textContent!)).toHaveLength(1)
+  expect(cantidad.getAttribute('aria-describedby')!.split(' ')).toContain(mensaje.id)
+})
+
+it('F2 V2-01 · el error en vivo de stock no usa alert y al enviar sí', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  await screen.findByText('Disponible: 8')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '9' } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  const mensaje = screen.getByText(/Excede el stock en bodega/)
+  expect(mensaje).not.toHaveAttribute('role', 'alert')
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Rotura' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent(/Excede el stock en bodega/)
+  expect(cantidad).toHaveFocus()
+  expect(api.registrarMerma).not.toHaveBeenCalled()
 })
