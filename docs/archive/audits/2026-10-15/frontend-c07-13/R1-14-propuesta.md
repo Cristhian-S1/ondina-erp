@@ -116,6 +116,31 @@ reset role;
 set local role anon;
 select throws_ok($q$select * from public.vendedores_historial_sucursal('10000000-0000-0000-0000-000000000001')$q$,'42501',null,'R1-14 anon is denied');
 reset role;
+-- V2-02: absent identity and inactive callers get an empty roster for every branch.
+select set_config('request.jwt.claim.sub','',true);
+set local role authenticated;
+select is((select count(*) from public.vendedores_historial_sucursal('10000000-0000-0000-0000-000000000001')),0::bigint,'R1-14 no JWT subject gets no roster');
+reset role;
+select set_config('request.jwt.claim.sub','99999999-9999-9999-9999-999999999999',true);
+set local role authenticated;
+select is((select count(*) from public.vendedores_historial_sucursal('10000000-0000-0000-0000-000000000001')),0::bigint,'R1-14 identity without a profile gets no roster');
+reset role;
+update public.perfiles set activo=false where id='20000000-0000-0000-0001-000000000002';
+select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002',true);
+set local role authenticated;
+select is((select count(*) from public.vendedores_historial_sucursal('10000000-0000-0000-0000-000000000001')),0::bigint,'R1-14 inactive bodega caller gets no roster');
+reset role;
+update public.perfiles set activo=false where id='20000000-0000-0000-0000-000000000001';
+select set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000001',true);
+set local role authenticated;
+select is((select count(*) from public.vendedores_historial_sucursal('10000000-0000-0000-0000-000000000002')),0::bigint,'R1-14 inactive global admin gets no roster');
+reset role;
+-- Complementary contract: new dispatches still refuse an inactive seller (despachos_insert_b6).
+update public.perfiles set activo=true where id='20000000-0000-0000-0001-000000000002';
+select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002',true);
+set local role authenticated;
+select throws_ok($q$insert into public.despachos(id,sucursal_id,vendedor_id,despachador_id,creado_por) values('71000000-0000-0000-0000-0000000000a2','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0001-000000000021','20000000-0000-0000-0001-000000000002','20000000-0000-0000-0001-000000000002')$q$,'42501',null,'R1-14 dispatch to an inactive seller is still denied');
+reset role;
 -- 002_security allow-list, extended with the new endpoint
 select ok(not exists(select 1 from pg_proc p where p.pronamespace='public'::regnamespace and has_function_privilege('authenticated',p.oid,'EXECUTE')
  and p.proname not in ('registrar_venta','crear_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada','vendedores_sucursal','vendedores_historial_sucursal')),'Authenticated RPC allow-list (002) with the new endpoint');
@@ -123,7 +148,7 @@ select * from finish();
 rollback;
 ```
 
-**Validación local (transacción revertida).** Se ejecutó `psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -At` con `begin; <migración>; <prueba sin begin/rollback>; select * from finish(); rollback;`. Tras el `ROLLBACK`, `to_regprocedure('public.vendedores_historial_sucursal(uuid)')` devolvió vacío (nada persistió). Salida:
+**Validación local (transacción revertida).** Se ejecutó `psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -At` con `begin; <migración>; <prueba sin begin/rollback>; select * from finish(); rollback;`. Tras el `ROLLBACK`, `to_regprocedure('public.vendedores_historial_sucursal(uuid)')` devolvió vacío (nada persistió). Salida (re-ejecutada tras V2; 21 aserciones, 0 fallos):
 
 ```text
 BEGIN
@@ -146,12 +171,17 @@ ok 12 - R1-14 global admin: branch A inactive seller is not listed under branch 
 ok 13 - R1-14 seller gets no roster
 ok 14 - R1-14 production gets no roster
 ok 15 - R1-14 anon is denied
-ok 16 - Authenticated RPC allow-list (002) with the new endpoint
-1..16
+ok 16 - R1-14 no JWT subject gets no roster
+ok 17 - R1-14 identity without a profile gets no roster
+ok 18 - R1-14 inactive bodega caller gets no roster
+ok 19 - R1-14 inactive global admin gets no roster
+ok 20 - R1-14 dispatch to an inactive seller is still denied
+ok 21 - Authenticated RPC allow-list (002) with the new endpoint
+1..21
 ROLLBACK
 ```
 
-Nota: vendedor y producción reciben cero filas (igual que la RPC actual, que no lanza error); `anon` recibe `42501`.
+Nota: vendedor, producción, identidad sin `sub`, identidad sin perfil y llamadores inactivos (bodega y administrador global) reciben cero filas (igual que la RPC actual, que no lanza error); `anon` recibe `42501`. Los casos 16-20 cierran V2-02 (identidad ausente, llamador inactivo y rechazo de despacho a vendedor inactivo).
 
 ## 4. Cambio de frontend (sólo descrito)
 
@@ -164,8 +194,15 @@ Nota: vendedor y producción reciben cero filas (igual que la RPC actual, que no
 
 ## 5. Despliegue (según `docs/engineering/database.md`)
 
-1. Crear migración y prueba en una rama desde `develop`; correr `supabase test db` sólo en una BD local/aislada (sin `db reset` sobre fixtures compartidos).
-2. Revisar el SQL (compuerta idéntica a `vendedores_sucursal`, `search_path` vacío, grants) y la lista cerrada de `002`.
-3. **No** ejecutar `supabase db push` contra producción mientras no estén cerradas la reconciliación de esquema/historial y la verificación aislada (`AGENTS.md`, `supabase/reconciliation.md`). Aplicar entonces por el procedimiento revisado, **antes** del commit de frontend (precedente: `supabase/reconciliation.md:425`).
-4. Regenerar tipos y publicar el frontend con el degradado a la lista de activos.
-5. Reversión: `drop function public.vendedores_historial_sucursal(uuid);` y revertir el frontend; no se modifica ningún dato.
+Orden: **backend → verificación → frontend**. Nada de `supabase db push` contra producción.
+
+1. Crear migración y prueba en una rama desde `develop`; correr la suite pgTAP completa (`supabase test db` u otro runner TAP) sólo en una BD local/aislada autorizada, sin `db reset` sobre fixtures compartidos.
+2. Revisar el SQL (compuerta idéntica a `vendedores_sucursal`, `search_path` vacío, grants) y la lista cerrada de `002_security.test.sql:77`.
+3. Aplicar `CREATE FUNCTION`, `COMMENT`, `REVOKE` y `GRANT` **en una sola transacción** (sin ventana entre creación y ACL) mediante el procedimiento revisado de `supabase/reconciliation.md` (backup/restauración, estado fresco, ensayo, autorización, dry-run y ledger), no con `db push` ad hoc. Comprobar el owner de la función tras aplicar.
+4. Verificar tras aplicar: fila nueva en el ledger de migraciones, `EXECUTE` revocado a `anon`/`public` y concedido a `authenticated`/`service_role`, RPC original `vendedores_sucursal` sin cambios, lectura del historial correcta por rol y sin cambios en `perfiles`, `despachos` ni saldos.
+5. Sólo después regenerar tipos y publicar el frontend (con el degradado a la lista de activos si la RPC falla).
+
+**Reversión.** Si hay que retirar el endpoint:
+1. Publicar primero un frontend que deje de consumir `vendedores_historial_sucursal` (o que confirme el degradado a la lista de activos) y verificar que ningún cliente publicado la llama.
+2. Retirar la función con una **migración nueva y revisada** (`drop function public.vendedores_historial_sucursal(uuid);`), por el mismo procedimiento de reconciliación; nunca editar la migración ya aplicada, ni marcarla como revertida en el ledger, ni ejecutar el `drop` ad hoc.
+3. Verificar ledger, `EXECUTE` de la RPC original, lectura del historial (con fallback) y ausencia de cambios en perfiles/despachos/saldos. Ensayar aplicar/retirar en un proyecto aislado con la misma cadena y guardar la evidencia del ledger antes/después.
