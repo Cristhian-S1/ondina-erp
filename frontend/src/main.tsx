@@ -9,8 +9,10 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthProvider.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import { crearMutationCacheObservable } from './lib/observabilidad'
 
 const queryClient = new QueryClient({
+  mutationCache: crearMutationCacheObservable(),
   defaultOptions: {
     queries: {
       staleTime: 30_000,
@@ -21,7 +23,7 @@ const queryClient = new QueryClient({
 })
 
 createRoot(document.getElementById('root')!, {
-  // The boundary logs only the correlation ID and name; suppress React's raw caught-error log.
+  // The boundary logs only allowlisted correlation metadata; suppress React's raw caught-error log.
   onCaughtError: () => {},
 }).render(
   <StrictMode>
