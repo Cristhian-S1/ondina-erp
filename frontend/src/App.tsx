@@ -39,6 +39,10 @@ const loading = (
   </div>
 )
 
+const SolicitarRecuperacion = lazy(() => import('./pages/SolicitarRecuperacion'))
+const Restablecer = lazy(() => import('./pages/Restablecer'))
+const recoveryFallback = <main className="flex min-h-svh items-center justify-center"><p role="status">Cargando...</p></main>
+
 function App() {
   const referencia = useSyncExternalStore(suscribirReferenciaMutacion, obtenerReferenciaMutacion)
   return (
@@ -52,6 +56,8 @@ function App() {
       )}
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/recuperar" element={<Suspense fallback={recoveryFallback}><SolicitarRecuperacion /></Suspense>} />
+      <Route path="/restablecer" element={<Suspense fallback={recoveryFallback}><Restablecer /></Suspense>} />
       <Route element={<ProtectedRoute />}>
         <Route path="/*" element={<Suspense fallback={loading}><AuthenticatedRoutes /></Suspense>} />
       </Route>

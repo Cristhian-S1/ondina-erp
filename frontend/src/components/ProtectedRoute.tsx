@@ -7,7 +7,9 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ roles }: ProtectedRouteProps) {
-  const { perfil, loading } = useAuth()
+  const { perfil, loading, recovery } = useAuth()
+
+  if (recovery) return <Navigate to="/restablecer" replace />
 
   if (loading) {
     return (

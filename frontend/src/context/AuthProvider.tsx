@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import type { Perfil } from '../types'
+import { isRecoverySession, recoverySessionId, rememberRecovery } from '../domains/auth/recovery-session'
 import { AuthContext } from './auth-context'
 
 function clearIdentityData(queryClient: QueryClient, userId: string | null | undefined) {
@@ -16,6 +17,9 @@ function clearIdentityData(queryClient: QueryClient, userId: string | null | und
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
+  const [recovery, setRecovery] = useState(false)
+  const recovering = useRef(false)
+  const recoveryId = useRef<string | null>(null)
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -87,9 +91,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return
       receivedAuthEvent = true
+      if (event === 'PASSWORD_RECOVERY' || isRecoverySession(session)) {
+        prepareSession(null)
+        recovering.current = true
+        recoveryId.current = recoverySessionId(session)
+        rememberRecovery(session)
+        setRecovery(true)
+        return
+      }
+      // A recovery session must never load an ERP profile, including USER_UPDATED.
+      if (recovering.current && session && (event !== 'SIGNED_IN' || recoverySessionId(session) === recoveryId.current)) return
+      recovering.current = false
+      recoveryId.current = null
+      rememberRecovery(null)
+      setRecovery(false)
       const userId = session?.user.id ?? null
       const { request, background } = prepareSession(userId)
       if (!userId) return
@@ -103,6 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (sessionError) {
         setError('No fue posible recuperar tu sesión. Intenta iniciar sesión nuevamente.')
         setLoading(false)
+        return
+      }
+      if (isRecoverySession(data.session)) {
+        prepareSession(null)
+        recovering.current = true
+        recoveryId.current = recoverySessionId(data.session)
+        setRecovery(true)
         return
       }
       const userId = data.session?.user.id ?? null
@@ -134,6 +159,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError('No fue posible cerrar sesión. Intenta nuevamente.')
       throw cause
     }
+    recovering.current = false
+    recoveryId.current = null
+    rememberRecovery(null)
+    setRecovery(false)
     ++version.current
     clearIdentityData(queryClient, identity.current)
     identity.current = null
@@ -144,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ perfil, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ perfil, loading, recovery, signIn, signOut }}>
       {error && <p role="alert" className="relative z-50 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {children}
     </AuthContext.Provider>

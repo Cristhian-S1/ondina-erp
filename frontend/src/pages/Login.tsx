@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import { mensajeErrorAutenticacion } from '../lib/errors'
 import { btnPrimary, errorBlockCls, inputCls, labelCls } from '../lib/ui'
@@ -7,8 +7,9 @@ import { EyeIcon, EyeOffIcon } from '../components/icons-visibilidad'
 import logo from '../assets/logo.jpg'
 
 export default function Login() {
-  const { perfil, signIn } = useAuth()
+  const { perfil, signIn, recovery } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,6 +17,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false)
   const [verPassword, setVerPassword] = useState(false)
 
+  if (recovery) return <Navigate to="/restablecer" replace />
   if (perfil) return <Navigate to="/" replace />
 
   async function handleSubmit(event: FormEvent) {
@@ -90,6 +92,8 @@ export default function Login() {
           </div>
         </div>
 
+        {location.state?.passwordReset && <p role="status" className="text-sm text-emerald-800">Contraseña actualizada. Inicia sesión con tu nueva contraseña.</p>}
+
         {error && (
           <p id="login-error" role="alert" className={errorBlockCls}>
             {error}
@@ -103,6 +107,7 @@ export default function Login() {
         >
           {submitting ? 'Entrando...' : 'Ingresar'}
         </button>
+        <Link to="/recuperar" className="flex min-h-11 items-center justify-center text-sm font-medium text-brand-800 underline">¿Olvidaste tu contraseña?</Link>
       </form>
     </div>
   )
