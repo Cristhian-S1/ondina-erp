@@ -256,3 +256,39 @@ export function PercentIcon(props: IconProps) {
     </Svg>
   )
 }
+
+// Bidón retornable: el envase que circula entre bodega y vendedores.
+export function BidonIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M10 2h4" />
+      <path d="M10.5 2v3L7 8v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V8l-3.5-3V2" />
+      <line x1="7" y1="12" x2="17" y2="12" />
+      <line x1="7" y1="16" x2="17" y2="16" />
+    </Svg>
+  )
+}
+
+// Cubos de hielo: el producto que sale en cada despacho.
+export function HieloIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="2" y="9" width="12" height="12" rx="2.5" />
+      <path d="M10 9V5.5A2.5 2.5 0 0 1 12.5 3h6A2.5 2.5 0 0 1 21 5.5v6a2.5 2.5 0 0 1-2.5 2.5H14" />
+      <path d="M5.5 12.5 7 11" />
+      <path d="M5.5 16v-1" />
+      <path d="M16 6l1.5-1" />
+    </Svg>
+  )
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </Svg>
+  )
+}

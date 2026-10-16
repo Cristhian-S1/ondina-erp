@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { FiltroDia, RecursosDespacho } from './despachos.types'
+import InputFecha from '../../../components/InputFecha'
 
 const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['hoy', 'Hoy'],
@@ -46,9 +47,9 @@ export default function FiltrosHistorialDespachos({ esAdmin, diaFiltro, fechaSel
           ),
         )}
         {esAdmin && (
-          <input
-            type="date"
+          <InputFecha
             aria-label="Fecha"
+            etiquetaCalendario="Abrir calendario"
             className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
             value={fechaSeleccionada}
             onChange={(e) => {

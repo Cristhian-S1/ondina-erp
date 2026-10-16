@@ -15,6 +15,7 @@ import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
 import { filtrosHistorial } from '../hooks/filtrosHistorial'
 import { useJornadaSantiago } from '../../../lib/jornada'
+import InputFecha from '../../../components/InputFecha'
 
 type EstadoDespacho = 'pendiente' | 'productos' | 'envases' | 'completo'
 
@@ -341,9 +342,9 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
               ),
             )}
             {esAdmin && (
-              <input
-                type="date"
+              <InputFecha
                 aria-label="Fecha"
+                etiquetaCalendario="Abrir calendario"
                 className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
                 value={fechaSeleccionada}
                 onChange={(e) => {

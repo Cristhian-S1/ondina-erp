@@ -40,6 +40,9 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   const registrado = crear.isSuccess && !crear.data?.error
   const envio = useRef(false)
   const cierreTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // onCreated may re-key this dialog in the parent; defer it until close so the
+  // success toast and the auto-close timer survive the first registration.
+  const creadoPara = useRef<string | null>(null)
   useEffect(() => () => { if (cierreTimer.current) clearTimeout(cierreTimer.current) }, [open])
 
   const {
@@ -64,6 +67,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   useEffect(() => {
     if (open) {
       envio.current = false
+      creadoPara.current = null
       resetCreacion()
       reset({
         nombre: '',
@@ -81,6 +85,13 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
 
   if (!open) return null
 
+  function cerrarDialogo() {
+    const vendedorCreado = creadoPara.current
+    creadoPara.current = null
+    onClose()
+    if (vendedorCreado !== null) onCreated?.(vendedorCreado)
+  }
+
   function onSubmit(values: CrearClienteInput) {
     if (!seleccionValida || envio.current) return
     envio.current = true
@@ -91,9 +102,9 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
           mostrar(res.error, 'error')
           return
         }
-        onCreated?.(values.vendedor_id)
+        creadoPara.current = values.vendedor_id
         mostrar('Cliente registrado.', 'exito')
-        cierreTimer.current = setTimeout(onClose, 1500)
+        cierreTimer.current = setTimeout(cerrarDialogo, 1500)
       },
       onError: (err) => {
         envio.current = false
@@ -103,7 +114,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title="Nuevo cliente">
+    <Dialog open={open} onClose={cerrarDialogo} title="Nuevo cliente">
       <form
         onSubmit={(event) => void handleSubmit(onSubmit)(event)}
         className="space-y-4"
@@ -141,7 +152,7 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         </CampoFormulario>
 
         <div className="flex flex-wrap justify-end gap-3">
-          <button type="button" className={btnSecondary} onClick={onClose}>
+          <button type="button" className={btnSecondary} onClick={cerrarDialogo}>
             Cancelar
           </button>
           <button type="submit" className={btnPrimary} disabled={registrado || crear.isPending || !seleccionValida || (esAdmin && !!vendedores.error)}>

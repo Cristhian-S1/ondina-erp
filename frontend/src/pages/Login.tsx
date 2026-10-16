@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/auth-context'
 import { mensajeErrorAutenticacion } from '../lib/errors'
 import { btnPrimary, errorBlockCls, inputCls, labelCls } from '../lib/ui'
+import { EyeIcon, EyeOffIcon } from '../components/icons-visibilidad'
 import logo from '../assets/logo.jpg'
 
 export default function Login() {
@@ -81,10 +82,11 @@ export default function Login() {
               type="button"
               onClick={() => setVerPassword((value) => !value)}
               aria-pressed={verPassword}
-              className="absolute inset-y-0 right-0 mt-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-xs font-medium text-brand-800 hover:bg-brand-50"
+              title={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              className="absolute top-1 right-0 inline-flex min-h-11 min-w-11 items-center justify-center rounded-r-lg text-slate-500 hover:bg-brand-50 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-600"
             >
               <span className="sr-only">Mostrar contraseña</span>
-              <span aria-hidden="true">{verPassword ? 'Ocultar' : 'Ver'}</span>
+              {verPassword ? <EyeOffIcon data-icono="ocultar" className="h-5 w-5" /> : <EyeIcon data-icono="ver" className="h-5 w-5" />}
             </button>
           </div>
         </div>

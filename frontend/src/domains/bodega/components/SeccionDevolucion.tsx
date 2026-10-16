@@ -1,11 +1,11 @@
 import { useId } from 'react'
 import type { ReactNode } from 'react'
-import { BoxIcon, RecycleIcon } from '../../../components/icons'
+import { BidonIcon, HieloIcon } from '../../../components/icons'
 
 type Tono = 'producto' | 'envase'
 
 // Cada sección de la devolución lleva su propio color, icono y conteo para distinguir a simple vista
-// "Productos del despacho" (ámbar, paquete) de "Envases" (verde, reciclaje).
+// "Productos del despacho" (ámbar, cubos de hielo) de "Envases" (verde, bidón).
 const TONOS: Record<Tono, { caja: string; encabezado: string; icono: string }> = {
   producto: {
     caja: 'border-amber-300',
@@ -28,7 +28,7 @@ export default function SeccionDevolucion({ tono, titulo, lineas, yaDevueltos = 
 }) {
   const tituloId = useId()
   const estilo = TONOS[tono]
-  const Icono = tono === 'producto' ? BoxIcon : RecycleIcon
+  const Icono = tono === 'producto' ? HieloIcon : BidonIcon
   return (
     <section aria-labelledby={tituloId} data-tono={tono} className={`@container min-w-0 overflow-hidden rounded-xl border-2 bg-white ${estilo.caja}`}>
       <header className={`flex flex-wrap items-center gap-x-3 gap-y-1 border-b-2 px-3 py-3 ${estilo.encabezado}`}>

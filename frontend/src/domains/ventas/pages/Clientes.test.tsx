@@ -46,6 +46,20 @@ describe('HU-04 · Clientes', () => {
     expect(screen.getByRole('dialog', { name: 'Nuevo cliente' })).toHaveAttribute('open')
   })
 
+  it('FB-02 · el primer registro de un vendedor muestra el aviso y cierra el diálogo', async () => {
+    setup([])
+    renderWithProviders(<Clientes />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Nuevo cliente' }))
+    const dialog = screen.getByRole('dialog', { name: 'Nuevo cliente' })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Almacén Sur' } })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Dirección' }), { target: { value: 'Calle 1' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Guardar cliente' }))
+
+    expect(await screen.findByText('Cliente registrado.')).toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), { timeout: 3000 })
+    expect(api.crearCliente).toHaveBeenCalledTimes(1)
+  })
+
   it('muestra el estado vacío cuando la cartera no tiene clientes', async () => {
     setup([])
     renderWithProviders(<Clientes />)
