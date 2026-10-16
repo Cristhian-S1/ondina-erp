@@ -68,3 +68,12 @@ powershell -ExecutionPolicy Bypass -File .\probar-frontend-ux-windows.ps1
 - Copia de seguridad intacta: `~/.cache/ondina-orq/2026-10-15/s2/probar-frontend-ux-windows.ps1.orig` — SHA-256 `335b46ec7a78eb3842492a90d592a027e88d700c4aa08a4fd3c758ec9700e988`.
 - Analizador: Python repasa «prohibidos» (`&&`, `||`, `??`, `?.`, `??=`, `exit`), Estado/here-string y fidelidad del seed; resultados «SIN ERRORES» tras las últimas correcciones.
 - Los `?.`/`??` que aparecen en el archivo están sólo en el here-string del seed (JavaScript para Node 22) y fueron enmascarados por el analizador; cero `??`/`?.` en código PowerShell.
+
+## Corrección posterior del coordinador (2026-10-15)
+
+- **Problema:** la revisión del coordinador encontró que `supabase start` se ejecutaba sin capturar su salida. Esa salida incluye las claves locales (anon, service_role y JWT), y `Start-Transcript` la habría guardado en `ondina-frontend-ux-ultimo.log`, rompiendo la garantía "la service_role nunca a disco".
+- **Corrección:** `Invocar-Paso` y `Invocar-Supabase` ganaron un modo `-OcultarSecretos`. Muestra la salida del comando, pero cambia las líneas con credenciales por "(línea con credenciales locales omitida)".
+  - Se aplica a `supabase start`.
+  - El código de salida se sigue comprobando igual que antes.
+  - `supabase status -o env` ya se capturaba sin imprimirse.
+- **Verificación:** se mantienen el BOM y los finales CRLF. No se pudo ejecutar en Windows porque no hay `pwsh` en Linux, así que conviene revisar el log después de la primera ejecución.
