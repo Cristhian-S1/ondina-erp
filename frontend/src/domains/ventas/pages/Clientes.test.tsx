@@ -60,6 +60,23 @@ describe('HU-04 · Clientes', () => {
     expect(api.crearCliente).toHaveBeenCalledTimes(1)
   })
 
+  it('FB-02 · cerrar con Cancelar justo después del primer registro cierra una sola vez', async () => {
+    setup([])
+    vi.mocked(api.crearCliente).mockClear()
+    renderWithProviders(<Clientes />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Nuevo cliente' }))
+    const dialog = screen.getByRole('dialog', { name: 'Nuevo cliente' })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Nombre' }), { target: { value: 'Almacén Norte' } })
+    fireEvent.change(within(dialog).getByRole('textbox', { name: 'Dirección' }), { target: { value: 'Calle 2' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Guardar cliente' }))
+    await screen.findByText('Cliente registrado.')
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Nuevo cliente' }))
+    expect(within(screen.getByRole('dialog', { name: 'Nuevo cliente' })).getByRole('textbox', { name: 'Nombre' })).toHaveValue('')
+    expect(api.crearCliente).toHaveBeenCalledTimes(1)
+  })
+
   it('muestra el estado vacío cuando la cartera no tiene clientes', async () => {
     setup([])
     renderWithProviders(<Clientes />)

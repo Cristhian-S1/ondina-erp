@@ -15,3 +15,7 @@ Branch `feature/frontend-ux`. Four points reported after running `.ux-local/leva
 - Unit 828/828 (71 files), integration 22/22 against local Supabase.
 - Headless Chrome (Pixel 7 emulation and 1280 px desktop) against local Supabase: eye toggle, calendar button visible only on touch and focusing the field, Devoluciones icons.
 - Limit: the native picker opened by `showPicker()` was not exercised on a physical Android/iOS device.
+
+## Independent review (Sonnet subagent)
+
+No P1/P2. Applied: removed the password button `title` that contradicted its fixed accessible name (P4); added a Cancel-after-first-registration regression test (P4). Accepted as known: Firefox on a touch-primary desktop can show its own date icon next to the new button (P3, WebKit-only pseudo-element); `onCreated` is skipped if the page unmounts within the 1.5 s close delay (P4, harmless because the parent state unmounts too). Unit tests: 829/829.

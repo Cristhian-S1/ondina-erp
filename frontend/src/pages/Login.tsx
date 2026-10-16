@@ -82,7 +82,6 @@ export default function Login() {
               type="button"
               onClick={() => setVerPassword((value) => !value)}
               aria-pressed={verPassword}
-              title={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
               className="absolute top-1 right-0 inline-flex min-h-11 min-w-11 items-center justify-center rounded-r-lg text-slate-500 hover:bg-brand-50 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-600"
             >
               <span className="sr-only">Mostrar contraseña</span>
