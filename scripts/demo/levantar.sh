@@ -42,7 +42,7 @@ command -v docker >/dev/null || die "Falta Docker."
 docker info >/dev/null 2>&1 || die "Docker no está corriendo (inicia el servicio: sudo systemctl start docker)."
 command -v supabase >/dev/null || die "Falta Supabase CLI."
 command -v node >/dev/null || die "Falta Node.js 22 (>= 22.12)."
-[[ "$(node -v)" =~ ^v22\. ]] || die "Se necesita Node 22 (>= 22.12); tienes $(node -v). Ver frontend/.nvmrc."
+[[ "$(node -v)" =~ ^v22\. ]] || printf '   \033[33m!\033[0m Node %s: el proyecto fija Node 22 (frontend/.nvmrc, CI). Suele funcionar igual; si algo falla, usa Node 22.\n' "$(node -v)"
 ok "Docker, Supabase CLI y Node $(node -v)"
 
 if [ "$PULL" = 1 ]; then
