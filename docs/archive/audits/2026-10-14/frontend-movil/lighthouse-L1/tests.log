@@ -1,0 +1,16 @@
+
+> frontend@0.0.0 test
+> vitest run
+
+
+ RUN  v5.0.4 /home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend
+
+
+ Test Files  59 passed (59)
+      Tests  741 passed (741)
+   Start at  21:22:36
+   Duration  10.32s (environment 46%, tests 42%, setup 7%, import 4%, transform 1%, worker 1%)
+
+Environment  jsdom was created 59 times · 44.84s total, 46% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments

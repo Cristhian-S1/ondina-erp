@@ -1,0 +1,47 @@
+
+ RUN  v5.0.4 /home/cristhian/orca/workspaces/ondina/l1-lighthouse/frontend
+
+ ❯ scripts/check-bundle-size.test.mjs (14 tests | 2 failed | 12 skipped) 14ms
+   × counts emitted inline CSS and catches its growth even when the external asset stays small 8ms
+   × counts inline and linked CSS together without losing a second stylesheet 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/check-bundle-size.test.mjs > counts emitted inline CSS and catches its growth even when the external asset stays small
+Error: dist/index.html no declara la hoja de estilos de entrada.
+ ❯ parseInitialAssets scripts/check-bundle-size.mjs:37:29
+     35|   }
+     36|   if (!scripts.length) throw new Error('dist/index.html no declara el …
+     37|   if (!styles.length) throw new Error('dist/index.html no declara la h…
+       |                             ^
+     38|   return { entryJs: scripts[0], entryCss: styles[0], initialJs: [...sc…
+     39| }
+ ❯ measureBundle scripts/check-bundle-size.mjs:66:18
+ ❯ scripts/check-bundle-size.test.mjs:173:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  scripts/check-bundle-size.test.mjs > counts inline and linked CSS together without losing a second stylesheet
+AssertionError: expected 47 to be 88 // Object.is equality
+
+- Expected
++ Received
+
+- 88
++ 47
+
+ ❯ scripts/check-bundle-size.test.mjs:185:65
+    183|     <style data-bundle-css="/assets/entry.css">${css}</style>
+    184|     <link rel="stylesheet" href="/assets/extra.css">`)
+    185|   expect(measureBundle(join(root, 'dist')).initialCssGzipBytes).toBe(g…
+       |                                                                 ^
+    186| })
+    187|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 12 skipped (14)
+   Start at  21:15:03
+   Duration  727ms (environment 52%, import 25%, transform 11%, setup 9%, tests 2%, worker 1%)

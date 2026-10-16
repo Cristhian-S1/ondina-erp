@@ -1,3 +1,4 @@
+import EstadoVista from '../../components/EstadoVista'
 import { lazy, Suspense } from 'react'
 import type { Role } from '../../types'
 import type { DomainModule } from '../../types/module'
@@ -21,11 +22,11 @@ const produccionModule: DomainModule = {
   ],
   routes: [
     { path: '/produccion', roles: allowedRoles, element: <Navigate to="/produccion/registrar" replace /> },
-    { path: '/produccion/registrar', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
-    { path: '/produccion/envases', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
-    { path: '/produccion/historial', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
-    { path: '/produccion/indicadores', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
-    { path: '/produccion/incidencias', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Produccion /></Suspense> },
+    { path: '/produccion/registrar', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando producción..." />}><pages.Produccion /></Suspense> },
+    { path: '/produccion/envases', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando producción..." />}><pages.Produccion /></Suspense> },
+    { path: '/produccion/historial', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando producción..." />}><pages.Produccion /></Suspense> },
+    { path: '/produccion/indicadores', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando producción..." />}><pages.Produccion /></Suspense> },
+    { path: '/produccion/incidencias', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando producción..." />}><pages.Produccion /></Suspense> },
   ],
 }
 

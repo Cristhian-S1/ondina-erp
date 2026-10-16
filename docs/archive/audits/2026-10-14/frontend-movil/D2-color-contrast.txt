@@ -1,0 +1,14 @@
+desktop-1280x800-dashboard | a11y 1 | color-contrast score 1 | fallidos 0
+desktop-1280x800-despachos | a11y 1 | color-contrast score 1 | fallidos 0
+desktop-1280x800-devoluciones | a11y 1 | color-contrast score 1 | fallidos 0
+desktop-1280x800-login | a11y 1 | color-contrast score 1 | fallidos 0
+desktop-1280x800-produccion | a11y 1 | color-contrast score 1 | fallidos 0
+desktop-1280x800-registrar-venta | a11y 1 | color-contrast score 1 | fallidos 0
+desktop-1280x800-stock | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-dashboard | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-despachos | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-devoluciones | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-login | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-produccion | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-registrar-venta | a11y 1 | color-contrast score 1 | fallidos 0
+movil-412x915-stock | a11y 1 | color-contrast score 1 | fallidos 0

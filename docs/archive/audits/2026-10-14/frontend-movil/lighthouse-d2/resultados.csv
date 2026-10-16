@@ -1,0 +1,15 @@
+dispositivo,pagina,corrida,perf,a11y,bestPractices,fcpMs,lcpMs,tbtMs,cls,transferBytes,elapsedS,error,cls-culprits-insight,cumulative-layout-shift,first-contentful-paint,forced-reflow-insight,inspector-issues,interactive,largest-contentful-paint,largest-contentful-paint-element,layout-shifts,max-potential-fid,network-dependency-tree-insight,offscreen-images,render-blocking-insight,render-blocking-resources,speed-index,td-has-header,unused-javascript,uses-rel-preconnect,uses-text-compression
+movil-412x915,login,1,98,100,100,1892,1892,34,0.000,176067,12.3,,,,1,,,1,1,,,1,1,,1,1,,,1,,
+desktop-1280x800,login,1,80,100,100,1978,1978,2,0.000,176067,10.3,,,,1,,,1,1,1,,,1,,1,1,1,,1,,
+movil-412x915,dashboard,1,97,100,100,1965,2266,0,0.000,177680,10.3,,,,1,,,1,1,,,,1,1,1,1,1,,1,,
+desktop-1280x800,dashboard,1,78,100,100,1977,2278,0,0.000,177680,10.3,,,,1,,,1,1,1,,,1,,1,1,1,,1,,
+movil-412x915,registrar-venta,1,85,100,96,1958,3050,0,0.168,242524,10.7,,1,1,1,1,1,1,1,1,1,,1,1,1,1,1,1,1,,1
+desktop-1280x800,registrar-venta,1,62,100,96,1957,3049,50,0.220,242524,10.8,,1,1,1,,1,1,1,1,1,1,1,,1,1,1,1,1,,1
+movil-412x915,despachos,1,90,100,100,1952,3379,0,0.032,229943,10.7,,,,1,,,1,1,1,,,1,1,1,1,,,1,1,1
+desktop-1280x800,despachos,1,71,100,100,1954,3413,15,0.034,229950,10.8,,,,1,,,1,1,1,,,1,,1,1,1,,1,,1
+movil-412x915,devoluciones,1,90,100,100,1952,3422,33,0.000,226102,10.6,,,,1,,,1,1,1,,1,1,1,1,1,,,1,,1
+desktop-1280x800,devoluciones,1,71,100,100,1971,3379,0,0.032,226100,10.6,,,,1,,,1,1,1,,,1,,1,1,1,,1,,1
+movil-412x915,stock,1,96,100,100,1953,2445,0,0.004,191841,10.5,,,,1,,,1,1,,,,1,1,1,1,,,1,,
+desktop-1280x800,stock,1,79,100,100,1803,2291,0,0.000,191841,10.6,,,,1,,,1,1,1,,,1,,1,1,1,,1,,
+movil-412x915,produccion,1,92,100,100,1959,2857,0,0.086,201025,11,,,1,1,,,1,1,1,,,1,1,1,1,1,,1,,1
+desktop-1280x800,produccion,1,71,100,100,1953,2848,0,0.108,201025,11,,1,1,1,,,1,1,1,1,,1,,1,1,1,,1,,1

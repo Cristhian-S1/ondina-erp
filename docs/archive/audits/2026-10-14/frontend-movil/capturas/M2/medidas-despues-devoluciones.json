@@ -1,0 +1,52 @@
+[
+ {
+  "vista": "devoluciones-detalle",
+  "ancho": 412,
+  "alto": 915,
+  "scrollWidth": 412,
+  "innerWidth": 412,
+  "sinDesborde": true,
+  "alturaDocumento": 3251,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "devoluciones-detalle",
+  "ancho": 375,
+  "alto": 812,
+  "scrollWidth": 375,
+  "innerWidth": 375,
+  "sinDesborde": true,
+  "alturaDocumento": 3319,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "devoluciones-detalle",
+  "ancho": 768,
+  "alto": 1024,
+  "scrollWidth": 768,
+  "innerWidth": 768,
+  "sinDesborde": true,
+  "alturaDocumento": 3337,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "devoluciones-detalle",
+  "ancho": 1024,
+  "alto": 1366,
+  "scrollWidth": 1024,
+  "innerWidth": 1024,
+  "sinDesborde": true,
+  "alturaDocumento": 1970,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "devoluciones-detalle",
+  "ancho": 1280,
+  "alto": 800,
+  "scrollWidth": 1280,
+  "innerWidth": 1280,
+  "sinDesborde": true,
+  "alturaDocumento": 1970,
+  "controlesBajo44": []
+ }
+]

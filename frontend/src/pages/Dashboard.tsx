@@ -5,7 +5,7 @@ import type { Role } from '../types'
 
 const rolEstilos: Record<Role, { etiqueta: string; clase: string }> = {
   vendedor: { etiqueta: 'Vendedor', clase: 'bg-sky-100 text-sky-700' },
-  bodega: { etiqueta: 'Bodega', clase: 'bg-amber-100 text-amber-700' },
+  bodega: { etiqueta: 'Bodega', clase: 'bg-amber-100 text-amber-800' },
   produccion: { etiqueta: 'Producción', clase: 'bg-violet-100 text-violet-700' },
   administrador: { etiqueta: 'Administrador', clase: 'bg-emerald-100 text-emerald-700' },
 }
@@ -28,7 +28,7 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold text-slate-900">
           Hola, {perfil.nombres}
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           {!perfil.sucursal_id ? 'Todas las sucursales' : isError ? 'Sucursal no disponible' : isPending ? 'Cargando sucursal...' : sucursal?.nombre ?? 'Sucursal no disponible'}
         </p>
       </div>
@@ -50,13 +50,13 @@ export default function Dashboard() {
 
         <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">RUT</dt>
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-600">RUT</dt>
             <dd className="mt-1 text-sm font-medium text-slate-900">
               {perfil.rut ?? 'Sin RUT'}
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-600">
               Teléfono
             </dt>
             <dd className="mt-1 text-sm font-medium text-slate-900">
@@ -64,7 +64,7 @@ export default function Dashboard() {
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-600">
               Sucursal
             </dt>
             <dd className="mt-1 text-sm font-medium text-slate-900">
@@ -72,7 +72,7 @@ export default function Dashboard() {
             </dd>
           </div>
           <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            <dt className="text-xs font-medium uppercase tracking-wide text-slate-600">
               Estado
             </dt>
             <dd className="mt-1 text-sm font-medium text-slate-900">

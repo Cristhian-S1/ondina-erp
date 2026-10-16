@@ -1,5 +1,5 @@
-import { act, renderHook } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { useRegistrarVenta } from './useRegistrarVenta'
@@ -14,7 +14,7 @@ const form: RegistrarVentaForm = { clienteId: 'c1', metodoPago: 'efectivo', desc
 function setup() {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  return renderHook(() => useRegistrarVenta(), { wrapper })
+  return { ...renderHook(() => useRegistrarVenta(), { wrapper }), client }
 }
 it('retains one key after a lost response and creates a new key after success', async () => {
   vi.mocked(registrarVenta).mockResolvedValueOnce({ id: null, error: 'No fue posible completar la operación. Inténtalo de nuevo.' }).mockResolvedValue({ id: 'sale', error: null })
@@ -36,4 +36,48 @@ it('starts another attempt when form contents or identity change', async () => {
   rerender()
   await act(async () => { await result.current.mutateAsync({ ...form, descuento: 10 }) })
   expect(new Set(vi.mocked(registrarVenta).mock.calls.map(([args]) => args.p_idempotency_key)).size).toBe(3)
+})
+
+
+it('A1-06 · éxito invalida comisión y carga una sola vez; error no invalida', async () => {
+  vi.mocked(registrarVenta).mockResolvedValueOnce({ id: null, error: 'fallo' }).mockResolvedValue({ id: 'sale', error: null })
+  const { result, client } = setup()
+  client.setQueryData(['mi-comision', 'u1', 's1'], [{ comision: 10 }])
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  await act(async () => { await result.current.mutateAsync(form) })
+  expect(invalidate).not.toHaveBeenCalled()
+  await act(async () => { await result.current.mutateAsync(form) })
+  expect(client.getQueryState(['mi-comision', 'u1', 's1'])?.isInvalidated).toBe(true)
+  expect(invalidate.mock.calls.filter(([arg]) => arg?.queryKey?.[1] === 'carga')).toHaveLength(1)
+})
+
+
+it('FX2 R3-01 · venta exitosa invalida el prefijo ranking', async () => {
+  vi.mocked(registrarVenta).mockResolvedValueOnce({ id: 'v1', error: null })
+  const { result, client } = setup()
+  client.setQueryData(['ventas','ranking','2026-10','u1'], [])
+  await act(async () => { await result.current.mutateAsync(form) })
+  expect(client.getQueryState(['ventas','ranking','2026-10','u1'])?.isInvalidated).toBe(true)
+})
+
+
+it('FX2 R3-01 · volver al ranking dentro de 30 s relee sólo después de venta exitosa', async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: false } } })
+  const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  const leer = vi.fn().mockResolvedValueOnce(2000).mockResolvedValue(3000)
+  const useRanking = () => useQuery({ queryKey: ['ventas','ranking','2026-10','u1'], queryFn: leer })
+  const inicial = renderHook(useRanking, { wrapper })
+  await waitFor(() => expect(inicial.result.current.data).toBe(2000))
+  inicial.unmount()
+  const venta = renderHook(() => useRegistrarVenta(), { wrapper })
+  vi.mocked(registrarVenta).mockResolvedValueOnce({ id: null, error: 'Fallo' }).mockResolvedValueOnce({ id: 'v1', error: null })
+  await act(async () => { await venta.result.current.mutateAsync(form) })
+  const trasFallo = renderHook(useRanking, { wrapper })
+  expect(trasFallo.result.current.data).toBe(2000)
+  expect(leer).toHaveBeenCalledTimes(1)
+  trasFallo.unmount()
+  await act(async () => { await venta.result.current.mutateAsync(form) })
+  const trasExito = renderHook(useRanking, { wrapper })
+  await waitFor(() => expect(trasExito.result.current.data).toBe(3000))
+  expect(leer).toHaveBeenCalledTimes(2)
 })

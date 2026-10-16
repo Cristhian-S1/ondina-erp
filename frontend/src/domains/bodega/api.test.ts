@@ -19,11 +19,14 @@ const mock = vi.hoisted(() => {
       eq: vi.fn(() => q),
       in: vi.fn(() => q),
       order: vi.fn(() => q),
+      range: vi.fn(() => q),
+      gte: vi.fn(() => q),
+      lt: vi.fn(() => q),
       insert: (payload: unknown) => {
         insertSpy(payload)
         return Promise.resolve(insertResult)
       },
-      returns: () => Promise.resolve({ data: dataByTable[table] ?? [], error: readError }),
+      returns: () => Promise.resolve({ data: dataByTable[table] ?? [], count: 301, error: readError }),
     }
     lastQueryByTable[table] = q
     return q
@@ -75,6 +78,7 @@ import {
   crearDespacho,
   obtenerCargaVendedores,
   obtenerDespachos,
+  obtenerPaginaDespachos,
   obtenerDetallesDespacho,
   obtenerDevolucionesEnvase,
   obtenerDevolucionesProducto,
@@ -330,5 +334,26 @@ describe('FE-05 · errores de lectura', () => {
     mock.setReadError()
     await expect(leer()).rejects.toThrow(/^No fue posible cargar .* Inténtalo de nuevo\.$/)
     await expect(leer()).rejects.not.toThrow('private SQL detail')
+  })
+})
+
+ describe('server pagination', () => {
+  it('combines exact count, deterministic order, range and filters', async () => {
+    mock.setData('despachos', [{ id: 'visible' }])
+    expect(await obtenerPaginaDespachos('suc-1', { pagina: 3, tamanoPagina: 20, vendedorId: 'v-1', desde: '2026-10-14T03:00:00Z', hasta: '2026-10-15T03:00:00Z' })).toEqual({ filas: [{ id: 'visible' }], total: 301 })
+    const q = mock.getQuery('despachos')
+    expect(q.select).toHaveBeenCalledWith('*', { count: 'exact' })
+    expect(q.eq).toHaveBeenCalledWith('sucursal_id', 'suc-1')
+    expect(q.eq).toHaveBeenCalledWith('vendedor_id', 'v-1')
+    expect(q.gte).toHaveBeenCalledWith('creado_en', '2026-10-14T03:00:00Z')
+    expect(q.lt).toHaveBeenCalledWith('creado_en', '2026-10-15T03:00:00Z')
+    expect(q.order).toHaveBeenCalledWith('id', { ascending: false })
+    expect(q.range).toHaveBeenCalledWith(40, 59)
+  })
+  it('does not read without a branch and surfaces safe read errors', async () => {
+    expect(await obtenerPaginaDespachos('', { pagina: 1 })).toEqual({ filas: [], total: 0 })
+    expect(mock.supabase.from).not.toHaveBeenCalled()
+    mock.setReadError()
+    await expect(obtenerPaginaDespachos('s', { pagina: 1 })).rejects.toThrow('No fue posible cargar los despachos.')
   })
 })

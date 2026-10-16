@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, fireEvent } from '@testing-library/react'
-import { renderWithProviders } from '@/test/render'
+import { makePerfil, renderWithProviders } from '@/test/render'
 import Carga from './Carga'
 import Ventas from './Ventas'
 
@@ -43,6 +43,24 @@ describe('HU-03 · Carga', () => {
   })
 })
 
+describe('M2 · Carga compacta', () => {
+  it('cada producto es una tarjeta con nombre, tipo y unidades en la misma fila', async () => {
+    vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([
+      { producto_id: 'p1', vendedor_id: 'user-1', cantidad: 24, modificado_en: '2026-01-01T00:00:00Z',
+        producto: { id: 'p1', nombre: 'Bidón 20L', tipo: 'agua', precio_base: 3000 } },
+      { producto_id: 'p2', vendedor_id: 'user-1', cantidad: 5, modificado_en: '2026-01-01T00:00:00Z',
+        producto: { id: 'p2', nombre: 'Hielo CUBO', tipo: 'hielo', precio_base: 1000 } },
+    ])
+    renderWithProviders(<Carga />)
+    const tarjetas = await screen.findAllByTestId('tarjeta-carga')
+    expect(tarjetas).toHaveLength(2)
+    expect(tarjetas[0]).toHaveClass('flex', 'justify-between')
+    expect(tarjetas[0]).toHaveTextContent('Bidón 20L')
+    expect(tarjetas[0]).toHaveTextContent('Agua')
+    expect(tarjetas[0]).toHaveTextContent('Disponibles24')
+  })
+})
+
 describe('FE-05 / FE-12 · carga disponible', () => {
   it.each([Carga, Ventas])('muestra carga agotada si todas las filas tienen cantidad cero (%s)', async (Pagina) => {
     vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([
@@ -67,5 +85,40 @@ describe('FE-05 / FE-12 · carga disponible', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
     expect(await screen.findByText(/Aún no se te ha asignado/)).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
+describe('UX-15 · copy por rol', () => {
+  const admin = { perfil: makePerfil({ rol: 'administrador' }) }
+
+  it.each([Carga, Ventas])('vendedor ve "tu ruta"/carga propia (%s)', async (Pagina) => {
+    vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([])
+    renderWithProviders(<Pagina />)
+    expect(await screen.findByText('Aún no se te ha asignado carga hoy.')).toBeInTheDocument()
+    expect(screen.getByText(/tu ruta/)).toBeInTheDocument()
+  })
+
+  it.each([Carga, Ventas])('administrador no ve "tu ruta" y recibe un vacío explicativo (%s)', async (Pagina) => {
+    vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([])
+    renderWithProviders(<Pagina />, admin)
+    expect(await screen.findByText(/Tu usuario no tiene carga asignada/)).toBeInTheDocument()
+    expect(screen.queryByText(/tu ruta/i)).not.toBeInTheDocument()
+  })
+
+  it('Ventas no usa jerga técnica ni repite CTAs de las tarjetas', async () => {
+    vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([])
+    renderWithProviders(<Ventas />)
+    await screen.findByText(/Aún no se te ha asignado/)
+    expect(screen.queryByText(/atómica/i)).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /Registrar venta/ })).toHaveLength(1)
+    expect(screen.queryByRole('link', { name: 'Ver clientes' })).not.toBeInTheDocument()
+  })
+
+  it('Ventas: error con Reintentar que vuelve a leer', async () => {
+    vi.mocked(api.obtenerCargaVendedor).mockRejectedValueOnce(new Error('x')).mockResolvedValueOnce([])
+    renderWithProviders(<Ventas />)
+    expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar tu carga.')
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+    expect(await screen.findByText(/Aún no se te ha asignado/)).toBeInTheDocument()
   })
 })

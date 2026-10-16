@@ -1,54 +1,61 @@
-import { useEffect, useMemo, useState } from 'react'
-import { cardCls, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
+import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import EstadoVista from '../../../components/EstadoVista'
+import { cardCls, inputCls, labelCls } from '../../../lib/ui'
 import { formatMiles } from '../../../lib/format'
+import { inicioPeriodo, useJornadaSantiago } from '../../../lib/jornada'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 import type { Producto } from '../../../types'
 import { obtenerIndicadoresProduccion } from '../api'
 import { calcularResumenIndicadores } from '../calculos'
-import type { IndicadorProduccionDiario } from '../types'
+import TablaProduccionResponsive from './TablaProduccionResponsive'
 
 type Periodo = 'hoy' | '7dias' | '30dias'
 
 interface IndicadoresProduccionProps {
   sucursalId: string
   productos: Producto[]
-  versionDatos: number
+  perfilId: string
 }
 
-function fechaLocal(fecha: Date) {
-  const offset = fecha.getTimezoneOffset() * 60_000
-  return new Date(fecha.getTime() - offset).toISOString().slice(0, 10)
-}
-
-export default function IndicadoresProduccion({ sucursalId, productos, versionDatos }: IndicadoresProduccionProps) {
+export default function IndicadoresProduccion({ sucursalId, productos, perfilId }: IndicadoresProduccionProps) {
   const [periodo, setPeriodo] = useState<Periodo>('hoy')
-  const [registros, setRegistros] = useState<IndicadorProduccionDiario[]>([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const jornada = useJornadaSantiago()
+  const consulta = useQuery({
+    queryKey: ['produccion', perfilId, sucursalId, 'indicadores', periodo, jornada],
+    queryFn: () => obtenerIndicadoresProduccion(sucursalId, inicioPeriodo(jornada, periodo === '7dias' ? 6 : periodo === '30dias' ? 29 : 0), jornada),
+    retry: false,
+  })
+  const cargando = consulta.isPending
+  const error = consulta.error ? mensajeErrorSupabase(consulta.error) : null
+  const resumen = useMemo(() => calcularResumenIndicadores(consulta.data ?? []), [consulta.data])
+  const datoValido = !error && !cargando && consulta.isSuccess
 
-  useEffect(() => {
-    const hoy = new Date()
-    const inicio = new Date(hoy)
-    if (periodo === '7dias') inicio.setDate(hoy.getDate() - 6)
-    if (periodo === '30dias') inicio.setDate(hoy.getDate() - 29)
-    let vigente = true
-    const timer = window.setTimeout(() => {
-      setCargando(true)
-      setError(null)
-      void obtenerIndicadoresProduccion(sucursalId, fechaLocal(inicio), fechaLocal(hoy))
-        .then((data) => { if (vigente) setRegistros(data) })
-        .catch((cause: unknown) => { if (vigente) setError(mensajeErrorSupabase(cause)) })
-        .finally(() => { if (vigente) setCargando(false) })
-    }, 0)
-    return () => { vigente = false; window.clearTimeout(timer) }
-  }, [periodo, sucursalId, versionDatos])
-
-  const resumen = useMemo(() => calcularResumenIndicadores(registros), [registros])
-
-  return <section className="space-y-5">
-    <label className={`${labelCls} max-w-xs`}>Período<select className={inputCls} value={periodo} onChange={(event) => setPeriodo(event.target.value as Periodo)}><option value="hoy">Hoy</option><option value="7dias">Últimos 7 días</option><option value="30dias">Últimos 30 días</option></select></label>
-    {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-    {cargando ? <p className="text-sm text-slate-500">Calculando indicadores...</p> : null}
-    {!cargando ? <><div className="grid gap-4 sm:grid-cols-2"><article className={`${cardCls} p-5`}><p className="text-sm text-slate-500">Unidades producidas</p><p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(resumen.totalUnidades)}</p></article><article className={`${cardCls} p-5`}><p className="text-sm text-slate-500">Registros de producción</p><p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(resumen.totalRegistros)}</p></article></div><div className={cardCls}><h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Totales por producto</h2>{resumen.porProducto.length === 0 ? <p className="p-8 text-center text-sm text-slate-500">No hay producción en el período.</p> : <div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-slate-50"><th className={thCls}>Producto</th><th className={`${thCls} text-right`}>Unidades</th><th className={`${thCls} text-right`}>Registros</th></tr></thead><tbody className="divide-y divide-slate-100">{resumen.porProducto.map((item) => <tr key={item.productoId}><td className={tdCls}>{productos.find((producto) => producto.id === item.productoId)?.nombre ?? 'Producto'}</td><td className={`${tdCls} text-right font-semibold`}>{formatMiles(item.cantidad)}</td><td className={`${tdCls} text-right`}>{formatMiles(item.registros)}</td></tr>)}</tbody></table></div>}</div></> : null}
+  return <section aria-busy={consulta.isFetching} className="min-w-0 space-y-5">
+    <label className={`${labelCls} max-w-xs`}>Período
+      <select className={inputCls} value={periodo} onChange={event => setPeriodo(event.target.value as Periodo)}>
+        <option value="hoy">Hoy</option><option value="7dias">Últimos 7 días</option><option value="30dias">Últimos 30 días</option>
+      </select>
+    </label>
+    {consulta.isFetching && !consulta.isPending && <p role="status" className="text-sm text-slate-600">Actualizando...</p>}
+    {cargando ? <EstadoVista variante="cargando" mensaje="Calculando indicadores..." />
+      : error ? <EstadoVista variante="error" mensaje={error} onReintentar={() => void consulta.refetch()} /> : null}
+    <div className="grid min-w-0 grid-cols-1 gap-3 min-[360px]:grid-cols-2">
+      <article className={`${cardCls} min-w-0 p-5`}>
+        <p className="text-sm text-slate-600">Unidades producidas</p>
+        <p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(datoValido ? resumen.totalUnidades : null)}</p>
+      </article>
+      <article className={`${cardCls} min-w-0 p-5`}>
+        <p className="text-sm text-slate-600">Registros de producción</p>
+        <p className="mt-2 text-3xl font-bold text-brand-800">{formatMiles(datoValido ? resumen.totalRegistros : null)}</p>
+      </article>
+    </div>
+    {datoValido && <div className={`${cardCls} min-w-0`}>
+      <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">Totales por producto</h2>
+      {resumen.porProducto.length === 0 ? <EstadoVista variante="vacio" mensaje="No hay producción en el período." /> : <TablaProduccionResponsive resumenNumerico
+        columnas={[{ titulo: 'Producto', destacada: true }, { titulo: 'Unidades', numerica: true }, { titulo: 'Registros', numerica: true }]}
+        filas={resumen.porProducto.map(item => ({ id: item.productoId, celdas: [productos.find(producto => producto.id === item.productoId)?.nombre ?? 'Nombre no disponible', formatMiles(item.cantidad), formatMiles(item.registros)] }))}
+      />}
+    </div>}
   </section>
 }

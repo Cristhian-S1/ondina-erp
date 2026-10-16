@@ -1,35 +1,21 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../context/auth-context'
-import {
-  corregirDevolucion,
-  obtenerCargaVendedores,
-  obtenerDespachos,
-  obtenerDetallesDespacho,
-  obtenerDevolucionesEnvase,
-  obtenerDevolucionesProducto,
-  obtenerEnvasesDespacho,
-  obtenerStockEnvases,
-  obtenerVendedores,
-  registrarDevolucion,
-} from '../api'
-import { obtenerProductos, obtenerSucursales, obtenerTiposEmpaque } from '../../../lib/catalog'
-import { btnPrimary, btnSecondary, cardCls, fmtFecha, inputCls, labelCls, tdCls, thCls } from '../../../lib/ui'
-import type { Producto, Sucursal, TipoEmpaque } from '../../../types'
-import type { VendedorSucursal } from '../api'
-import type {
-  CargaVendedor,
-  Despacho,
-  DespachoDetalle,
-  DespachoEnvase,
-  DevolucionEnvase,
-  DevolucionProducto,
-  StockEnvases,
-} from '../types'
-
-interface DespachoConTotal extends Despacho {
-  totalUnidades: number
-  vendedorNombre: string
-}
+import { corregirDevolucion, registrarDevolucion } from '../api'
+import { btnPrimary, btnSecondary, cardCls } from '../../../lib/ui'
+import { fmtFecha, fmtFechaHora, formatMiles } from '../../../lib/format'
+import EstadoVista from '../../../components/EstadoVista'
+import InputNumerico from '../../../components/InputNumerico'
+import Dialog from '../../../components/Dialog'
+import { disponibleParaDevolver } from '../validacion'
+import AmbitoBodega from '../components/AmbitoBodega'
+import SeccionDevolucion from '../components/SeccionDevolucion'
+import CampoFormulario from '../../../components/CampoFormulario'
+import { useDatosBodega } from '../hooks/useDatosBodega'
+import Paginacion from '../../../components/Paginacion'
+import { usePaginaBodega } from '../hooks/usePaginaBodega'
+import { filtrosHistorial } from '../hooks/filtrosHistorial'
+import { useJornadaSantiago } from '../../../lib/jornada'
+import InputFecha from '../../../components/InputFecha'
 
 type EstadoDespacho = 'pendiente' | 'productos' | 'envases' | 'completo'
 
@@ -42,7 +28,7 @@ const estadoEtiqueta: Record<EstadoDespacho, string> = {
 
 const estadoBadge: Record<EstadoDespacho, string> = {
   pendiente: 'rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600',
-  productos: 'rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700',
+  productos: 'rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800',
   envases: 'rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700',
   completo: 'rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700',
 }
@@ -56,152 +42,72 @@ const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['todo', 'Todo'],
 ]
 
-const inputCompact = `${inputCls} !mt-0 w-20 text-right`
-
-function aaaammdd(fecha: Date): string {
-  const anio = fecha.getFullYear()
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
-  const dia = String(fecha.getDate()).padStart(2, '0')
-  return `${anio}-${mes}-${dia}`
-}
+// Fila compacta: nombre y disponibilidad a la izquierda, input acotado a la derecha.
+const filaCls = 'grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-3 py-3'
+// En teléfono las flechas apiladas de InputNumerico duplicarían el alto de la fila; el teclado numérico basta
+// (ArrowUp/ArrowDown siguen funcionando). Se muestran cuando la sección mide ≥ 32rem (container query:
+// en escritorio la columna de detalle es angosta aunque la ventana sea ancha).
+const sinFlechasMovil = '@max-lg:[&_button]:hidden'
 
 export default function Devoluciones() {
+  return <AmbitoBodega>{(sucursalId, setOcupado) => <DevolucionesSucursal sucursalId={sucursalId} setOcupado={setOcupado} />}</AmbitoBodega>
+}
+
+function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; setOcupado: (ocupado: boolean) => void }) {
   const { perfil } = useAuth()
   const esAdmin = perfil?.rol === 'administrador'
 
-  const [sucursales, setSucursales] = useState<Sucursal[]>([])
-  const [sucursalId, setSucursalId] = useState('')
-  const [vendedores, setVendedores] = useState<VendedorSucursal[]>([])
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [tiposEmpaque, setTiposEmpaque] = useState<TipoEmpaque[]>([])
-  const [despachos, setDespachos] = useState<DespachoConTotal[]>([])
-  const [despachoDetalles, setDespachoDetalles] = useState<DespachoDetalle[]>([])
-  const [despachoEnvases, setDespachoEnvases] = useState<DespachoEnvase[]>([])
-  const [desvProducto, setDesvProducto] = useState<DevolucionProducto[]>([])
-  const [desvEnvase, setDesvEnvase] = useState<DevolucionEnvase[]>([])
-  const [stockEnvases, setStockEnvases] = useState<StockEnvases[]>([])
-  const [cargaVendedor, setCargaVendedor] = useState<CargaVendedor[]>([])
-  const [cargando, setCargando] = useState(true)
+  const recursos = useDatosBodega(sucursalId, false)
+  const jornada = useJornadaSantiago()
+  const { vendedores = [], productos = [], tiposEmpaque = [], stockEnvases = [], cargaVendedor = [] } = recursos.data ?? {}
+  const load = () => historial.actualizar()
 
+  const detalleTitulo = useRef<HTMLHeadingElement>(null)
   const [seleccionado, setSeleccionado] = useState('')
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
+  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedores, seleccionado)
+  const datos = { isPending: recursos.isPending || historial.isPending,
+    isError: recursos.isError || historial.isError, data: recursos.data && historial.data }
+  const despachosFiltrados = historial.data?.despachos ?? []
+  const paginaDatos = historial.data
+  const despachoDetalles = [...(paginaDatos?.despachoDetalles ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.despachoDetalles ?? [])]
+  const despachoEnvases = [...(paginaDatos?.despachoEnvases ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.despachoEnvases ?? [])]
+  const desvProducto = [...(paginaDatos?.desvProducto ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.desvProducto ?? [])]
+  const desvEnvase = [...(paginaDatos?.desvEnvase ?? []).filter(d => d.despacho_id !== seleccionado || !historial.individual), ...(historial.individual?.desvEnvase ?? [])]
+  const despachos = [...despachosFiltrados.filter(d => d.id !== seleccionado || !historial.individual), ...(historial.individual?.despachos ?? [])]
+
   const [productoInputs, setProductoInputs] = useState<Record<string, string>>({})
   const [envaseInputs, setEnvaseInputs] = useState<
     Record<string, { buenos: string; malos: string }>
   >({})
-  const [enviando, setEnviando] = useState(false)
+  const [confirmarEnvases, setConfirmarEnvases] = useState(false)
+  const [enviando, actualizarEnviando] = useState(false)
+  const enviandoRef = useRef(false)
+  function setEnviando(valor: boolean) {
+    enviandoRef.current = valor
+    actualizarEnviando(valor)
+    setOcupado(valor)
+  }
   const intento = useRef<{ contenido: string; clave: string } | null>(null)
-  const [versionLectura, setVersionLectura] = useState(0)
-  const [errorLectura, setErrorLectura] = useState<string | null>(null)
-  const [errorSucursales, setErrorSucursales] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (seleccionado) {
+      detalleTitulo.current?.focus()
+      detalleTitulo.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' })
+    }
+  }, [seleccionado])
 
   const tiposEmpaqueDevolvibles = useMemo(
     () => tiposEmpaque.filter((t) => t.categoria !== 'no_retornable'),
     [tiposEmpaque],
   )
 
-  useEffect(() => {
-    async function init() {
-      const data = await obtenerSucursales()
-      setErrorSucursales(null)
-      setSucursales(data)
-      setSucursalId((actual) => actual || perfil?.sucursal_id || data[0]?.id || '')
-    }
-    void init().catch(() => {
-      setErrorSucursales('No fue posible cargar las sucursales. Inténtalo de nuevo.')
-      setCargando(false)
-    })
-  }, [perfil, versionLectura])
-
-  const load = useCallback(async () => {
-    try {
-      setErrorLectura(null)
-      const [vendedoresData, productosData, empaquesData, despachosRaw, envasesStockRaw] =
-        await Promise.all([
-          obtenerVendedores(sucursalId),
-          obtenerProductos(true),
-          obtenerTiposEmpaque(),
-          obtenerDespachos(sucursalId),
-          obtenerStockEnvases(sucursalId),
-        ])
-
-      const ids = despachosRaw.map((d) => d.id)
-      const [detalles, envases, dProd, dEnv, cargaRaw] = await Promise.all([
-        obtenerDetallesDespacho(ids),
-        obtenerEnvasesDespacho(ids),
-        obtenerDevolucionesProducto(ids),
-        obtenerDevolucionesEnvase(ids),
-        obtenerCargaVendedores(vendedoresData.map((v) => v.id)),
-      ])
-
-      const nombreVendedor = (id: string) => {
-        const v = vendedoresData.find((x) => x.id === id)
-        return v ? `${v.nombres} ${v.apellidos}` : 'Desconocido'
-      }
-
-      setProductos(productosData)
-      setTiposEmpaque(empaquesData)
-      setVendedores(vendedoresData)
-      setDespachos(
-        despachosRaw.map((d) => ({
-          ...d,
-          totalUnidades: detalles
-            .filter((x) => x.despacho_id === d.id)
-            .reduce((sum, x) => sum + x.cantidad, 0),
-          vendedorNombre: nombreVendedor(d.vendedor_id),
-        })),
-      )
-      setDespachoDetalles(detalles)
-      setDespachoEnvases(envases)
-      setDesvProducto(dProd)
-      setDesvEnvase(dEnv)
-      setStockEnvases(envasesStockRaw)
-      setCargaVendedor(cargaRaw)
-    } catch {
-      setErrorLectura('No fue posible cargar las devoluciones. Inténtalo de nuevo.')
-    } finally {
-      setCargando(false)
-    }
-  }, [sucursalId])
-
-  useEffect(() => {
-    async function cargar() {
-      await load()
-    }
-    void cargar()
-  }, [load, versionLectura])
-
-  const diaObjetivo = useMemo(() => {
-    if (diaFiltro === 'fecha') return fechaSeleccionada
-    if (diaFiltro === 'todo') return ''
-    const hoy = new Date()
-    if (diaFiltro === 'hoy') return aaaammdd(hoy)
-    if (diaFiltro === 'ayer') {
-      const ayer = new Date(hoy)
-      ayer.setDate(hoy.getDate() - 1)
-      return aaaammdd(ayer)
-    }
-    const inicio = new Date(hoy)
-    inicio.setDate(hoy.getDate() - 6)
-    return aaaammdd(inicio)
-  }, [diaFiltro, fechaSeleccionada])
-
-  const despachosFiltrados = useMemo(() => {
-    return despachos.filter((d) => {
-      if (vendedorFiltro && d.vendedor_id !== vendedorFiltro) return false
-      if (diaFiltro === 'todo') return true
-      const fechaDespacho = aaaammdd(new Date(d.creado_en))
-      if (diaFiltro === '7d') return fechaDespacho >= diaObjetivo
-      return fechaDespacho === diaObjetivo
-    })
-  }, [despachos, vendedorFiltro, diaFiltro, diaObjetivo])
-
   const estadoDe = (despachoId: string): EstadoDespacho => {
-    const hasProductos = desvProducto.some((x) => x.despacho_id === despachoId)
-    const hasEnvases = desvEnvase.some((x) => x.despacho_id === despachoId)
+    const hasProductos = desvProducto.some((x) => x.despacho_id === despachoId && !x.anulado)
+    const hasEnvases = desvEnvase.some((x) => x.despacho_id === despachoId && !x.anulado)
     if (hasProductos && hasEnvases) return 'completo'
     if (hasProductos) return 'productos'
     if (hasEnvases) return 'envases'
@@ -239,7 +145,7 @@ export default function Devoluciones() {
 
   const devueltoProductoDe = (despachoId: string, productoId: string) =>
     desvProducto
-      .filter((x) => x.despacho_id === despachoId && x.producto_id === productoId)
+      .filter((x) => x.despacho_id === despachoId && x.producto_id === productoId && !x.anulado)
       .reduce((sum, x) => sum + x.cantidad, 0)
 
   const devueltoEnvaseBuenoDe = (despachoId: string, tipoEmpaqueId: string) =>
@@ -248,7 +154,7 @@ export default function Devoluciones() {
         (x) =>
           x.despacho_id === despachoId &&
           x.tipo_empaque_id === tipoEmpaqueId &&
-          x.estado === 'bueno',
+          x.estado === 'bueno' && !x.anulado,
       )
       .reduce((sum, x) => sum + x.cantidad, 0)
 
@@ -258,7 +164,7 @@ export default function Devoluciones() {
         (x) =>
           x.despacho_id === despachoId &&
           x.tipo_empaque_id === tipoEmpaqueId &&
-          x.estado === 'malo',
+          x.estado === 'malo' && !x.anulado,
       )
       .reduce((sum, x) => sum + x.cantidad, 0)
 
@@ -284,13 +190,33 @@ export default function Devoluciones() {
   }
 
   function seleccionar(despachoId: string) {
+    setConfirmarEnvases(false)
     setSeleccionado(despachoId)
     prellenarInputs(despachoId)
     setError(null)
   }
 
-  async function registrar() {
-    if (!perfil || !seleccionado) return
+  const despachoSeleccionado = despachos.find((d) => d.id === seleccionado)
+  const estado = seleccionado ? estadoDe(seleccionado) : null
+  const productosPendientes = estado === 'pendiente' || estado === 'envases'
+  const envasesPendientes = estado === 'pendiente' || estado === 'productos'
+  const hayProductosRegistrados = desvProducto.some((x) => x.despacho_id === seleccionado)
+  const hayEnvasesRegistrados = desvEnvase.some((x) => x.despacho_id === seleccionado)
+  const editarProductos = productosPendientes || (esAdmin && hayProductosRegistrados)
+  const editarEnvases = envasesPendientes || (esAdmin && hayEnvasesRegistrados)
+  const esCorreccion = esAdmin && (hayProductosRegistrados || hayEnvasesRegistrados)
+  const soloLectura = !esAdmin && estado === 'completo'
+
+  const advertenciasEnvases = editarEnvases && seleccionado ? tiposEmpaqueDevolvibles.flatMap(tipo => {
+    const valores = envaseInputs[tipo.id]
+    const cantidad = (Number(valores?.buenos) || 0) + (Number(valores?.malos) || 0)
+    const despachadas = envasesDespachados(seleccionado).get(tipo.id) ?? 0
+    return cantidad > despachadas ? [{ tipoId: tipo.id, nombre: tipo.nombre, cantidad, despachadas,
+      mensaje: `Devuelves ${formatMiles(cantidad)} envases de ${tipo.nombre} y se despacharon ${formatMiles(despachadas)}. Pueden venir de clientes; revisa las cantidades antes de registrar.` }] : []
+  }) : []
+
+  async function registrar(confirmado = false) {
+    if (enviandoRef.current || !perfil || !seleccionado) return
     setError(null)
     const estado = estadoDe(seleccionado)
 
@@ -326,16 +252,22 @@ export default function Devoluciones() {
 
     const despachados = productosDespachados(seleccionado)
     for (const l of lineasProducto) {
-      const max = despachados.get(l.producto_id) ?? 0
+      const max = disponibleParaDevolver(despachados.get(l.producto_id) ?? 0, devueltoProductoDe(seleccionado, l.producto_id), esCorreccion)
       if (l.cantidad > max) {
         const p = productos.find((x) => x.id === l.producto_id)
         setError(
-          `No puedes devolver más de ${max} ${p?.nombre ?? 'del producto'} (despachado).`,
+          `No puedes devolver más de ${max} ${p?.nombre ?? 'del producto'} (disponible para devolver).`,
         )
+        document.getElementById(`devolucion-producto-${l.producto_id}`)?.focus()
         return
       }
     }
 
+    if (advertenciasEnvases.length && !confirmado) {
+      setConfirmarEnvases(true)
+      return
+    }
+    setConfirmarEnvases(false)
     setEnviando(true)
     const payload = {
       despacho_id: seleccionado,
@@ -364,65 +296,29 @@ export default function Devoluciones() {
     await load()
   }
 
-  if (errorSucursales || errorLectura) {
-    return (
-      <div className="space-y-3">
-        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errorSucursales ?? errorLectura}</p>
-        <button type="button" className={btnSecondary} onClick={() => setVersionLectura((actual) => actual + 1)}>Reintentar</button>
-      </div>
-    )
-  }
+  if (datos.isError && !datos.data) return <EstadoVista variante="error" mensaje="No fue posible cargar las devoluciones. Inténtalo de nuevo." onReintentar={() => void load()} />
+  if (datos.isPending) return <EstadoVista variante="cargando" />
 
-  if (cargando) return <p className="text-sm text-slate-500">Cargando...</p>
-
-  const despachoSeleccionado = despachos.find((d) => d.id === seleccionado)
-  const estado = seleccionado ? estadoDe(seleccionado) : null
-  const productosPendientes = estado === 'pendiente' || estado === 'envases'
-  const envasesPendientes = estado === 'pendiente' || estado === 'productos'
-  const hayProductosRegistrados = desvProducto.some((x) => x.despacho_id === seleccionado)
-  const hayEnvasesRegistrados = desvEnvase.some((x) => x.despacho_id === seleccionado)
-  const editarProductos = productosPendientes || (esAdmin && hayProductosRegistrados)
-  const editarEnvases = envasesPendientes || (esAdmin && hayEnvasesRegistrados)
-  const esCorreccion = esAdmin && (hayProductosRegistrados || hayEnvasesRegistrados)
-  const soloLectura = !esAdmin && estado === 'completo'
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Devoluciones</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-600">
             Registra lo que el vendedor devuelve al finalizar su ruta, por despacho.
           </p>
         </div>
 
-        {perfil?.rol === 'administrador' && (
-          <label className={labelCls}>
-            Sucursal
-            <select
-              className={inputCls}
-              value={sucursalId}
-              onChange={(e) => {
-                setSucursalId(e.target.value)
-                setSeleccionado('')
-              }}
-            >
-              {sucursales.length === 0 && <option value="">Sin sucursales</option>}
-              {sucursales.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nombre}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
       </div>
 
+      {datos.isError && (<div role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No fue posible actualizar. Se conservan los últimos datos disponibles. <button type="button" className={btnSecondary} onClick={() => void load()}>Reintentar</button></div>)}
+      {historial.errorIndividual && <EstadoVista variante="error" mensaje="No fue posible actualizar el despacho seleccionado. Inténtalo de nuevo." onReintentar={() => void load()} />}
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p id="error-devolucion" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       )}
 
-      <div className={cardCls}>
+      <div className={`${cardCls} min-w-0`}>
         <div className="flex flex-wrap items-center gap-3 px-5 py-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {OPCIONES_DIA.filter(([valor]) => esAdmin || valor === 'hoy').map(
@@ -446,10 +342,10 @@ export default function Devoluciones() {
               ),
             )}
             {esAdmin && (
-              <input
-                type="date"
+              <InputFecha
                 aria-label="Fecha"
-                className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+                etiquetaCalendario="Abrir calendario"
+                className="min-h-11 w-40 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
                 value={fechaSeleccionada}
                 onChange={(e) => {
                   setFechaSeleccionada(e.target.value)
@@ -462,7 +358,7 @@ export default function Devoluciones() {
 
           <select
             aria-label="Filtrar por vendedor"
-            className="min-h-11 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+            className="min-h-11 min-w-0 max-w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
             value={vendedorFiltro}
             onChange={(e) => {
               setVendedorFiltro(e.target.value)
@@ -480,20 +376,14 @@ export default function Devoluciones() {
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
-        <aside className={cardCls}>
+        <aside className={`${cardCls} min-w-0`}>
           <div className="border-b border-slate-100 px-5 py-4">
             <h2 className="text-base font-semibold text-slate-900">Despachos</h2>
-            <p className="text-sm text-slate-500">Selecciona uno para registrar la devolución</p>
+            <p className="text-sm text-slate-600">Selecciona uno para registrar la devolución</p>
           </div>
 
-          {despachos.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              Aún no hay despachos para esta sucursal.
-            </p>
-          ) : despachosFiltrados.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-slate-500">
-              No hay despachos para el día y vendedor seleccionados.
-            </p>
+          {despachosFiltrados.length === 0 ? (
+            <div role="status"><EstadoVista variante="vacio" mensaje="No hay despachos para el día y vendedor seleccionados." /></div>
           ) : (
             <ul className="space-y-2 p-3">
               {despachosFiltrados.map((d) => {
@@ -510,13 +400,13 @@ export default function Devoluciones() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-slate-900">
+                        <p className={`${d.vendedorDisponible ? 'truncate' : 'break-words'} min-w-0 text-sm font-semibold text-slate-900`}>
                           {d.vendedorNombre}
                         </p>
-                        <span className={estadoBadge[dEstado]}>{estadoEtiqueta[dEstado]}</span>
+                        <span className={`shrink-0 ${estadoBadge[dEstado]}`}>{estadoEtiqueta[dEstado]}</span>
                       </div>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {fmtFecha(d.creado_en)} · {d.totalUnidades} unid.
+                      <p className="mt-0.5 text-xs text-slate-600">
+                        {fmtFechaHora(d.creado_en)} · Despacho #{d.id.slice(0, 8)} · {d.totalUnidades} unid.
                       </p>
                     </button>
                   </li>
@@ -524,21 +414,21 @@ export default function Devoluciones() {
               })}
             </ul>
           )}
+          <Paginacion pagina={historial.pagina} total={historial.data?.total ?? 0}
+            onCambiar={historial.setPagina} cargando={historial.isFetching || enviando} etiqueta="Paginación de despachos" />
         </aside>
 
-        <section className={cardCls}>
+        <section className={`${cardCls} min-w-0`}>
           {!despachoSeleccionado ? (
-            <p className="px-5 py-16 text-center text-sm text-slate-500">
-              Selecciona un despacho para registrar su devolución.
-            </p>
+            <div role="status"><EstadoVista variante="vacio" mensaje="Selecciona un despacho para registrar su devolución." /></div>
           ) : (
             <div>
-              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-5 py-4">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">
+                  <h2 ref={detalleTitulo} tabIndex={-1} className="text-base font-semibold text-slate-900">
                     Devolución de {despachoSeleccionado.vendedorNombre}
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600">
                     {fmtFecha(despachoSeleccionado.creado_en)} ·{' '}
                     {despachoSeleccionado.totalUnidades} unid. despachadas
                   </p>
@@ -546,179 +436,119 @@ export default function Devoluciones() {
                 <span className={estadoBadge[estado!]}>{estadoEtiqueta[estado!]}</span>
               </div>
 
-              <div className="space-y-6 p-5">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Productos del despacho
-                    </h3>
-                    {!editarProductos && (
-                      <span className="text-xs font-semibold text-emerald-700">Ya devueltos</span>
+              <div className="space-y-5 p-3 sm:p-5">
+                <SeccionDevolucion tono="producto" titulo="Productos del despacho" lineas={productosDespachados(seleccionado).size} yaDevueltos={!editarProductos}>
+                  <ul className="divide-y divide-slate-200">
+                    {[...productosDespachados(seleccionado).entries()].map(
+                      ([productoId, despachado]) => {
+                        const producto = productos.find((p) => p.id === productoId)
+                        const disponible = disponibleParaDevolver(despachado, devueltoProductoDe(seleccionado, productoId), esCorreccion)
+                        const devuelto = devueltoProductoDe(seleccionado, productoId)
+                        const errorCantidad = Number(productoInputs[productoId]) > disponible
+                          ? `No puedes devolver más de ${disponible} ${producto?.nombre ?? 'del producto'} (disponible para devolver).` : undefined
+                        return (
+                          <li key={productoId} data-testid="fila-devolucion-producto" className={filaCls}>
+                            <div className="min-w-0">
+                              <p className="break-words text-sm font-semibold text-slate-900">{producto?.nombre ?? 'Producto'}</p>
+                              <p className="mt-0.5 text-xs text-slate-600">
+                                Despachado <b className="text-slate-900">{formatMiles(despachado)}</b>
+                                {editarProductos && <> · Disponible <b className="text-slate-900">{formatMiles(disponible)}</b></>}
+                                {estado === 'pendiente' && <> · Carga <b className="text-slate-900">{formatMiles(cargaDeDespacho(seleccionado, productoId))}</b></>}
+                              </p>
+                            </div>
+                            {editarProductos ? (
+                              <div className={`w-36 @lg:w-44 ${sinFlechasMovil}`}>
+                                <CampoFormulario id={`devolucion-producto-${productoId}`} etiqueta="Cantidad a devolver"
+                                  descripcionId="ayuda-devolucion-cantidad" error={errorCantidad}>
+                                  {atributos => <InputNumerico {...atributos}
+                                    aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
+                                    className={`${atributos.className} text-right`} value={productoInputs[productoId] ?? ''}
+                                    onChange={valor => {
+                                      setError(null)
+                                      setProductoInputs(prev => ({ ...prev, [productoId]: valor === undefined ? '' : String(valor) }))
+                                    }} />}
+                                </CampoFormulario>
+                              </div>
+                            ) : (
+                              <span className="whitespace-nowrap text-right text-sm font-bold text-amber-800">
+                                {devuelto > 0 ? `Devuelto ${formatMiles(devuelto)}` : 'Sin devolución'}
+                              </span>
+                            )}
+                          </li>
+                        )
+                      },
                     )}
-                  </div>
-                  <div className="mt-2 overflow-hidden rounded-lg border border-slate-200">
-                    <table className="w-full">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className={thCls}>Producto</th>
-                          <th className={`${thCls} text-right`}>Despachado</th>
-                          {estado === 'pendiente' && (
-                            <th className={`${thCls} text-right`}>Carga</th>
-                          )}
-                          <th className={`${thCls} text-right`}>Devuelve</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {[...productosDespachados(seleccionado).entries()].map(
-                          ([productoId, despachado]) => {
-                            const producto = productos.find((p) => p.id === productoId)
-                            return (
-                              <tr key={productoId}>
-                                <td className={tdCls}>{producto?.nombre ?? 'Producto'}</td>
-                                <td className={`${tdCls} text-right font-semibold`}>
-                                  {despachado}
-                                </td>
-                                {estado === 'pendiente' && (
-                                  <td className={`${tdCls} text-right text-slate-500`}>
-                                    {cargaDeDespacho(seleccionado, productoId)}
-                                  </td>
-                                )}
-                                <td className={`${tdCls} text-right`}>
-                                  {editarProductos ? (
-                                    <input
-                                      aria-label={`Cantidad a devolver de ${producto?.nombre ?? 'Producto'}`}
-                                      type="number"
-                                      inputMode="numeric"
-                                      min={0}
-                                      max={despachado}
-                                      placeholder="0"
-                                      className={inputCompact}
-                                      value={productoInputs[productoId] ?? ''}
-                                      onChange={(e) =>
-                                        setProductoInputs((prev) => ({
-                                          ...prev,
-                                          [productoId]: e.target.value,
-                                        }))
-                                      }
-                                    />
-                                  ) : (
-                                    <span className="font-medium text-amber-600">
-                                      −{devueltoProductoDe(seleccionado, productoId)}
-                                    </span>
-                                  )}
-                                </td>
-                              </tr>
-                            )
-                          },
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                  {productosPendientes && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      No puedes devolver más de lo despachado por producto.
+                  </ul>
+                  {editarProductos && (
+                    <p id="ayuda-devolucion-cantidad" className="border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
+                      La devolución de cada producto tiene como límite lo despachado menos lo ya devuelto. En una corrección se reemplazan las cantidades anteriores.
                     </p>
                   )}
-                </div>
+                </SeccionDevolucion>
 
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Envases
-                    </h3>
-                    {!editarEnvases && (
-                      <span className="text-xs font-semibold text-emerald-700">Ya devueltos</span>
-                    )}
-                  </div>
-                  <div className="mt-2 overflow-hidden rounded-lg border border-slate-200">
-                    <table className="w-full">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className={thCls}>Envase</th>
-                          <th className={`${thCls} text-right`}>Despachadas</th>
-                          <th className={`${thCls} text-right`}>En bodega</th>
-                          <th className={`${thCls} text-right`}>Buenos</th>
-                          <th className={`${thCls} text-right`}>Malos</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {tiposEmpaqueDevolvibles.map((t) => {
-                          const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
-                          const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
-                          return (
-                            <tr key={t.id}>
-                              <td className={tdCls}>{t.nombre}</td>
-                              <td className={`${tdCls} text-right font-semibold`}>
-                                {despachadas}
-                              </td>
-                              <td className={`${tdCls} text-right text-slate-500`}>
-                                {stockEnvaseDe(t.id)}
-                              </td>
-                              <td className={`${tdCls} text-right`}>
-                                {editarEnvases ? (
-                                  <input
-                                    aria-label={`Cantidad de envases buenos de ${t.nombre}`}
-                                    type="number"
-                                    inputMode="numeric"
-                                    min={0}
-                                    max={despachadas}
-                                    placeholder="0"
-                                    className={inputCompact}
-                                    value={input.buenos}
-                                    onChange={(e) =>
-                                      setEnvaseInputs((prev) => ({
-                                        ...prev,
-                                        [t.id]: { ...input, buenos: e.target.value },
-                                      }))
-                                    }
-                                  />
-                                ) : (
-                                  <span className="font-medium text-emerald-600">
-                                    +{devueltoEnvaseBuenoDe(seleccionado, t.id)}
-                                  </span>
-                                )}
-                              </td>
-                              <td className={`${tdCls} text-right`}>
-                                {editarEnvases ? (
-                                  <input
-                                    aria-label={`Cantidad de envases malos de ${t.nombre}`}
-                                    type="number"
-                                    inputMode="numeric"
-                                    min={0}
-                                    max={despachadas - (Number(input.buenos) || 0)}
-                                    placeholder="0"
-                                    className={inputCompact}
-                                    value={input.malos}
-                                    onChange={(e) =>
-                                      setEnvaseInputs((prev) => ({
-                                        ...prev,
-                                        [t.id]: { ...input, malos: e.target.value },
-                                      }))
-                                    }
-                                  />
-                                ) : (
-                                  <span className="font-medium text-amber-600">
-                                    +{devueltoEnvaseMaloDe(seleccionado, t.id)}
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                <SeccionDevolucion tono="envase" titulo="Envases" lineas={tiposEmpaqueDevolvibles.length} yaDevueltos={!editarEnvases}>
+                  <ul className="divide-y divide-slate-200">
+                    {tiposEmpaqueDevolvibles.map((t) => {
+                      const despachadas = envasesDespachados(seleccionado).get(t.id) ?? 0
+                      const input = envaseInputs[t.id] ?? { buenos: '', malos: '' }
+                      const advertencia = advertenciasEnvases.find(item => item.tipoId === t.id)
+                      const advertenciaId = `advertencia-envase-${t.id}`
+                      return (
+                        <li key={t.id} data-testid="fila-devolucion-envase" className="grid min-w-0 gap-x-3 gap-y-2 px-3 py-3 @lg:grid-cols-[minmax(0,1fr)_auto] @lg:items-center">
+                          <div className="min-w-0">
+                            <p className="break-words text-sm font-semibold text-slate-900">{t.nombre}</p>
+                            <p className="mt-0.5 text-xs text-slate-600">
+                              Despachadas <b className="text-slate-900">{formatMiles(despachadas)}</b>
+                              {' · '}En bodega <b className="text-slate-900">{formatMiles(stockEnvaseDe(t.id))}</b>
+                            </p>
+                          </div>
+                          {editarEnvases ? (
+                            <div className={`grid grid-cols-2 gap-3 @lg:w-80 ${sinFlechasMovil}`}>
+                              <div className="min-w-0">
+                                <CampoFormulario id={`devolucion-envase-bueno-${t.id}`} etiqueta="Buenos"
+                                  descripcionId={advertencia ? advertenciaId : undefined}>
+                                  {atributos => <InputNumerico {...atributos} aria-label={`Cantidad de envases buenos de ${t.nombre}`}
+                                    className={`${atributos.className} text-right`} value={input.buenos}
+                                    onChange={valor => {
+                                      setError(null)
+                                      setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, buenos: valor === undefined ? '' : String(valor) } }))
+                                    }} />}
+                                </CampoFormulario>
+                              </div>
+                              <div className="min-w-0">
+                                <CampoFormulario id={`devolucion-envase-malo-${t.id}`} etiqueta="Malos"
+                                  descripcionId={advertencia ? advertenciaId : undefined}>
+                                  {atributos => <InputNumerico {...atributos} aria-label={`Cantidad de envases malos de ${t.nombre}`}
+                                    className={`${atributos.className} text-right`} value={input.malos}
+                                    onChange={valor => {
+                                      setError(null)
+                                      setEnvaseInputs(prev => ({ ...prev, [t.id]: { ...input, malos: valor === undefined ? '' : String(valor) } }))
+                                    }} />}
+                                </CampoFormulario>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm font-bold @lg:text-right">
+                              <span className="text-emerald-800">+{formatMiles(devueltoEnvaseBuenoDe(seleccionado, t.id))} buenos</span>
+                              <span className="ml-3 text-amber-800">+{formatMiles(devueltoEnvaseMaloDe(seleccionado, t.id))} malos</span>
+                            </p>
+                          )}
+                          {advertencia && editarEnvases && <p id={advertenciaId} role="status" className="text-xs text-amber-800 @lg:col-span-2">{advertencia.mensaje}</p>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  <p className="border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
                     Solo los envases en estado “bueno” vuelven al stock de bodega.
                   </p>
-                </div>
+                </SeccionDevolucion>
 
                 {!soloLectura && (
                   <div className="border-t border-slate-100 pt-4">
                     <button
                       type="button"
                       className={`${btnPrimary} w-full`}
-                      disabled={enviando}
+                      disabled={enviando || !!historial.errorIndividual}
                       onClick={() => void registrar()}
                     >
                       {enviando
@@ -734,6 +564,17 @@ export default function Devoluciones() {
           )}
         </section>
       </div>
+      <Dialog open={confirmarEnvases} onClose={() => { if (!enviando) setConfirmarEnvases(false) }}
+        title="Confirmar devolución de envases"
+        description="La cantidad de algunos envases supera lo despachado. Pueden venir de clientes y está permitido registrarlos; confirma que las cantidades son correctas.">
+        <ul className="space-y-2 text-sm text-slate-700">{advertenciasEnvases.map(item => <li key={item.tipoId}>{item.mensaje}</li>)}</ul>
+        <div className="flex flex-wrap justify-end gap-3">
+          <button type="button" className={btnSecondary} onClick={() => setConfirmarEnvases(false)}>Volver a revisar</button>
+          <button type="button" className={btnPrimary} disabled={enviando} onClick={() => void registrar(true)}>
+            {esCorreccion ? 'Confirmar y guardar corrección' : 'Confirmar y registrar'}
+          </button>
+        </div>
+      </Dialog>
     </div>
   )
 }

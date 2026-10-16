@@ -11,11 +11,12 @@ export async function obtenerProductos(
   return data ?? []
 }
 
-export async function obtenerTiposEmpaque(): Promise<TipoEmpaque[]> {
-  const { data, error } = await supabase
-    .from('tipos_empaque')
-    .select('*')
-    .eq('activo', true)
+// `incluirInactivos` sirve a las vistas de sólo lectura (p. ej. Stock): un tipo desactivado puede conservar
+// existencias y su nombre debe resolverse (N-01). Los formularios siguen usando sólo activos.
+export async function obtenerTiposEmpaque(incluirInactivos = false): Promise<TipoEmpaque[]> {
+  let query = supabase.from('tipos_empaque').select('*')
+  if (!incluirInactivos) query = query.eq('activo', true)
+  const { data, error } = await query
     .order('nombre')
     .returns<TipoEmpaque[]>()
   if (error) throw new Error('No fue posible cargar los tipos de empaque. Inténtalo de nuevo.')

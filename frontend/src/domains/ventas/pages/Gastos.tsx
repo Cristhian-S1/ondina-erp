@@ -1,12 +1,17 @@
+import Paginacion from '../../../components/Paginacion'
+import { z } from 'zod'
+import CampoFormulario from '../../../components/CampoFormulario'
+import EstadoVista from '../../../components/EstadoVista'
+import InputNumerico from '../../../components/InputNumerico'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGastosHoy } from '../hooks/useGastosHoy'
 import { useCrearGasto } from '../hooks/useCrearGasto'
-import { crearGastoSchema, type CrearGastoForm, type CrearGastoInput } from '../schemas'
+import { crearGastoSchema, tipoGastoEnum } from '../schemas'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
-import { btnPrimary, cardCls, errorTextCls, fmtFecha, inputCls, labelCls } from '../../../lib/ui'
-import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
+import { btnPrimary, cardCls } from '../../../lib/ui'
+import { fmtFechaHora, formatMiles } from '../../../lib/format'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 
 const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
@@ -16,11 +21,19 @@ const TIPOS: { value: 'combustible' | 'averia' | 'otra'; label: string }[] = [
 ]
 
 function fmtMonto(n: number) {
-  return formatMiles(n)
+  return `$ ${formatMiles(n)}`
 }
 
+const formularioGastoSchema = crearGastoSchema.extend({
+  tipo: z.enum(['', 'combustible', 'averia', 'otra'])
+    .refine(tipo => tipo !== '', 'Selecciona el tipo de gasto').pipe(tipoGastoEnum),
+})
+type FormularioGasto = z.input<typeof formularioGastoSchema>
+type GastoValidado = z.output<typeof formularioGastoSchema>
+
 export default function Gastos() {
-  const { data, isLoading, error } = useGastosHoy()
+  const consulta = useGastosHoy()
+  const { data, isLoading, error, refetch } = consulta
   const crear = useCrearGasto()
   const { toast, mostrar, cerrar } = useToast()
 
@@ -30,19 +43,19 @@ export default function Gastos() {
     reset,
     control,
     formState: { errors },
-  } = useForm<CrearGastoForm, unknown, CrearGastoInput>({
-    resolver: zodResolver(crearGastoSchema),
-    defaultValues: { tipo: 'otra', monto: undefined as unknown as number, motivo: '' },
+  } = useForm<FormularioGasto, unknown, GastoValidado>({
+    resolver: zodResolver(formularioGastoSchema),
+    defaultValues: { tipo: '', monto: undefined, motivo: '' },
   })
 
-  function onSubmit(values: CrearGastoInput) {
+  function onSubmit(values: GastoValidado) {
     crear.mutate(values, {
       onSuccess: (res) => {
         if (res.error) {
           mostrar(res.error, 'error')
           return
         }
-        reset({ tipo: 'otra', monto: undefined as unknown as number, motivo: '' })
+        reset({ tipo: '', monto: undefined, motivo: '' })
         mostrar('Gasto registrado.', 'exito')
       },
       onError: (err) => {
@@ -51,14 +64,14 @@ export default function Gastos() {
     })
   }
 
-  const totalHoy = (data ?? []).filter((g) => !g.anulado).reduce((sum, g) => sum + g.monto, 0)
+  const totalHoy = consulta.totalHoy
 
   return (
     <div className="space-y-6">
       <Toast toast={toast} onClose={cerrar} />
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Gastos extras</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           Registra gastos de ruta del día. En esta versión no se adjuntan comprobantes.
         </p>
       </div>
@@ -69,59 +82,17 @@ export default function Gastos() {
         noValidate
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <label className={labelCls}>
-            Tipo
-            <select className={inputCls} {...register('tipo')}>
-              {TIPOS.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className={labelCls}>
-            Monto (CLP)
-            <Controller
-              control={control}
-              name="monto"
-              render={({ field }) => (
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  className={inputCls}
-                  placeholder=""
-                  value={field.value ? formatMiles(field.value as number) : ''}
-                  onChange={(e) => {
-                    const formatted = formatMilesInput(e.target.value)
-                    e.target.value = formatted
-                    const numeric = formatted ? parseMiles(formatted) : undefined
-                    field.onChange(numeric)
-                  }}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                />
-              )}
-            />
-            {errors.monto && (
-              <span className={errorTextCls}>{errors.monto.message}</span>
-            )}
-          </label>
-
-          <label className={labelCls}>
-            Motivo
-            <input
-              type="text"
-              maxLength={300}
-              className={inputCls}
-              placeholder="Descripción breve"
-              {...register('motivo')}
-            />
-            {errors.motivo && (
-              <span className={errorTextCls}>{errors.motivo.message}</span>
-            )}
-          </label>
+          <CampoFormulario etiqueta="Tipo" error={errors.tipo?.message}>
+            {atributos => <select {...atributos} {...register('tipo')}><option value="">Selecciona un tipo...</option>{TIPOS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>}
+          </CampoFormulario>
+          <CampoFormulario etiqueta="Monto (CLP)" error={errors.monto?.message}>
+            {atributos => <Controller control={control} name="monto" render={({ field }) => <div className="relative">
+              <span aria-hidden="true" className="pointer-events-none absolute top-[calc(50%+0.125rem)] left-3 -translate-y-1/2 text-sm text-slate-600">$</span>
+              <InputNumerico {...atributos} {...field} className={`${atributos.className} pl-7`} value={field.value === undefined ? undefined : Number(field.value)} onChange={field.onChange} conFlechas={false} /></div>} />}
+          </CampoFormulario>
+          <CampoFormulario etiqueta="Motivo" error={errors.motivo?.message}>
+            {atributos => <input {...atributos} type="text" maxLength={300} placeholder="Descripción breve" {...register('motivo')} />}
+          </CampoFormulario>
         </div>
 
         <div className="flex flex-wrap justify-end">
@@ -135,17 +106,16 @@ export default function Gastos() {
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-base font-semibold text-slate-900">Gastos de hoy</h2>
           <span className="text-sm font-semibold text-slate-700">
-            {error || isLoading ? 'Total: —' : `Total: ${fmtMonto(totalHoy)}`}
+            {error || isLoading || consulta.errorTotal || consulta.cargandoTotal || totalHoy === undefined ? 'Total: —' : `Total: ${fmtMonto(totalHoy)}`}
           </span>
         </div>
+        {consulta.errorTotal && !error && <EstadoVista variante="error" mensaje="No fue posible cargar el total de gastos. Inténtalo de nuevo." onReintentar={() => void refetch()} />}
         {isLoading ? (
-          <p className="px-5 py-8 text-center text-sm text-slate-500">Cargando...</p>
+          <EstadoVista variante="cargando" mensaje="Cargando gastos..." />
         ) : error ? (
-          <p role="alert" className="px-5 py-8 text-center text-sm text-red-600">No fue posible cargar los gastos de hoy. Inténtalo de nuevo.</p>
+          <EstadoVista variante="error" mensaje="No fue posible cargar los gastos de hoy. Inténtalo de nuevo." onReintentar={() => void refetch()} />
         ) : !data || data.length === 0 ? (
-          <p className="px-5 py-8 text-center text-sm text-slate-500">
-            No has registrado gastos hoy.
-          </p>
+          <EstadoVista variante="vacio" mensaje="No has registrado gastos hoy." />
         ) : (
           <ul className="divide-y divide-slate-100">
             {data.map((g) => (
@@ -157,13 +127,13 @@ export default function Gastos() {
                   <p className="truncate text-sm font-medium text-slate-900">
                     {g.motivo}
                     {g.anulado && (
-                      <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                      <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
                         Anulado
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    {TIPOS.find((t) => t.value === g.tipo)?.label ?? g.tipo} · {fmtFecha(g.creado_en)}
+                  <p className="text-xs text-slate-600">
+                    {TIPOS.find((t) => t.value === g.tipo)?.label ?? g.tipo} · {fmtFechaHora(g.creado_en)}
                   </p>
                 </div>
                 <span className="text-sm font-semibold text-slate-900">
@@ -173,6 +143,7 @@ export default function Gastos() {
             ))}
           </ul>
         )}
+        <Paginacion pagina={consulta.pagina} total={consulta.totalRegistros} onCambiar={consulta.setPagina} cargando={consulta.isFetching || crear.isPending} etiqueta="Paginación de gastos" />
       </section>
     </div>
   )

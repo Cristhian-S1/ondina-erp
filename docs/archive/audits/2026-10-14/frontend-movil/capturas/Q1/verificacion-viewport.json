@@ -1,0 +1,102 @@
+[
+  {
+    "vista": "login",
+    "viewport": "412x915",
+    "archivo": "login-412x915.png",
+    "scrollW": 412,
+    "innerW": 412,
+    "scrollH": 915,
+    "innerH": 915,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "login",
+    "viewport": "375x812",
+    "archivo": "login-375x812.png",
+    "scrollW": 375,
+    "innerW": 375,
+    "scrollH": 812,
+    "innerH": 812,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "login",
+    "viewport": "768x1024",
+    "archivo": "login-768x1024.png",
+    "scrollW": 768,
+    "innerW": 768,
+    "scrollH": 1024,
+    "innerH": 1024,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "login",
+    "viewport": "1024x1366",
+    "archivo": "login-1024x1366.png",
+    "scrollW": 1024,
+    "innerW": 1024,
+    "scrollH": 1366,
+    "innerH": 1366,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "login",
+    "viewport": "1280x800",
+    "archivo": "login-1280x800.png",
+    "scrollW": 1280,
+    "innerW": 1280,
+    "scrollH": 800,
+    "innerH": 800,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "portada",
+    "viewport": "412x915",
+    "archivo": "portada-412x915.png",
+    "scrollW": 412,
+    "innerW": 412,
+    "scrollH": 915,
+    "innerH": 915,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "portada",
+    "viewport": "375x812",
+    "archivo": "portada-375x812.png",
+    "scrollW": 375,
+    "innerW": 375,
+    "scrollH": 812,
+    "innerH": 812,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "portada",
+    "viewport": "768x1024",
+    "archivo": "portada-768x1024.png",
+    "scrollW": 768,
+    "innerW": 768,
+    "scrollH": 1024,
+    "innerH": 1024,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "portada",
+    "viewport": "1024x1366",
+    "archivo": "portada-1024x1366.png",
+    "scrollW": 1024,
+    "innerW": 1024,
+    "scrollH": 1366,
+    "innerH": 1366,
+    "objetivosTactilesLt44": []
+  },
+  {
+    "vista": "portada",
+    "viewport": "1280x800",
+    "archivo": "portada-1280x800.png",
+    "scrollW": 1280,
+    "innerW": 1280,
+    "scrollH": 800,
+    "innerH": 800,
+    "objetivosTactilesLt44": []
+  }
+]

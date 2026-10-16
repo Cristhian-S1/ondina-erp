@@ -1,0 +1,105 @@
+{
+  "recordedAt": "2026-10-15T00:10:01.678Z",
+  "marker": "e2a00710",
+  "branch": "10000000-0000-0000-0000-000000000002",
+  "results": [
+    {
+      "view": "reciente",
+      "before": {
+        "rows": 30,
+        "bytes": 11208,
+        "status": 200
+      },
+      "after": {
+        "rows": 10,
+        "bytes": 3748,
+        "status": 206,
+        "contentRange": "0-9/308"
+      },
+      "headersReductionPercent": 66.55960028551036
+    },
+    {
+      "view": "historial",
+      "before": {
+        "rows": 200,
+        "bytes": 74618,
+        "status": 200
+      },
+      "after": {
+        "rows": 10,
+        "bytes": 3748,
+        "status": 206,
+        "contentRange": "0-9/308"
+      },
+      "headersReductionPercent": 94.97708327749336
+    },
+    {
+      "view": "mermas",
+      "before": {
+        "rows": 30,
+        "bytes": 11248,
+        "status": 200
+      },
+      "after": {
+        "rows": 10,
+        "bytes": 3748,
+        "status": 206,
+        "contentRange": "0-9/300"
+      },
+      "headersReductionPercent": 66.67852062588905
+    },
+    {
+      "view": "incidencias",
+      "before": {
+        "rows": 30,
+        "bytes": 9418,
+        "status": 200
+      },
+      "after": {
+        "rows": 10,
+        "bytes": 3138,
+        "status": 206,
+        "contentRange": "0-9/300"
+      },
+      "headersReductionPercent": 66.68082395413039
+    },
+    {
+      "view": "clientes",
+      "before": {
+        "rows": 301,
+        "bytes": 70922,
+        "status": 200
+      },
+      "after": {
+        "rows": 20,
+        "bytes": 4686,
+        "status": 206,
+        "contentRange": "0-19/301"
+      },
+      "headersReductionPercent": 93.39274132145174
+    },
+    {
+      "view": "gastos",
+      "before": {
+        "rows": 303,
+        "bytes": 89242,
+        "status": 200
+      },
+      "after": {
+        "rows": 20,
+        "bytes": 5898,
+        "status": 206,
+        "contentRange": "0-19/303"
+      },
+      "headersReductionPercent": 93.39100423567379
+    }
+  ],
+  "dailyAmounts": {
+    "day": "2026-10-14",
+    "rows": 303,
+    "bytes": 5465,
+    "total": 4574355,
+    "contentRange": "0-302/303"
+  },
+  "note": "Decoded HTTP body bytes; expenses filtered to the current Santiago civil day; compact daily total is a separate request."
+}
