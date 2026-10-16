@@ -6,6 +6,7 @@ Use the commands in the [root README](../../README.md). Dependencies and executa
 Only public values belong in `VITE_*` (`VITE_SUPABASE_URL` and the anon/publishable key); never a `service_role` key — the CI build fails when `dist/` references it.
 When `supabase/config.toml` exists in the repository, `supabase start` provides an isolated local Supabase stack for development; never copy real data or credentials into it. Until then, use a dedicated development project.
 Read [architecture](architecture.md), [frontend](frontend.md) or [database](database.md) for the area being changed.
+For demos or manual QA with synthetic data, the [local demo kit](../../scripts/demo/README.md) starts the local stack, seeds demo accounts and runs the app (Linux/macOS and Windows).
 
 ## Role journeys against a local Supabase (B5)
 
