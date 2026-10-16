@@ -11,9 +11,7 @@ on:
     - cron: "*/30 * * * *"
   workflow_dispatch:
 
-permissions:
-  contents: read
-  issues: write
+permissions: {}
 
 jobs:
   health:
@@ -22,6 +20,8 @@ jobs:
     if: github.repository == 'Cristhian-S1/ondina-erp'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      issues: write
     steps:
       - name: Comprobar sitio y Supabase Auth
         id: checks

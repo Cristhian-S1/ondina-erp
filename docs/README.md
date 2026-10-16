@@ -14,6 +14,7 @@ Read the row relevant to the current task, then the linked source. Root instruct
 | Recover the database or plan backups | [Backups and recovery](engineering/backups.md) |
 | Configure Supabase Auth, passwords or sessions | [Auth configuration](engineering/auth.md) |
 | Configure CI/Vercel environments | [Deployment](engineering/deployment.md) |
+| Scan secrets, review dependencies or respond to an exposed credential | [CI security](engineering/security.md) |
 | Use Beads, CodeGraph or Mem0 | [Agent tools](agents/tools.md) |
 | Clarify domain terminology or an ADR | [Domain documentation](agents/domain.md) |
 | Choose an installed skill | [Skill catalog](skills.md) |
