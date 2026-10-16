@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { renderWithProviders as render } from '../../../test/render'
 import HistorialProduccion from './HistorialProduccion'
 import { obtenerHistorialProduccion } from '../api'
 
-vi.mock('../api', () => ({ obtenerHistorialProduccion: vi.fn() }))
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10, obtenerPaginaHistorial: vi.fn(async (filtros: Parameters<typeof obtenerHistorialProduccion>[0]) => { const filas = await obtenerHistorialProduccion(filtros); return { filas, total: filas.length } }), obtenerHistorialProduccion: vi.fn() }))
 beforeEach(() => vi.clearAllMocks())
 
 describe('REV-4 · HistorialProduccion', () => {
@@ -13,14 +14,42 @@ describe('REV-4 · HistorialProduccion', () => {
     { code: 'P0001', message: 'private constraint failed' },
   ])('oculta un rechazo técnico en la alerta', async (causa) => {
     vi.mocked(obtenerHistorialProduccion).mockRejectedValue(causa)
-    render(<HistorialProduccion sucursalId="s-1" productos={[]} versionDatos={0} />)
+    render(<HistorialProduccion perfilId="" sucursalId="s-1" productos={[]} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible completar la operación. Inténtalo de nuevo.')
     expect(screen.queryByText(/private|schema cache|Failed to fetch/)).not.toBeInTheDocument()
   })
 
   it('conserva el mensaje público traducido por el servicio', async () => {
     vi.mocked(obtenerHistorialProduccion).mockRejectedValue(new Error('No hay envases vacíos suficientes.'))
-    render(<HistorialProduccion sucursalId="s-1" productos={[]} versionDatos={0} />)
+    render(<HistorialProduccion perfilId="" sucursalId="s-1" productos={[]} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('No hay envases vacíos suficientes.')
   })
+})
+
+
+it('FX2 R4-10 · rango invertido muestra error asociado y evita consultar o mostrar vacío', async () => {
+  vi.mocked(obtenerHistorialProduccion).mockResolvedValue([])
+  render(<HistorialProduccion perfilId="" sucursalId="s1" productos={[]} />)
+  await screen.findByText(/No hay registros/)
+  fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2026-10-14' } })
+  await waitFor(() => expect(obtenerHistorialProduccion).toHaveBeenCalledTimes(2))
+  fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '2026-10-12' } })
+  expect(await screen.findByRole('alert')).toHaveTextContent('Desde debe ser anterior o igual a Hasta')
+  expect(screen.getByLabelText('Hasta')).toHaveAttribute('aria-invalid','true')
+  expect(screen.getByLabelText('Hasta')).toHaveAttribute('aria-describedby')
+  expect(screen.queryByText(/No hay registros/)).not.toBeInTheDocument()
+  expect(obtenerHistorialProduccion).toHaveBeenCalledTimes(2)
+})
+
+it('R2-08 · la clave del historial exige identidad y no conserva una versión artificial', async () => {
+  const { QueryClient, QueryClientProvider } = await import('@tanstack/react-query')
+  const { render: renderPlain } = await import('@testing-library/react')
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  vi.mocked(obtenerHistorialProduccion).mockResolvedValue([])
+  renderPlain(<QueryClientProvider client={client}><HistorialProduccion perfilId="u1" sucursalId="s1" productos={[]} /></QueryClientProvider>)
+  await screen.findByText('No hay registros para los filtros seleccionados.')
+  expect(client.getQueryCache().getAll().map(query => query.queryKey)).toEqual([
+    ['produccion', 'u1', 's1', 'historial', '', '', '', 1],
+  ])
+  client.clear()
 })

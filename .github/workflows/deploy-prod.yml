@@ -14,17 +14,16 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: deploy-prod
-  cancel-in-progress: false
-
 jobs:
   # Job de verificación previo: corre antes que el deploy y no requiere
   # aprobación, así falla rápido si algo malo llegó a main.
   verify:
     name: Verificar lint + build antes de producción
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
     # REV-6: la ref solicitada se resuelve una sola vez a un SHA completo;
     # el job deploy publica exactamente ese commit.
     outputs:
@@ -37,6 +36,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
 
       - name: Resolver SHA a desplegar
         id: resolve-sha
@@ -44,6 +44,33 @@ jobs:
           sha="$(git rev-parse HEAD)"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "SHA resuelto: $sha"
+
+      - name: Exigir CI verde para el SHA exacto
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFIED_SHA: ${{ steps.resolve-sha.outputs.sha }}
+        run: |
+          set -euo pipefail
+          for attempt in {1..60}; do
+            result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$VERIFIED_SHA&event=push&per_page=100" \
+              --jq '[.workflow_runs[] | select(.head_branch == "main")] | sort_by(.run_number) | last // empty | [.id, .status, (.conclusion // "pending")] | @tsv')"
+            if [ -n "$result" ]; then
+              read -r run_id status conclusion <<< "$result"
+              if [ "$status" = completed ]; then
+                if [ "$conclusion" != success ]; then
+                  echo "::error::CI $run_id terminó en $conclusion para $VERIFIED_SHA"
+                  exit 1
+                fi
+                echo "CI verificado: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$run_id (SHA $VERIFIED_SHA)" >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            fi
+            echo "Esperando CI para $VERIFIED_SHA ($attempt/60)"
+            sleep 15
+          done
+          echo "::error::No hay CI verde para $VERIFIED_SHA después de 15 minutos; no se publica"
+          exit 1
 
       - name: Setup Node (frontend/.nvmrc)
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -61,6 +88,9 @@ jobs:
       - name: typecheck + build
         run: npm run build
 
+      - name: Presupuesto del bundle
+        run: npm run size
+
       - name: Unit/Integration tests
         run: npm run test -- --reporter=dot
 
@@ -74,6 +104,9 @@ jobs:
     if: github.repository == 'Cristhian-S1/ondina-erp'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
     environment:
       name: production
       url: https://ondina-erp.vercel.app
@@ -83,6 +116,7 @@ jobs:
         with:
           # REV-6: SHA completo resuelto en verify, nunca una ref mutable.
           ref: ${{ needs.verify.outputs.sha }}
+          persist-credentials: false
 
       - name: Comprobar SHA desplegado
         env:
@@ -99,7 +133,7 @@ jobs:
         run: npm install -g vercel@63.1.2
 
       - name: Deploy a Vercel (ambiente de producción)
-        run: vercel --prod --yes --token="$VERCEL_TOKEN"
+        run: vercel --prod --yes
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

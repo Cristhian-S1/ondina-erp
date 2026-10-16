@@ -1,6 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../../context/auth-context'
+import EstadoVista from '../../../components/EstadoVista'
+import { cardCls } from '../../../lib/ui'
+import { formatMiles } from '../../../lib/format'
 import { obtenerCantidadVentasJornada, obtenerMiComision } from '../api'
+
+const TIPO_ETIQUETA: Record<string, string> = {
+  agua: 'Agua',
+  hielo: 'Hielo',
+}
+
+const formatearMoneda = (valor: number): string => `$${formatMiles(valor)}`
+
+function capitalizar(texto: string): string {
+  return texto.charAt(0).toLocaleUpperCase('es-CL') + texto.slice(1)
+}
 
 export default function MiComision() {
   const { perfil } = useAuth()
@@ -20,18 +34,22 @@ export default function MiComision() {
   })
   const comisiones = query.data?.comisiones ?? []
   const totalVentas = query.data?.totalVentas ?? 0
-  const cargando = query.isLoading
-  const error = query.isError ? 'No fue posible cargar tu comisión.' : null
 
-  if (cargando) {
-    return <p className="text-sm text-slate-500">Cargando comisión...</p>
-  }
-
-  if (error) {
-    return <div role="alert" className="text-sm text-red-600">
-      <p>{error}</p>
-      <button type="button" className="mt-2 min-h-11 min-w-11 rounded-lg border px-4" onClick={() => void query.refetch()}>Reintentar</button>
-    </div>
+  if (query.isLoading || query.isError) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-slate-900">Mi comisión</h1>
+        {query.isError ? (
+          <EstadoVista
+            variante="error"
+            mensaje="No fue posible cargar tu comisión."
+            onReintentar={() => void query.refetch()}
+          />
+        ) : (
+          <EstadoVista variante="cargando" mensaje="Cargando comisión..." />
+        )}
+      </div>
+    )
   }
 
   const jornadaActual = new Intl.DateTimeFormat('en-CA', {
@@ -41,12 +59,14 @@ export default function MiComision() {
     day: '2-digit',
   }).format(new Date())
 
-  const nombreJornadaActual = new Intl.DateTimeFormat('es-CL', {
-    timeZone: 'America/Santiago',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date())
+  const nombreJornadaActual = capitalizar(
+    new Intl.DateTimeFormat('es-CL', {
+      timeZone: 'America/Santiago',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date()),
+  )
 
   const comisionesJornada = comisiones.filter(
     (item) => item.jornada === jornadaActual,
@@ -64,79 +84,71 @@ export default function MiComision() {
     0,
   )
 
-  const formatearMoneda = (valor: number): string =>
-    new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-      maximumFractionDigits: 0,
-    }).format(valor)
-
   return (
-    <div>
-      <h1 className="text-2xl font-semibold">Mi comisión</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Mi comisión</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Comisión acumulada según tus ventas registradas.
+        </p>
+        <p className="mt-1 text-sm text-slate-600">
+          Jornada: {nombreJornadaActual}
+        </p>
+      </div>
 
-      <p className="mt-2 text-gray-600">
-        Consulta la comisión acumulada según tus ventas registradas.
-      </p>
-      <p className="mt-1 text-sm text-gray-500 capitalize">
-        Jornada: {nombreJornadaActual}
-      </p>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Comisión acumulada</p>
-          <p className="mt-1 text-2xl font-semibold">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className={`${cardCls} col-span-2 p-4 sm:col-span-1`}>
+          <p className="text-sm text-slate-600">Comisión acumulada</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">
             {formatearMoneda(totalComision)}
           </p>
         </div>
 
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Ventas consideradas</p>
-          <p className="mt-1 text-2xl font-semibold">{totalVentas}</p>
+        <div className={`${cardCls} p-4`}>
+          <p className="text-sm text-slate-600">Ventas consideradas</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">{formatMiles(totalVentas)}</p>
         </div>
 
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <p className="text-sm text-gray-500">Total vendido</p>
-          <p className="mt-1 text-2xl font-semibold">
+        <div className={`${cardCls} p-4`}>
+          <p className="text-sm text-slate-600">Total vendido</p>
+          <p className="mt-1 text-2xl font-bold text-slate-900">
             {formatearMoneda(totalVendido)}
           </p>
         </div>
       </div>
 
       {!tieneComisiones && (
-        <p className="mt-6 text-sm text-gray-500">
-          No hay comisiones registradas para esta jornada.
-        </p>
+        <EstadoVista variante="vacio" mensaje="Aún no hay comisiones registradas para esta jornada." />
       )}
 
-      <div className="mt-6 space-y-3">
+      <div className="space-y-3">
         {comisionesJornada.map((item) => (
           <div
             key={`${item.jornada}-${item.tipo}`}
-            className="rounded-xl bg-white p-4 shadow-sm"
+            className={`${cardCls} p-4`}
           >
-            <div className="flex items-center justify-between">
-              <h2 className="font-medium capitalize">{item.tipo}</h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-slate-900">{TIPO_ETIQUETA[item.tipo] ?? capitalizar(item.tipo)}</h2>
 
-              <span className="font-semibold">
+              <span className="font-semibold text-slate-900">
                 {formatearMoneda(item.comision)}
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-200 pt-3 text-sm">
               <div>
-                <p className="text-gray-500">Total vendido</p>
-                <p>{formatearMoneda(item.base_comision)}</p>
+                <p className="text-slate-600">Total vendido</p>
+                <p className="text-slate-900">{formatearMoneda(item.base_comision)}</p>
               </div>
 
               <div>
-                <p className="text-gray-500">Ventas</p>
-                <p>{item.ventas_del_tipo}</p>
+                <p className="text-slate-600">Ventas</p>
+                <p className="text-slate-900">{formatMiles(item.ventas_del_tipo)}</p>
               </div>
 
               <div>
-                <p className="text-gray-500">Porcentaje</p>
-                <p>
+                <p className="text-slate-600">Porcentaje</p>
+                <p className="text-slate-900">
                   {item.porcentaje !== null
                     ? `${item.porcentaje}%`
                     : 'Sin definir'}
@@ -144,8 +156,8 @@ export default function MiComision() {
               </div>
 
               <div>
-                <p className="text-gray-500">Monto fijo</p>
-                <p>
+                <p className="text-slate-600">Monto fijo</p>
+                <p className="text-slate-900">
                   {item.monto_fijo !== null
                     ? formatearMoneda(item.monto_fijo)
                     : 'No aplica'}

@@ -1,0 +1,477 @@
+{
+  "escalaActual": {
+    "50": "#cbebfc",
+    "100": "#a4dbf9",
+    "200": "#bfdcf8",
+    "300": "#89c3eb",
+    "400": "#56c4ec",
+    "500": "#749ccc",
+    "600": "#3284bd",
+    "700": "#2b72a3",
+    "800": "#245f8a",
+    "900": "#1c4e70"
+  },
+  "propuestaA": {
+    "50": "#f0f8fe",
+    "100": "#e0f1ff",
+    "200": "#c4e4ff",
+    "300": "#9ed1fa",
+    "400": "#77b9ec",
+    "500": "#56a0d7",
+    "600": "#3284bd",
+    "700": "#2b72a3",
+    "800": "#245f8a",
+    "900": "#1c4e70"
+  },
+  "propuestaB": {
+    "50": "#f0f8fe",
+    "100": "#e0f1ff",
+    "200": "#c4e4ff",
+    "300": "#9ed1fa",
+    "400": "#77b9ec",
+    "500": "#56a0d7",
+    "600": "#2c7bb1",
+    "700": "#2b72a3",
+    "800": "#245f8a",
+    "900": "#1c4e70"
+  },
+  "monotona": {
+    "actual": false,
+    "A": true,
+    "B": true
+  },
+  "contrastes": [
+    {
+      "id": "btn-primario-A",
+      "descripcion": "Botón primario: blanco sobre fondo (Opción A: brand-700)",
+      "antes": {
+        "fg": "#ffffff",
+        "bg": "#3284bd",
+        "ratio": 4.06
+      },
+      "despues": {
+        "fg": "#ffffff",
+        "bg": "#2b72a3",
+        "ratio": 5.2
+      },
+      "donde": "lib/ui.ts btnPrimary",
+      "nota": ""
+    },
+    {
+      "id": "btn-primario-B",
+      "descripcion": "Botón primario: blanco sobre fondo (Opción B: brand-600 oscurecido)",
+      "antes": {
+        "fg": "#ffffff",
+        "bg": "#3284bd",
+        "ratio": 4.06
+      },
+      "despues": {
+        "fg": "#ffffff",
+        "bg": "#2c7bb1",
+        "ratio": 4.59
+      },
+      "donde": "lib/ui.ts btnPrimary",
+      "nota": ""
+    },
+    {
+      "id": "nav-activa-N1",
+      "descripcion": "Navegación activa: texto blanco (N1: brand-700 + barra)",
+      "antes": {
+        "fg": "#ffffff",
+        "bg": "#3284bd",
+        "ratio": 4.06
+      },
+      "despues": {
+        "fg": "#ffffff",
+        "bg": "#2b72a3",
+        "ratio": 5.2
+      },
+      "donde": "DashboardLayout.tsx:190",
+      "nota": ""
+    },
+    {
+      "id": "nav-activa-barra",
+      "descripcion": "Navegación activa: barra blanca sobre sidebar brand-900 (no texto, mín. 3:1)",
+      "antes": {
+        "fg": "#3284bd",
+        "bg": "#1c4e70",
+        "ratio": 2.18
+      },
+      "despues": {
+        "fg": "#ffffff",
+        "bg": "#1c4e70",
+        "ratio": 8.85
+      },
+      "donde": "DashboardLayout.tsx:190",
+      "nota": "Antes: el propio relleno brand-600 vs sidebar"
+    },
+    {
+      "id": "nav-activa-N2",
+      "descripcion": "Navegación activa: N2 relleno blanco, texto brand-900",
+      "antes": {
+        "fg": "#ffffff",
+        "bg": "#3284bd",
+        "ratio": 4.06
+      },
+      "despues": {
+        "fg": "#1c4e70",
+        "bg": "#ffffff",
+        "ratio": 8.85
+      },
+      "donde": "DashboardLayout.tsx:190",
+      "nota": ""
+    },
+    {
+      "id": "btn-secundario",
+      "descripcion": "Botón secundario: texto brand-800 sobre blanco",
+      "antes": {
+        "fg": "#245f8a",
+        "bg": "#ffffff",
+        "ratio": 6.82
+      },
+      "despues": {
+        "fg": "#245f8a",
+        "bg": "#ffffff",
+        "ratio": 6.82
+      },
+      "donde": "lib/ui.ts btnSecondary (14 archivos)",
+      "nota": "Sin cambio de texto; sólo mejora el hover (brand-50)"
+    },
+    {
+      "id": "btn-secundario-hover",
+      "descripcion": "Botón secundario hover: brand-800 sobre brand-50",
+      "antes": {
+        "fg": "#245f8a",
+        "bg": "#cbebfc",
+        "ratio": 5.47
+      },
+      "despues": {
+        "fg": "#245f8a",
+        "bg": "#f0f8fe",
+        "ratio": 6.35
+      },
+      "donde": "lib/ui.ts btnSecondary",
+      "nota": ""
+    },
+    {
+      "id": "btn-secundario-borde",
+      "descripcion": "Botón secundario: borde brand-200 sobre blanco (no texto)",
+      "antes": {
+        "fg": "#bfdcf8",
+        "bg": "#ffffff",
+        "ratio": 1.42
+      },
+      "despues": {
+        "fg": "#c4e4ff",
+        "bg": "#ffffff",
+        "ratio": 1.32
+      },
+      "donde": "lib/ui.ts btnSecondary",
+      "nota": "Decorativo: el texto y el área ya identifican el control; se mantiene la clase border-brand-200"
+    },
+    {
+      "id": "sec-fondo-pagina",
+      "descripcion": "Texto secundario sobre fondo de página (slate-100)",
+      "antes": {
+        "fg": "#62748e",
+        "bg": "#f1f5f9",
+        "ratio": 4.35
+      },
+      "despues": {
+        "fg": "#45556c",
+        "bg": "#f1f5f9",
+        "ratio": 6.92
+      },
+      "donde": "23 archivos / 76 líneas con text-slate-500",
+      "nota": ""
+    },
+    {
+      "id": "sec-blanco-400",
+      "descripcion": "Texto secundario sobre blanco con slate-400 (Dashboard dt)",
+      "antes": {
+        "fg": "#90a1b9",
+        "bg": "#ffffff",
+        "ratio": 2.63
+      },
+      "despues": {
+        "fg": "#45556c",
+        "bg": "#ffffff",
+        "ratio": 7.58
+      },
+      "donde": "pages/Dashboard.tsx:53,59,67,75",
+      "nota": ""
+    },
+    {
+      "id": "sec-blanco-500",
+      "descripcion": "Texto secundario sobre blanco con slate-500",
+      "antes": {
+        "fg": "#62748e",
+        "bg": "#ffffff",
+        "ratio": 4.76
+      },
+      "despues": {
+        "fg": "#45556c",
+        "bg": "#ffffff",
+        "ratio": 7.58
+      },
+      "donde": "tarjetas/formularios",
+      "nota": "Hoy pasa (4,76); se unifica en slate-600"
+    },
+    {
+      "id": "error-bloque",
+      "descripcion": "Error en línea (errorBlockCls): rojo sobre red-50",
+      "antes": {
+        "fg": "#e7000b",
+        "bg": "#fef2f2",
+        "ratio": 4.36
+      },
+      "despues": {
+        "fg": "#c10007",
+        "bg": "#fef2f2",
+        "ratio": 5.87
+      },
+      "donde": "lib/ui.ts errorBlockCls (3) y bg-red-50 text-red-600 sueltos",
+      "nota": ""
+    },
+    {
+      "id": "error-campo-blanco",
+      "descripcion": "Error de campo (errorTextCls) sobre blanco",
+      "antes": {
+        "fg": "#e7000b",
+        "bg": "#ffffff",
+        "ratio": 4.77
+      },
+      "despues": {
+        "fg": "#c10007",
+        "bg": "#ffffff",
+        "ratio": 6.42
+      },
+      "donde": "lib/ui.ts errorTextCls (10)",
+      "nota": ""
+    },
+    {
+      "id": "error-campo-pagina",
+      "descripcion": "Error de campo (errorTextCls) sobre fondo de página",
+      "antes": {
+        "fg": "#e7000b",
+        "bg": "#f1f5f9",
+        "ratio": 4.35
+      },
+      "despues": {
+        "fg": "#c10007",
+        "bg": "#f1f5f9",
+        "ratio": 5.86
+      },
+      "donde": "lib/ui.ts errorTextCls",
+      "nota": "Falla hoy si el campo vive fuera de una tarjeta blanca"
+    },
+    {
+      "id": "badge-amber",
+      "descripcion": "Badge devoluciones producto: amber-700 sobre amber-100",
+      "antes": {
+        "fg": "#bb4d00",
+        "bg": "#fef3c6",
+        "ratio": 4.52
+      },
+      "despues": {
+        "fg": "#973c00",
+        "bg": "#fef3c6",
+        "ratio": 6.36
+      },
+      "donde": "Devoluciones.tsx:25, Dashboard.tsx:8 (bodega)",
+      "nota": "Hoy pasa al límite (4,52)"
+    },
+    {
+      "id": "badge-emerald",
+      "descripcion": "Badge devoluciones envase: emerald-700 sobre emerald-100",
+      "antes": {
+        "fg": "#007a55",
+        "bg": "#d0fae5",
+        "ratio": 4.72
+      },
+      "despues": {
+        "fg": "#007a55",
+        "bg": "#d0fae5",
+        "ratio": 4.72
+      },
+      "donde": "Devoluciones.tsx:26, Dashboard.tsx:10",
+      "nota": "Sin cambio"
+    },
+    {
+      "id": "badge-sky",
+      "descripcion": "Badge completo/vendedor: sky-700 sobre sky-100",
+      "antes": {
+        "fg": "#0069a8",
+        "bg": "#dff2fe",
+        "ratio": 5.09
+      },
+      "despues": {
+        "fg": "#0069a8",
+        "bg": "#dff2fe",
+        "ratio": 5.09
+      },
+      "donde": "Devoluciones.tsx:27, Clientes.tsx:19, Dashboard.tsx:7",
+      "nota": "Sin cambio"
+    },
+    {
+      "id": "badge-brand",
+      "descripcion": "Badge stock/producción (minorista, ModulePage): brand-800 sobre brand-50",
+      "antes": {
+        "fg": "#245f8a",
+        "bg": "#cbebfc",
+        "ratio": 5.47
+      },
+      "despues": {
+        "fg": "#245f8a",
+        "bg": "#f0f8fe",
+        "ratio": 6.35
+      },
+      "donde": "Clientes.tsx:20, Carga.tsx:64, ModulePage.tsx:13",
+      "nota": ""
+    },
+    {
+      "id": "punto-amber",
+      "descripcion": "Punto de estado producto (no texto, mín. 3:1): amber-500 sobre blanco",
+      "antes": {
+        "fg": "#fe9a00",
+        "bg": "#ffffff",
+        "ratio": 2.13
+      },
+      "despues": {
+        "fg": "#e17100",
+        "bg": "#ffffff",
+        "ratio": 3.2
+      },
+      "donde": "Despachos.tsx:625",
+      "nota": ""
+    },
+    {
+      "id": "punto-emerald",
+      "descripcion": "Punto de estado envase (no texto, mín. 3:1): emerald-500 sobre blanco",
+      "antes": {
+        "fg": "#00bc7d",
+        "bg": "#ffffff",
+        "ratio": 2.47
+      },
+      "despues": {
+        "fg": "#009966",
+        "bg": "#ffffff",
+        "ratio": 3.65
+      },
+      "donde": "Despachos.tsx:625",
+      "nota": ""
+    },
+    {
+      "id": "foco-borde",
+      "descripcion": "Foco: borde brand-600 del input sobre blanco (no texto, mín. 3:1)",
+      "antes": {
+        "fg": "#3284bd",
+        "bg": "#ffffff",
+        "ratio": 4.06
+      },
+      "despues": {
+        "fg": "#2c7bb1",
+        "bg": "#ffffff",
+        "ratio": 4.59
+      },
+      "donde": "lib/ui.ts inputCls",
+      "nota": ""
+    },
+    {
+      "id": "foco-outline",
+      "descripcion": "Foco: anillo sólido brand-700 2 px sobre blanco",
+      "antes": {
+        "fg": "#3284bd",
+        "bg": "#ffffff",
+        "ratio": 4.06
+      },
+      "despues": {
+        "fg": "#2b72a3",
+        "bg": "#ffffff",
+        "ratio": 5.2
+      },
+      "donde": "lib/ui.ts (propuesta :focus-visible)",
+      "nota": ""
+    },
+    {
+      "id": "enlace-blanco",
+      "descripcion": "Enlace text-brand-700 sobre blanco",
+      "antes": {
+        "fg": "#2b72a3",
+        "bg": "#ffffff",
+        "ratio": 5.2
+      },
+      "despues": {
+        "fg": "#2b72a3",
+        "bg": "#ffffff",
+        "ratio": 5.2
+      },
+      "donde": "Ventas.tsx:99, Stock.tsx:29",
+      "nota": "Sin cambio"
+    },
+    {
+      "id": "enlace-pagina",
+      "descripcion": "Enlace text-brand-700 sobre fondo de página",
+      "antes": {
+        "fg": "#2b72a3",
+        "bg": "#f1f5f9",
+        "ratio": 4.75
+      },
+      "despues": {
+        "fg": "#2b72a3",
+        "bg": "#f1f5f9",
+        "ratio": 4.75
+      },
+      "donde": "Ventas.tsx:99",
+      "nota": "Sin cambio (4,75)"
+    },
+    {
+      "id": "proximamente",
+      "descripcion": "Pastilla “Próximamente”: slate-200 sobre brand-800",
+      "antes": {
+        "fg": "#e2e8f0",
+        "bg": "#245f8a",
+        "ratio": 5.53
+      },
+      "despues": {
+        "fg": "#e2e8f0",
+        "bg": "#245f8a",
+        "ratio": 5.53
+      },
+      "donde": "DashboardLayout.tsx:~200",
+      "nota": ""
+    },
+    {
+      "id": "quitar-actual",
+      "descripcion": "Quitar hoy (btnDanger): blanco sobre red-600",
+      "antes": {
+        "fg": "#ffffff",
+        "bg": "#e7000b",
+        "ratio": 4.77
+      },
+      "despues": {
+        "fg": "#c10007",
+        "bg": "#ffffff",
+        "ratio": 6.42
+      },
+      "donde": "FilaProductoVenta.tsx:52",
+      "nota": "Después: variante outline red-700 sobre blanco"
+    },
+    {
+      "id": "quitar-tonal",
+      "descripcion": "Quitar tonal: red-700 sobre red-50",
+      "antes": {
+        "fg": "#ffffff",
+        "bg": "#e7000b",
+        "ratio": 4.77
+      },
+      "despues": {
+        "fg": "#c10007",
+        "bg": "#fef2f2",
+        "ratio": 5.87
+      },
+      "donde": "FilaProductoVenta.tsx:52",
+      "nota": ""
+    }
+  ]
+}

@@ -8,8 +8,15 @@ describe('FE-10 · Toast accesible', () => {
     render(<Toast toast={{ tipo: 'exito', mensaje: 'Venta registrada.' }} onClose={onClose} />)
     expect(screen.getByRole('status')).toHaveTextContent('Venta registrada.')
     expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite')
-    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('el botón de cierre tiene área táctil de al menos 44 px', () => {
+    render(<Toast toast={{ tipo: 'exito', mensaje: 'Listo.' }} onClose={() => {}} />)
+    const clases = screen.getByRole('button', { name: 'Cerrar notificación' }).className.split(' ')
+    expect(clases).toContain('min-h-11')
+    expect(clases).toContain('min-w-11')
   })
 
   it('anuncia errores como alertas', () => {

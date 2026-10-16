@@ -1,0 +1,15 @@
+[2026-10-15T00:12:37.835Z] Q1 baseline: base=http://127.0.0.1:5193 devices=mobile pages=login runs=3 out=/home/cristhian/orca/workspaces/ondina/l1-lighthouse/docs/archive/audits/2026-10-14/frontend-movil/lighthouse-L1-before
+[2026-10-15T00:12:37.901Z] chunks.json escrito en /home/cristhian/orca/workspaces/ondina/l1-lighthouse/docs/archive/audits/2026-10-14/frontend-movil/lighthouse-L1-before
+[2026-10-15T00:12:37.927Z] Servidor de medición OK en http://127.0.0.1:5193
+[2026-10-15T00:12:37.932Z] Chrome headless en puerto CDP 9222 (perfil /tmp/opencode/q1-chrome-profile-1792023157932)
+[2026-10-15T00:12:39.501Z] LH mobile/login/run1: npx http://127.0.0.1:5193/login --chrome-path=/usr/bin/google-chrome --chrome-flags=--headless=new --output=json --output-path=/tmp/opencode/q1-lhr-mobile-login-r1.json --only-categories=performance,accessibility,best-practices --max-wait-for-load=60000 --port=9222
+[2026-10-15T00:12:50.595Z] LISTO mobile/login/run1 (11.1s) perf=98 a11y=95 bp=100 lcp=1965 aud<1=9
+[2026-10-15T00:12:51.120Z] LH mobile/login/run2: npx http://127.0.0.1:5193/login --chrome-path=/usr/bin/google-chrome --chrome-flags=--headless=new --output=json --output-path=/tmp/opencode/q1-lhr-mobile-login-r2.json --only-categories=performance,accessibility,best-practices --max-wait-for-load=60000 --port=9222
+[2026-10-15T00:13:01.450Z] LISTO mobile/login/run2 (10.3s) perf=98 a11y=95 bp=100 lcp=1964 aud<1=9
+[2026-10-15T00:13:01.967Z] LH mobile/login/run3: npx http://127.0.0.1:5193/login --chrome-path=/usr/bin/google-chrome --chrome-flags=--headless=new --output=json --output-path=/tmp/opencode/q1-lhr-mobile-login-r3.json --only-categories=performance,accessibility,best-practices --max-wait-for-load=60000 --port=9222
+[2026-10-15T00:13:12.389Z] LISTO mobile/login/run3 (10.4s) perf=98 a11y=95 bp=100 lcp=1966 aud<1=9
+[2026-10-15T00:13:13.123Z] === MEDIANAS (por combinación) ===
+[2026-10-15T00:13:13.124Z] | Dispositivo | Página | Performance | Accessibility | Best Practices | LCP (ms) | TBT (ms) | CLS | Transferido (B) |
+[2026-10-15T00:13:13.124Z] | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+[2026-10-15T00:13:13.124Z] | mobile | login | 98 | 95 | 100 | 1965 | 0 | 0.000 | 175.724 |
+[2026-10-15T00:13:13.124Z] Duración total: 35 s; fallos: 0

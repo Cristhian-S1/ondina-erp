@@ -1,0 +1,37 @@
+{
+  "budgetMetrics": {
+    "entryJsGzipBytes": 91391,
+    "entryCssGzipBytes": 7667,
+    "largestJsChunkRawBytes": 294354,
+    "initialJsGzipBytes": 149349,
+    "initialCssGzipBytes": 7667
+  },
+  "bootSetIncludingInlineCss": {
+    "files": [
+      {
+        "archivo": "index--reDmLHU.js",
+        "raw": 294354,
+        "gzip": 91245
+      },
+      {
+        "archivo": "jsx-runtime-Dk72oS4N.js",
+        "raw": 8774,
+        "gzip": 3328
+      },
+      {
+        "archivo": "vendor-supabase-1yby8ldT.js",
+        "raw": 214047,
+        "gzip": 54467
+      },
+      {
+        "archivo": "style-BjOC-Qc3.css",
+        "delivery": "inline HTML",
+        "raw": 39850,
+        "gzip": 7643
+      }
+    ],
+    "rawBytes": 557025,
+    "gzipBytes": 156683
+  },
+  "note": "The unchanged Q1 collector follows manifest imports; cssCodeSplit=false emits a separate CSS manifest entry. Count the stylesheet embedded in HTML exactly once for comparison; this is not zero-byte CSS."
+}

@@ -1,30 +1,42 @@
 # CI and Deployment
 
-This guide describes repository configuration. Verify live project settings, environment protections and access before relying on them; no remote settings are changed by this documentation. The repository state noted below was confirmed on 2026-10-13.
+This guide describes repository configuration. Verify live project settings, environment protections and access before relying on them; no remote settings are changed by this documentation. The repository state noted below was confirmed on 2026-10-15. External settings require separate owner approval; see the [O4 evidence and proposed controls](../archive/audits/2026-10-15/operacion/O4-plan-39.md).
 
 ## Declared workflows
 
 | Source | Trigger and behavior |
 | --- | --- |
 | `.github/workflows/ci.yml` | PRs and pushes to develop/main run `build` (lint, typecheck/build, privileged-key scan of `dist/`, bundle budget, Vitest) and `migrations-check`; on a push to develop the `deploy-develop` job deploys to Vercel under the GitHub `development` environment only after both jobs succeed. |
-| `.github/workflows/deploy-develop.yml` | Manual only: `workflow_dispatch` with a `ref` input (default `develop`) for a versioned redeploy or rollback of development. |
-| `.github/workflows/deploy-prod.yml` | Push to main (verification job first, then the production deployment under `production`) plus `workflow_dispatch` with a `ref` input for a versioned redeploy or rollback. |
+| `.github/workflows/deploy-develop.yml` | Manual only: `workflow_dispatch` with a `ref` input (default `develop`) for a versioned redeploy or rollback of development; `verify` requires successful canonical CI for the resolved SHA before `deploy` can run. |
+| `.github/workflows/deploy-prod.yml` | Push to main (`verify` requires successful canonical CI for the same SHA, reruns lint/build/bundle budget/unit tests, then `deploy` uses `needs: verify` under `production`) plus `workflow_dispatch` with a `ref` input for a versioned redeploy or rollback. |
 | `.github/workflows/health.yml` | Scheduled every 30 minutes plus manual dispatch: checks production availability and Supabase Auth, and maintains the incident issue; see [Health monitoring](#health-monitoring). |
+| `.github/workflows/security.yml` | PRs/pushes to develop/main run a checksum-verified Gitleaks scan and runtime fixture self-test; PRs also review dependencies with a high-severity runtime gate. See [CI security](security.md) for commands, credential response and proposed external controls. |
 
-Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The SQL check still only looks for semicolons; executing real migrations and pgTAP in CI remains open (#40). The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
+Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The migration job starts an isolated local Supabase stack, rebuilds migrations and synthetic seed, runs pgTAP and local role journeys, then stops the stack. It does not apply production migrations; deployment jobs apply no SQL. The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
 
-`frontend/vercel.json` adds security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) and a `Content-Security-Policy-Report-Only` for all routes; the CSP is not enforced yet.
+`frontend/vercel.json` adds security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) and an enforced `Content-Security-Policy` for all routes. O4 preserves the complete file, including the CSP.
 
-## Vercel and repository controls (verified 2026-10-13)
+## Repository deployment controls
 
-- `frontend/vercel.json` declares `"git": { "deploymentEnabled": false }` (#39): the Vercel Git integration no longer creates Preview/Production deployments, so the GitHub Actions jobs are the only deployment path and the `production` approval gate is not bypassed by a parallel publication. CLI deployments (`vercel --prod`) are unaffected. Confirm the effective setting in the Vercel project panel.
-- Branch protection on `main`: pull request required with 1 approval, stale reviews dismissed, conversation resolution required, strict required checks `Lint + typecheck + build + test` and `Validar migraciones Supabase (sintaxis, no aplica)`, no force-push and no deletion; administrators may bypass.
-- Branch protection on `develop`: the same two required checks (not strict); no PR requirement, no force-push and no deletion.
-- Secret scanning and push protection are enabled; Dependabot alerts and security updates are enabled.
-- `.github/dependabot.yml` requests weekly version updates (Monday, America/Santiago) for npm (`/frontend`) and GitHub Actions (`/`), targeting `develop`, grouping minor+patch per ecosystem, with at most 5 open PRs and the label `dependencies`.
-- Stale `feature/*` branches were archived as `archive/feature-*` tags and deleted on 2026-10-13; see the [development workflow](development.md).
+`frontend/vercel.json` already declares `"git": { "deploymentEnabled": false }` (#39). Vercel documents this boolean as disabling automatic Git deployments for all branches; [official configuration reference](https://vercel.com/docs/project-configuration/git-configuration#turning-off-all-automatic-deployments). Keep it in every publishing branch. It does not disable CLI publication or remove the currently served deployment. Root Directory must be `frontend` in the intended project.
 
-Still open: real migration execution/pgTAP in CI (#40), verified Supabase backups and recovery (#41), error tracking (#54), a justified need for stronger abuse protection (#55) and enforcing the CSP (#45).
+The automatic develop job remains in `ci.yml` with `needs: [build, migrations-check]`. Manual development and both production triggers resolve the requested ref once, then query the latest canonical `ci.yml` push run for that exact SHA (development accepts develop/main runs; production accepts main runs). A failed, cancelled, skipped or missing CI run prevents publication. A pending/missing run is polled for up to 15 minutes, after which the workflow fails closed. The read-only GitHub token needs `actions: read` only in `verify`; no Vercel secrets are exposed there. Old commits whose CI records expired cannot use this redeploy route until reviewed CI evidence is restored.
+
+Each deploy job checks out the full verified SHA and asserts it before publishing. The development deploy job shares concurrency group `deploy-develop` with automatic CI publication; production uses `deploy-prod`. Verification holds no deployment lock. These groups serialize publication but do not deduplicate an explicitly requested redeploy or guarantee FIFO order; inspect pending runs before a rollback. GitHub may replace an older pending job in a concurrency group.
+
+Manual redeploy commands, for an authorized operator **after the workflows are on main**:
+
+```bash
+# --ref selects trusted workflow code; -f ref selects the application commit.
+gh workflow run deploy-develop.yml --ref main -f ref=<full-successful-develop-or-main-SHA>
+gh workflow run deploy-prod.yml --ref main -f ref=<full-successful-main-SHA>
+```
+
+The production job declares `environment: production`; required reviewers, self-review prevention, branch restrictions and administrator bypass are external settings. The YAML declaration alone does not prove an effective approval gate. Scope Vercel secrets to protected environments and apply the owner-approved controls from the O4 plan before relying on them.
+
+The CLI remains pinned to `vercel@63.1.2`; deploy workflows use its native `VERCEL_TOKEN` environment variable. Publication still uploads source for a Vercel build; it is the same verified commit, not a promoted CI-built artifact. Vercel project settings and environment variables can change the resulting build. Capture deployment ID, URL, SHA and environment when verifying a release. Prebuilt artifact promotion is a separate change.
+
+Separate operational work: verified Supabase backups and recovery (#41; the interim manual procedure and the Pro plan requirement are documented in [backups](backups.md)), error tracking (#54), a justified need for stronger abuse protection (#55) and operational verification of the enforced CSP (#45). The repository migration/pgTAP job alone does not establish remote schema reconciliation or production readiness.
 
 ## Configuration
 
@@ -32,9 +44,9 @@ Still open: real migration execution/pgTAP in CI (#40), verified Supabase backup
 | --- | --- |
 | Vercel project | Root Directory `frontend`; use its `vercel.json`, SPA rewrites, security headers, lockfile install and `dist` output. |
 | Vercel environments | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` for the selected development/preview/production project. These values reach the browser. |
-| GitHub Actions secrets | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_ORG_ID`; obtain values from the intended account/project rather than this document. |
+| GitHub Actions environment secrets | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_ORG_ID` in `development`/`production`; obtain values from the intended account/project rather than this document. Owner configuration is separate from this repository change. |
 | GitHub Actions variables | `SUPABASE_URL` and `SUPABASE_ANON_KEY` (public values, used by the health check). Not secrets. |
-| GitHub production environment | Required reviewers and release branch policy for `main`; verified 2026-10-13 (4 reviewers, branch `main`). |
+| GitHub production environment | Required reviewers and release branch policy for `main`; verify the live controls and administrator behavior separately. |
 
 Never place service-role keys, private credentials or copied tokens in frontend variables or Markdown. The `build` job fails when `frontend/dist` contains the strings `service_role` or `SUPABASE_SERVICE`.
 

@@ -1,0 +1,4001 @@
+{
+  "generado": "2026-10-15T05:44:19.733Z",
+  "base": "http://127.0.0.1:5184",
+  "runs": [
+    {
+      "device": "mobile",
+      "page": "login",
+      "run": 1,
+      "file": "mobile-login-run1.lhr.json",
+      "elapsedS": 10.9,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "wastedMs": 5.3708500000000186,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 5.3708500000000186
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1810.7417,
+      "lcpMs": 1966.11255,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:36:26.694Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "login",
+      "run": 2,
+      "file": "mobile-login-run2.lhr.json",
+      "elapsedS": 10.2,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 3.7146999999999935,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 3.7146999999999935
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1807.4294,
+      "lcpMs": 1961.1441,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:36:37.431Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "login",
+      "run": 3,
+      "file": "mobile-login-run3.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 4.654700000000048,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 4.654700000000048
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1809.3094,
+      "lcpMs": 1963.9641000000001,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:36:48.118Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "login",
+      "run": 1,
+      "file": "movil-412x915-login-run1.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "wastedMs": 6.426349999999957,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 6.426349999999957
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1812.8527,
+      "lcpMs": 1969.2790499999999,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:36:58.789Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "login",
+      "run": 2,
+      "file": "movil-412x915-login-run2.lhr.json",
+      "elapsedS": 10.2,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "wastedMs": 154.67399999999998,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 154.67399999999998
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 600,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1659.348,
+      "lcpMs": 1964.022,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:37:09.469Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "login",
+      "run": 3,
+      "file": "movil-412x915-login-run3.lhr.json",
+      "elapsedS": 10.2,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0,
+          "displayValue": "Est savings of 150 ms",
+          "wastedMs": 154.05874999999992,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 154.05874999999992
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 600,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1808.1175,
+      "lcpMs": 1962.17625,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:37:20.161Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "login",
+      "run": 1,
+      "file": "tablet-768x1024-login-run1.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "wastedMs": 5.544100000000071,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 5.544100000000071
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1811.0882,
+      "lcpMs": 1966.6323,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:37:30.831Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "login",
+      "run": 2,
+      "file": "tablet-768x1024-login-run2.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0,
+          "displayValue": "Est savings of 160 ms",
+          "wastedMs": 155.77140000000009,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 155.77140000000009
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 600,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1661.5428,
+      "lcpMs": 1967.3142,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:37:41.463Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "login",
+      "run": 3,
+      "file": "tablet-768x1024-login-run3.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 10 ms",
+          "wastedMs": 6.5499999999999545,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 6.5499999999999545
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1813.1,
+      "lcpMs": 1969.6499999999999,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:37:52.101Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "login",
+      "run": 1,
+      "file": "tablet-1024x1366-login-run1.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 4.923050000000103,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 4.923050000000103
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1809.8461,
+      "lcpMs": 1964.76915,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:38:02.770Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "login",
+      "run": 2,
+      "file": "tablet-1024x1366-login-run2.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 4.791850000000068,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 4.791850000000068
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1809.5837,
+      "lcpMs": 1964.37555,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:38:13.429Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "login",
+      "run": 3,
+      "file": "tablet-1024x1366-login-run3.lhr.json",
+      "elapsedS": 10.2,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.97,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 3.6749999999999545,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 3.6749999999999545
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1807.35,
+      "lcpMs": 1961.0249999999999,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:38:24.071Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "login",
+      "run": 1,
+      "file": "desktop-login-run1.lhr.json",
+      "elapsedS": 10.2,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0,
+          "displayValue": "Est savings of 40 ms",
+          "wastedMs": 44.54770000000002,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 44.54770000000002
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 80,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 369.0954,
+      "lcpMs": 453.6431,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:38:34.789Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "login",
+      "run": 2,
+      "file": "desktop-login-run2.lhr.json",
+      "elapsedS": 10.2,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0.5,
+          "displayValue": "Est savings of 0 ms",
+          "wastedMs": 4.26864999999998,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 4.26864999999998
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 80,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 368.5373,
+      "lcpMs": 412.80595,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:38:45.428Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "login",
+      "run": 3,
+      "file": "desktop-login-run3.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "prioritize-lcp-image",
+          "titulo": "Preload Largest Contentful Paint image",
+          "score": 0,
+          "displayValue": "Est savings of 50 ms",
+          "wastedMs": 45.15899999999999,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+                "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+                "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+                "nodeLabel": "Ondina"
+              },
+              "url": "http://127.0.0.1:5184/assets/logo-WtfTBHUb.jpg",
+              "wastedMs": 45.15899999999999
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 92 KiB",
+          "wastedMs": 80,
+          "wastedBytes": 94354,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 48727,
+              "wastedPercent": 53.34173894130122
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "lcp-discovery-insight",
+          "titulo": "LCP request discovery",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {
+              "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,0,DIV,0,IMG",
+              "selector": "div.flex > form.w-full > div.text-center > img.mx-auto",
+              "snippet": "<img alt=\"Ondina\" class=\"mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-sm\" src=\"/assets/logo-WtfTBHUb.jpg\">",
+              "nodeLabel": "Ondina"
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 370.318,
+      "lcpMs": 455.477,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 167539,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5184/login",
+      "fetchTime": "2026-10-15T05:38:56.116Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "portada",
+      "run": 1,
+      "file": "mobile-portada-run1.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.8188,
+      "lcpMs": 2116.7282,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 12,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:39:07.379Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "portada",
+      "run": 2,
+      "file": "mobile-portada-run2.lhr.json",
+      "elapsedS": 10.7,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.93,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1804.5539,
+      "lcpMs": 2276.8308500000003,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:39:18.030Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "portada",
+      "run": 3,
+      "file": "mobile-portada-run3.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1802.8043,
+      "lcpMs": 2271.20645,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:39:28.553Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "portada",
+      "run": 1,
+      "file": "movil-412x915-portada-run1.lhr.json",
+      "elapsedS": 10.6,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1651.6968,
+      "lcpMs": 2116.5452,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:39:39.054Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "portada",
+      "run": 2,
+      "file": "movil-412x915-portada-run2.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1802.6333,
+      "lcpMs": 2272.94995,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:39:49.646Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "portada",
+      "run": 3,
+      "file": "movil-412x915-portada-run3.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.5412,
+      "lcpMs": 2268.3118,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:40:00.189Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "portada",
+      "run": 1,
+      "file": "tablet-768x1024-portada-run1.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1802.6776,
+      "lcpMs": 2272.0164,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:40:10.699Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "portada",
+      "run": 2,
+      "file": "tablet-768x1024-portada-run2.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.93,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1804.2636,
+      "lcpMs": 2280.3954,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:40:21.205Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "portada",
+      "run": 3,
+      "file": "tablet-768x1024-portada-run3.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.93,
+          "displayValue": "1.7 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.96,
+          "displayValue": "2.1 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.1 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 84829,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41101,
+              "wastedPercent": 44.992659253418886
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1652.4133,
+      "lcpMs": 2122.6199500000002,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 178959,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:40:31.769Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "portada",
+      "run": 1,
+      "file": "tablet-1024x1366-portada-run1.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.92,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 81 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 82668,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 38940,
+              "wastedPercent": 42.627987276039256
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.7688,
+      "lcpMs": 2344.6532000000007,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183376,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:40:42.307Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "portada",
+      "run": 2,
+      "file": "tablet-1024x1366-portada-run2.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.92,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 81 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 82668,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 38940,
+              "wastedPercent": 42.627987276039256
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 96,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1960.472125,
+      "lcpMs": 2343.96655,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183376,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:40:52.825Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "portada",
+      "run": 3,
+      "file": "tablet-1024x1366-portada-run3.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.92,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 81 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 82668,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 38940,
+              "wastedPercent": 42.627987276039256
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1803.8225,
+      "lcpMs": 2351.73375,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183376,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:41:03.352Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "portada",
+      "run": 1,
+      "file": "desktop-portada-run1.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 81 KiB",
+          "wastedMs": 80,
+          "wastedBytes": 82668,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 38940,
+              "wastedPercent": 42.627987276039256
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 403.769125,
+      "lcpMs": 485.72294999999997,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183376,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:41:13.884Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "portada",
+      "run": 2,
+      "file": "desktop-portada-run2.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 81 KiB",
+          "wastedMs": 80,
+          "wastedBytes": 82668,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 38940,
+              "wastedPercent": 42.627987276039256
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 410.271875,
+      "lcpMs": 495.92625,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183376,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:41:24.424Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "portada",
+      "run": 3,
+      "file": "desktop-portada-run3.lhr.json",
+      "elapsedS": 10.5,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 81 KiB",
+          "wastedMs": 40,
+          "wastedBytes": 82668,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 38940,
+              "wastedPercent": 42.627987276039256
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 405.55449999999996,
+      "lcpMs": 488.6654,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 183376,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/",
+      "fetchTime": "2026-10-15T05:41:34.971Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "administracion",
+      "run": 1,
+      "file": "mobile-administracion-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.6263,
+      "lcpMs": 2274.2526,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:41:46.570Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "administracion",
+      "run": 2,
+      "file": "mobile-administracion-run2.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.7579,
+      "lcpMs": 2274.5157999999997,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:41:56.833Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "administracion",
+      "run": 3,
+      "file": "mobile-administracion-run3.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.8111,
+      "lcpMs": 2274.6222,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:42:07.162Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "administracion",
+      "run": 1,
+      "file": "movil-412x915-administracion-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.93,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1802.5843,
+      "lcpMs": 2281.1686,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:42:17.436Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "administracion",
+      "run": 2,
+      "file": "movil-412x915-administracion-run2.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.93,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.9155,
+      "lcpMs": 2274.831,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:42:27.718Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "movil-412x915",
+      "page": "administracion",
+      "run": 3,
+      "file": "movil-412x915-administracion-run3.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.93,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.6682,
+      "lcpMs": 2275.3364,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:42:38.013Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "administracion",
+      "run": 1,
+      "file": "tablet-768x1024-administracion-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1801.8407,
+      "lcpMs": 2274.6814,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:42:48.273Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "administracion",
+      "run": 2,
+      "file": "tablet-768x1024-administracion-run2.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.94,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1802.1113,
+      "lcpMs": 2274.2226,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:42:58.616Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-768x1024",
+      "page": "administracion",
+      "run": 3,
+      "file": "tablet-768x1024-administracion-run3.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.93,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.3 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 85 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 87510,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 43782,
+              "wastedPercent": 47.92793833772872
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1802.7549,
+      "lcpMs": 2282.5098,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 180291,
+      "requests": 13,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:43:08.921Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "administracion",
+      "run": 1,
+      "file": "tablet-1024x1366-administracion-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.85,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.92,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "speed-index",
+          "titulo": "Speed Index",
+          "score": 0.99,
+          "displayValue": "2.0 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 85350,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41622,
+              "wastedPercent": 45.56326636034909
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 96,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1960.1954999999998,
+      "lcpMs": 2350.5128,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 184708,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:43:19.269Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "administracion",
+      "run": 2,
+      "file": "tablet-1024x1366-administracion-run2.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.87,
+          "displayValue": "1.9 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.92,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 300,
+          "wastedBytes": 85350,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41622,
+              "wastedPercent": 45.56326636034909
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1887.1992500000001,
+      "lcpMs": 2356.1188,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 184708,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:43:29.590Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "tablet-1024x1366",
+      "page": "administracion",
+      "run": 3,
+      "file": "tablet-1024x1366-administracion-run3.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.92,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "interactive",
+          "titulo": "Time to Interactive",
+          "score": 0.99,
+          "displayValue": "2.4 s"
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 85350,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41622,
+              "wastedPercent": 45.56326636034909
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 1812.700375,
+      "lcpMs": 2363.5206,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 184708,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:43:39.926Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "administracion",
+      "run": 1,
+      "file": "desktop-administracion-run1.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 40,
+          "wastedBytes": 85350,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41622,
+              "wastedPercent": 45.56326636034909
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 405.914375,
+      "lcpMs": 513.663,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 184708,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:43:50.223Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "administracion",
+      "run": 2,
+      "file": "desktop-administracion-run2.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 40,
+          "wastedBytes": 85350,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41622,
+              "wastedPercent": 45.56326636034909
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 361.8219,
+      "lcpMs": 509.64380000000006,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 184708,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:44:00.504Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "desktop",
+      "page": "administracion",
+      "run": 3,
+      "file": "desktop-administracion-run3.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 83 KiB",
+          "wastedMs": 40,
+          "wastedBytes": 85350,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5184/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 43728,
+              "wastedPercent": 80.04494466013522
+            },
+            {
+              "url": "http://127.0.0.1:5184/assets/index-DVyTHtIs.js",
+              "totalBytes": 91350,
+              "wastedBytes": 41622,
+              "wastedPercent": 45.56326636034909
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100
+      },
+      "fcpMs": 361.4169,
+      "lcpMs": 508.8338,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 184708,
+      "requests": 14,
+      "finalUrl": "http://127.0.0.1:5184/administracion",
+      "fetchTime": "2026-10-15T05:44:10.809Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    }
+  ],
+  "lighthouseVersion": "12.8.2",
+  "metodo": {
+    "categorias": "performance,accessibility,best-practices",
+    "dispositivos": {
+      "mobile": [],
+      "movil-412x915": [
+        "--screenEmulation.width=412",
+        "--screenEmulation.height=915",
+        "--screenEmulation.deviceScaleFactor=2.625",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "tablet-768x1024": [
+        "--screenEmulation.width=768",
+        "--screenEmulation.height=1024",
+        "--screenEmulation.deviceScaleFactor=2",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "tablet-1024x1366": [
+        "--screenEmulation.width=1024",
+        "--screenEmulation.height=1366",
+        "--screenEmulation.deviceScaleFactor=2",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "desktop": [
+        "--preset=desktop"
+      ]
+    },
+    "autenticacion": "sesión real por el formulario de /login (CDP sobre el Chrome persistente); token supabase-js en localStorage",
+    "flagsAutenticadas": [
+      "--disable-storage-reset",
+      "+ Network.clearBrowserCache (CDP) antes de cada corrida: cache HTTP fría"
+    ],
+    "servidor": "servidor-local-a3.mjs (static dist + cabeceras vercel.json con connect-src += Supabase local; NO vite preview)"
+  },
+  "medianas": {
+    "mobile": {
+      "login": {
+        "runs": 3,
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1809.3094,
+        "lcpMs": 1963.9641000000001,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 167539
+      },
+      "portada": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1802.8043,
+        "lcpMs": 2271.20645,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 178959
+      },
+      "administracion": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1801.7579,
+        "lcpMs": 2274.5157999999997,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 180291
+      }
+    },
+    "movil-412x915": {
+      "login": {
+        "runs": 3,
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1808.1175,
+        "lcpMs": 1964.022,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 167539
+      },
+      "portada": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1801.5412,
+        "lcpMs": 2268.3118,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 178959
+      },
+      "administracion": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1801.9155,
+        "lcpMs": 2275.3364,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 180291
+      }
+    },
+    "tablet-768x1024": {
+      "login": {
+        "runs": 3,
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1811.0882,
+        "lcpMs": 1967.3142,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 167539
+      },
+      "portada": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1802.6776,
+        "lcpMs": 2272.0164,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 178959
+      },
+      "administracion": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1802.1113,
+        "lcpMs": 2274.6814,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 180291
+      }
+    },
+    "tablet-1024x1366": {
+      "login": {
+        "runs": 3,
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1809.5837,
+        "lcpMs": 1964.37555,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 167539
+      },
+      "portada": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1803.8225,
+        "lcpMs": 2344.6532000000007,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 183376
+      },
+      "administracion": {
+        "runs": 3,
+        "performance": 97,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 1887.1992500000001,
+        "lcpMs": 2356.1188,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 184708
+      }
+    },
+    "desktop": {
+      "login": {
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 369.0954,
+        "lcpMs": 453.6431,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 167539
+      },
+      "portada": {
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 405.55449999999996,
+        "lcpMs": 488.6654,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 183376
+      },
+      "administracion": {
+        "runs": 3,
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "fcpMs": 361.8219,
+        "lcpMs": 509.64380000000006,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 184708
+      }
+    }
+  },
+  "fallos": []
+}

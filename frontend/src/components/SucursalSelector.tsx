@@ -18,10 +18,10 @@ export default function SucursalSelector({ value, onChange, disabled = false }: 
         {sucursales.data?.map((sucursal) => <option key={sucursal.id} value={sucursal.id}>{sucursal.nombre}</option>)}
       </select>
     </label>
-    {sucursales.isLoading && <p role="status" className="text-sm text-slate-500">Cargando sucursales...</p>}
-    {sucursales.error ? <div role="alert" className="text-sm text-red-600">
+    {sucursales.isLoading && <p role="status" className="text-sm text-slate-600">Cargando sucursales...</p>}
+    {sucursales.error ? <div role="alert" className="text-sm text-red-700">
       No fue posible cargar las sucursales. Inténtalo de nuevo.
       <button type="button" className={btnSecondary} onClick={() => void sucursales.refetch()}>Reintentar sucursales</button>
-    </div> : sucursales.isSuccess && sucursales.data.length === 0 && <p className="text-sm text-slate-500">No hay sucursales activas.</p>}
+    </div> : sucursales.isSuccess && sucursales.data.length === 0 && <p className="text-sm text-slate-600">No hay sucursales activas.</p>}
   </div>
 }

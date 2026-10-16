@@ -1,0 +1,140 @@
+ FAIL  scripts/check-bundle-size.test.mjs > presupuesto inicial del bundle > falla si crece un preload aunque el entry disminuya y las métricas históricas pasen
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ scripts/check-bundle-size.test.mjs:69:3
+     67|   })
+     68|
+     69|   it('falla si crece un preload aunque el entry disminuya y las métric…
+       |   ^
+     70|     const { root } = fixture()
+     71|     writeFileSync(join(root, 'dist/assets/entry.js'), contenido(100))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  scripts/check-bundle-size.test.mjs > separa Supabase en un vendor precargado y mantiene la página como import dinámico
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ scripts/check-bundle-size.test.mjs:105:1
+    103| })
+    104|
+    105| it('separa Supabase en un vendor precargado y mantiene la página como …
+       | ^
+    106|   const root = temporal()
+    107|   const pack = join(root, 'node_modules/@supabase/supabase-js')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/domains/produccion/pages/Produccion.branch.test.tsx > Producción operational branch > requires an explicit administrator selection with profile branch null
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/domains/produccion/pages/Produccion.branch.test.tsx:33:18
+     31|
+     32| describe('Producción operational branch', () => {
+     33|   it.each([null])('requires an explicit administrator selection with p…
+       |                  ^
+     34|     renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'a…
+     35|     expect(await screen.findByRole('combobox', { name: 'Sucursal' })).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/domains/ventas/pages/Clientes.scope.test.tsx > Administrator customer scope > keeps the selected seller in the dialog and restores focus after Escape
+TestingLibraryElementError: Unable to find role="option" and name "Norte"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-wrap items-end justify-between gap-3"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<h1[39m
+            [33mclass[39m=[32m"text-2xl font-bold text-slate-900"[39m
+          [36m>[39m
+            [0mClientes[0m
+          [36m</h1>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-1 text-sm text-slate-500"[39m
+          [36m>[39m
+            [0mCartera de clientes por vendedor: elige sucursal y vendedor.[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"h-4 w-4"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"12"[39m
+              [33mcy[39m=[32m"12"[39m
+              [33mr[39m=[32m"10"[39m
+            [36m/>[39m
+            [36m<line[39m
+              [33mx1[39m=[32m"12"[39m
+              [33mx2[39m=[32m"12"[39m
+              [33my1[39m=[32m"8"[39m
+              [33my2[39m=[32m"16"[39m
+            [36m/>[39m
+            [36m<line[39m
+              [33mx1[39m=[32m"8"[39m
+              [33mx2[39m=[32m"16"[39m
+              [33my1[39m=[32m"12"[39m
+              [33my2[39m=[32m"12"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [0mNuevo cliente[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"grid gap-4 sm:grid-cols-2"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"block text-sm font-medium text-slate-700"[39m
+          [36m>[39m
+            [0mSucursal[0m
+            [36m<select[39m
+              [33mclass[39m=[32m"mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 focus:outline-none"[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m
+                [33mvalue[39m=[32m""[39m
+              [36m>[39m
+                [0mSelecciona una sucursal...[0m
+              [36m</option>[39m
+            [36m</select>[39m
+          [36m</label>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"text-sm text-slate-500"[39m
+            [33mrole[39m=[32m"status"[39m
+          [36m>[39m
+            [0mCargando sucursales...[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"block text-sm font-medium text-slate-700"[39m
+          [36m>[39m
+            [0mVendedor responsable[0m
+            [36m<select[39m
+              [33mclass[39m=[32m"mt-1 min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-brand-600 focus:ring-2 focus:ring-brand-600/30 focus:outline-none"[39m
+              [33mdisabled[39m=[32m""[39m
+            [36m>[39m
+              [36m<option[39m

@@ -1,0 +1,77 @@
+{
+  "recordedAt": "2026-10-14T23:42:44.726Z",
+  "marker": "e1b0de00-707c-4ad2-8e26-",
+  "before": {
+    "resources": [
+      {
+        "resource": "despachos",
+        "bytes": 124370,
+        "rows": 316,
+        "status": 200,
+        "contentRange": "0-315/*"
+      },
+      {
+        "resource": "despacho_detalles",
+        "bytes": 13,
+        "rows": null,
+        "status": 414
+      },
+      {
+        "resource": "despacho_envases",
+        "bytes": 13,
+        "rows": null,
+        "status": 414
+      },
+      {
+        "resource": "devoluciones_productos",
+        "bytes": 13,
+        "rows": null,
+        "status": 414
+      },
+      {
+        "resource": "devoluciones_envases",
+        "bytes": 13,
+        "rows": null,
+        "status": 414
+      }
+    ],
+    "bytes": 124422
+  },
+  "after": {
+    "resources": [
+      {
+        "resource": "despachos",
+        "bytes": 7836,
+        "rows": 20,
+        "status": 206,
+        "contentRange": "0-19/316"
+      },
+      {
+        "resource": "despacho_detalles",
+        "bytes": 2,
+        "rows": 0,
+        "status": 200
+      },
+      {
+        "resource": "despacho_envases",
+        "bytes": 2,
+        "rows": 0,
+        "status": 200
+      },
+      {
+        "resource": "devoluciones_productos",
+        "bytes": 2,
+        "rows": 0,
+        "status": 200
+      },
+      {
+        "resource": "devoluciones_envases",
+        "bytes": 2,
+        "rows": 0,
+        "status": 200
+      }
+    ],
+    "bytes": 7844
+  },
+  "note": "Decoded HTTP response body bytes, same local branch, all dates; headers only fixture, no stock movements."
+}

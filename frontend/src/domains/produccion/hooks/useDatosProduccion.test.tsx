@@ -1,37 +1,143 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { expect, it, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { useDatosProduccion } from './useDatosProduccion'
-import { subscribeProduccion } from '../api'
+import * as api from '../api'
+import * as catalog from '../../../lib/catalog'
 
 vi.mock('../../../lib/catalog', () => ({ obtenerProductos: vi.fn().mockResolvedValue([]), obtenerTiposEmpaque: vi.fn().mockResolvedValue([]) }))
-vi.mock('../api', () => ({
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10, obtenerStockBodega: vi.fn().mockResolvedValue([]),
   obtenerIncidencias: vi.fn().mockResolvedValue([]),
-  obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]), obtenerProducciones: vi.fn().mockResolvedValue([]),
+  obtenerPaginaIncidencias: vi.fn(async (scope: Parameters<typeof api.obtenerIncidencias>[0]) => { const filas = await api.obtenerIncidencias(scope); return { filas, total: filas.length } }),
+  obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]),
+  obtenerPaginaMermas: vi.fn(async (scope: Parameters<typeof api.obtenerMermas>[0]) => { const filas = await api.obtenerMermas(scope); return { filas, total: filas.length } }), obtenerProducciones: vi.fn().mockResolvedValue([]),
+  obtenerPaginaProducciones: vi.fn(async (scope: Parameters<typeof api.obtenerProducciones>[0]) => { const filas = await api.obtenerProducciones(scope); return { filas, total: filas.length } }),
   subscribeProduccion: vi.fn(() => vi.fn()),
 }))
-
-it('subscribes by branch, invalidates its key, and cleans up on branch/identity changes and unmount', async () => {
+beforeEach(() => vi.clearAllMocks())
+function setup() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
-  const invalidate = vi.spyOn(client, 'invalidateQueries')
   const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
-  const { result, rerender, unmount } = renderHook(({ user, branch }) => useDatosProduccion(user, branch), { wrapper, initialProps: { user: 'u1', branch: 's1' } })
-  await waitFor(() => expect(result.current.isSuccess).toBe(true))
-  const oldCallback = vi.mocked(subscribeProduccion).mock.calls[0][1]
-  const firstCleanup = vi.mocked(subscribeProduccion).mock.results[0].value
-  act(() => oldCallback())
-  expect(invalidate).toHaveBeenLastCalledWith({ queryKey: ['produccion', 'u1', 's1'] })
+  return { client, wrapper }
+}
+
+it.each(['historial', 'indicadores'] as const)('A1-07 · %s sólo solicita el catálogo relevante', async (seccion) => {
+  const { wrapper } = setup()
+  renderHook(() => useDatosProduccion('u1', 's1', seccion), { wrapper })
+  await waitFor(() => expect(catalog.obtenerProductos).toHaveBeenCalledOnce())
+  expect(api.obtenerIncidencias).not.toHaveBeenCalled()
+  expect(api.obtenerMermas).not.toHaveBeenCalled()
+  expect(api.obtenerProducciones).not.toHaveBeenCalled()
+  expect(api.obtenerEnvasesDisponibles).not.toHaveBeenCalled()
+  expect(catalog.obtenerTiposEmpaque).not.toHaveBeenCalled()
+})
+
+it('A1-07 · incidencia pendiente no bloquea la consulta de mermas', async () => {
+  vi.mocked(api.obtenerIncidencias).mockReturnValueOnce(new Promise(() => {}))
+  const { wrapper } = setup()
+  const { result } = renderHook(() => useDatosProduccion('u1', 's1', 'incidencias'), { wrapper })
+  await waitFor(() => expect(result.current.mermas.isSuccess).toBe(true))
+  expect(result.current.incidencias.isPending).toBe(true)
+  expect(api.obtenerEnvasesDisponibles).not.toHaveBeenCalled()
+})
+
+it('A1-07 · Realtime invalida sólo el recurso afectado y limpia al cambiar identidad/sucursal', async () => {
+  const { client, wrapper } = setup()
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  const { rerender, unmount } = renderHook(({ user, branch }) => useDatosProduccion(user, branch, 'registrar'), { wrapper, initialProps: { user: 'u1', branch: 's1' } })
+  const oldCallback = vi.mocked(api.subscribeProduccion).mock.calls[0][1]
+  const firstCleanup = vi.mocked(api.subscribeProduccion).mock.results[0].value
+  act(() => oldCallback('mermas'))
+  expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['mermas', 'stock'])
+  invalidate.mockClear()
+  act(() => oldCallback('producciones'))
+  expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(['producciones', 'historial', 'indicadores', 'envases', 'stock'])
   rerender({ user: 'u1', branch: 's2' })
   expect(firstCleanup).toHaveBeenCalledOnce()
-  expect(subscribeProduccion).toHaveBeenLastCalledWith('s2', expect.any(Function))
+  expect(api.subscribeProduccion).toHaveBeenLastCalledWith('s2', expect.any(Function))
   invalidate.mockClear()
-  act(() => oldCallback())
+  act(() => oldCallback('mermas'))
   expect(invalidate).not.toHaveBeenCalled()
-  const secondCleanup = vi.mocked(subscribeProduccion).mock.results[1].value
+  const secondCleanup = vi.mocked(api.subscribeProduccion).mock.results[1].value
   rerender({ user: 'u2', branch: 's2' })
   expect(secondCleanup).toHaveBeenCalledOnce()
-  const thirdCleanup = vi.mocked(subscribeProduccion).mock.results[2].value
+  const thirdCleanup = vi.mocked(api.subscribeProduccion).mock.results[2].value
   unmount()
   expect(thirdCleanup).toHaveBeenCalledOnce()
+})
+
+it.each([
+  ['producciones', ['producciones', 'historial', 'indicadores', 'envases', 'stock']],
+  ['mermas', ['mermas', 'stock']],
+  ['incidencias_produccion', ['incidencias']],
+] as const)('A1-07 · mutación de %s invalida sólo recursos afectados', async (recurso, esperados) => {
+  const { client, wrapper } = setup()
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  const { result } = renderHook(() => useDatosProduccion('u1', 's1', 'registrar'), { wrapper })
+  await act(async () => { await result.current.invalidar(recurso) })
+  expect(invalidate.mock.calls.map(([arg]) => arg?.queryKey?.[3])).toEqual(esperados)
+})
+
+it.each([
+  ['producciones', 'obtenerPaginaProducciones', 'registrar'],
+  ['mermas', 'obtenerPaginaMermas', 'incidencias'],
+  ['incidencias', 'obtenerPaginaIncidencias', 'incidencias'],
+] as const)('P2 · %s pagina y vuelve a página 1 al cambiar sucursal', async (resource, service, section) => {
+  vi.mocked(api[service]).mockImplementation(async branch => ({ filas: [{ id: branch } as never], total: 301 }))
+  const { wrapper } = setup()
+  const { result, rerender } = renderHook(({ branch }) => useDatosProduccion('u1', branch, section), { wrapper, initialProps: { branch: 's1' } })
+  await waitFor(() => expect(result.current[resource].isSuccess).toBe(true))
+  act(() => result.current[resource].setPagina(2))
+  await waitFor(() => expect(api[service]).toHaveBeenLastCalledWith('s1', 2))
+  rerender({ branch: 's2' })
+  await waitFor(() => expect(api[service]).toHaveBeenLastCalledWith('s2', 1))
+  expect(result.current[resource].pagina).toBe(1)
+})
+
+it('P2 · Realtime invalida también todas las páginas inactivas del recurso', async () => {
+  const { client, wrapper } = setup()
+  const prefix = ['produccion', 'u1', 's1']
+  for (const resource of ['producciones', 'historial', 'indicadores']) client.setQueryData([...prefix, resource, 'cached-page-9'], 'cached')
+  client.setQueryData(['produccion', 'another-user', 's1', 'historial', 2], 'private')
+  renderHook(() => useDatosProduccion('u1', 's1', 'envases'), { wrapper })
+  act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('producciones'))
+  for (const resource of ['producciones', 'historial', 'indicadores']) expect(client.getQueryState([...prefix, resource, 'cached-page-9'])?.isInvalidated).toBe(true)
+  expect(client.getQueryState(['produccion', 'another-user', 's1', 'historial', 2])?.isInvalidated).toBe(false)
+})
+
+
+it('C3-12 · stock se consulta sólo para incidencias y Realtime lo invalida con alcance de identidad', async () => {
+  const { client, wrapper } = setup()
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  const { result, rerender } = renderHook(({ seccion }) => useDatosProduccion('u1', 's1', seccion), { wrapper, initialProps: { seccion: 'registrar' as 'registrar' | 'incidencias' } })
+  await waitFor(() => expect(result.current.productos.isSuccess).toBe(true))
+  expect(api.obtenerStockBodega).not.toHaveBeenCalled()
+  rerender({ seccion: 'incidencias' })
+  await waitFor(() => expect(result.current.stock.isSuccess).toBe(true))
+  expect(api.obtenerStockBodega).toHaveBeenCalledWith('s1')
+  invalidate.mockClear()
+  act(() => vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]('producciones'))
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ['produccion', 'u1', 's1', 'stock'] })
+})
+
+it('FX5 R5-01 · eventos publicados actualizan el saldo de merma sin esperar al foco', async () => {
+  let cantidad = 10
+  vi.mocked(api.obtenerStockBodega).mockImplementation(async () => [{ sucursal_id: 's1', producto_id: 'p1', cantidad, modificado_en: '2026-10-15T00:00:00Z' }])
+  const { client, wrapper } = setup()
+  client.setQueryDefaults(['produccion', 'otra-persona'], { gcTime: Infinity })
+  client.setQueryData(['produccion', 'otra-persona', 's1', 'stock'], [{ cantidad: 99 }])
+  const { result } = renderHook(() => useDatosProduccion('u1', 's1', 'incidencias'), { wrapper })
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(10))
+  const evento = vi.mocked(api.subscribeProduccion).mock.calls.at(-1)![1]
+  cantidad = 18
+  act(() => evento('producciones'))
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(18))
+  cantidad = 16
+  act(() => evento('mermas'))
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(16))
+  cantidad = 12
+  await act(async () => { await result.current.invalidar('mermas') })
+  await waitFor(() => expect(result.current.stock.data?.[0].cantidad).toBe(12))
+  expect(client.getQueryData(['produccion', 'otra-persona', 's1', 'stock'])).toEqual([{ cantidad: 99 }])
 })
