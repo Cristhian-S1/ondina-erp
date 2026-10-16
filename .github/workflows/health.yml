@@ -17,9 +17,7 @@ on:
         default: false
         required: false
 
-permissions:
-  contents: read
-  issues: write
+permissions: {}
 
 jobs:
   health:
@@ -28,6 +26,8 @@ jobs:
     if: github.repository == 'Cristhian-S1/ondina-erp'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      issues: write
     concurrency:
       group: health-production
       cancel-in-progress: false

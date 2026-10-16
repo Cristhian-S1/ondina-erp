@@ -10,8 +10,9 @@ This guide describes repository configuration. Verify live project settings, env
 | `.github/workflows/deploy-develop.yml` | Manual only: `workflow_dispatch` with a `ref` input (default `develop`) for a versioned redeploy or rollback of development. |
 | `.github/workflows/deploy-prod.yml` | Push to main (verification job first, then the production deployment under `production`) plus `workflow_dispatch` with a `ref` input for a versioned redeploy or rollback. |
 | `.github/workflows/health.yml` | Scheduled every 30 minutes plus manual dispatch: checks production availability and Supabase Auth, and maintains the incident issue; see [Health monitoring](#health-monitoring). |
+| `.github/workflows/security.yml` | PRs/pushes to develop/main run a checksum-verified Gitleaks scan and runtime fixture self-test; PRs also review dependencies with a high-severity runtime gate. See [CI security](security.md) for commands, credential response and proposed external controls. |
 
-Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The SQL check still only looks for semicolons; executing real migrations and pgTAP in CI remains open (#40). The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
+Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The migration job starts an isolated local Supabase stack, rebuilds migrations and synthetic seed, runs pgTAP and local role journeys, then stops the stack. It does not apply production migrations. The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
 
 `frontend/vercel.json` adds security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) and an enforced `Content-Security-Policy` for all routes. Confirm the effective deployment headers before relying on them.
 
@@ -24,7 +25,7 @@ Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) a
 - `.github/dependabot.yml` requests weekly version updates (Monday, America/Santiago) for npm (`/frontend`) and GitHub Actions (`/`), targeting `develop`, grouping minor+patch per ecosystem, with at most 5 open PRs and the label `dependencies`.
 - Stale `feature/*` branches were archived as `archive/feature-*` tags and deleted on 2026-10-13; see the [development workflow](development.md).
 
-Still open: real migration execution/pgTAP in CI (#40), verified Supabase backups and recovery (#41), error tracking (#54), a justified need for stronger abuse protection (#55) and verifying effective CSP coverage (#45).
+Separate operational work: verified Supabase backups and recovery (#41), error tracking (#54), a justified need for stronger abuse protection (#55) and verifying effective CSP coverage (#45). The repository migration/pgTAP job alone does not establish remote schema reconciliation or production readiness.
 
 ## Configuration
 
