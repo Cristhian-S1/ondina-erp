@@ -12,3 +12,12 @@ targetRules = ["jwt"]
 condition = "AND"
 paths = ['''^docs/setup-vercel-supabase-github\.md$''']
 regexes = ['''^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaXZsend0b2JoaWd1em1raWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MDAzMzEsImV4cCI6MjEwMTM3NjMzMX0\.y3rDG43A7-thpQuZYJU3rpDXN-OPLRay2EJyfWJt_0A$''']
+
+# Synthetic credential strings that the Mem0 plugin's redaction tests feed to
+# redactSecrets(); they are fixtures, not credentials. Exact values, this file only.
+[[allowlists]]
+description = "Synthetic fixtures in the Mem0 OpenCode plugin redaction tests"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^\.opencode/plugins/mem0/index\.test\.ts$''']
+regexes = ['''^sk-abcdef1234567890$''', '''^abcdef123456$''', '''^hunter2SECRET$''']

@@ -18,7 +18,7 @@ An index answers structural questions; compilation, integration tests and runtim
 
 ## Mem0 and client configuration
 
-Use the client's configured user identity and project/application filter. Keep credentials and personal conversation history out of Git. `@mem0/opencode-plugin` (≤0.4.1) targets the [OpenCode v1 plugin API](https://dev.opencode.ai/v2/docs/migrate-v1/) and does not load in OpenCode 2 ([mem0ai/mem0#7602](https://github.com/mem0ai/mem0/issues/7602)); a local replacement is being prepared outside this change, and until it is committed agents must not assume Mem0 is available in OpenCode. Claude requires its own verified connection rather than inheriting another client's access.
+Use the client's configured user identity and project/application filter. Keep credentials and personal conversation history out of Git. `@mem0/opencode-plugin` (≤0.4.1) targets the [OpenCode v1 plugin API](https://dev.opencode.ai/v2/docs/migrate-v1/) and does not load in OpenCode 2 ([mem0ai/mem0#7602](https://github.com/mem0ai/mem0/issues/7602)); the repository ships a project-local v2 port in [`.opencode/plugins/mem0/`](../../.opencode/plugins/mem0/README.md), loaded from the plugins directory instead of the npm package; it still needs the client's own Mem0 credentials, so verify the connection before relying on it. Claude requires its own verified connection rather than inheriting another client's access.
 Share portable settings, rules, skills and environment templates. Ignore personal settings, local profiles, caches and databases. Add `.mcp.json` only for real shared servers with environment-based credentials.
 
 ## Supervised work
