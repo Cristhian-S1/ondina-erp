@@ -14,7 +14,7 @@ This guide describes repository configuration. Verify live project settings, env
 
 Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The migration job starts an isolated local Supabase stack, rebuilds migrations and synthetic seed, runs pgTAP and local role journeys, then stops the stack. It does not apply production migrations; deployment jobs apply no SQL. The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
 
-`frontend/vercel.json` adds security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) and an enforced `Content-Security-Policy` for all routes. O4 preserves the complete file, including the CSP.
+`frontend/vercel.json` adds security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) and an enforced `Content-Security-Policy` for all routes. O4 preserves the complete file, including the CSP. Confirm the effective deployment headers before relying on them.
 
 ## Repository deployment controls
 
@@ -45,6 +45,8 @@ Separate operational work: verified Supabase backups and recovery (#41; the inte
 | Vercel project | Root Directory `frontend`; use its `vercel.json`, SPA rewrites, security headers, lockfile install and `dist` output. |
 | Vercel environments | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` for the selected development/preview/production project. These values reach the browser. |
 | GitHub Actions environment secrets | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_ORG_ID` in `development`/`production`; obtain values from the intended account/project rather than this document. Owner configuration is separate from this repository change. |
+| GitHub Actions monitoring secrets | Optional `MONITOR_EMAIL`, `MONITOR_PASSWORD` for a dedicated effectively read-only account; see [Observability](observability.md#external-configuration-not-applied). |
+| Optional frontend error collector | `VITE_ERROR_DSN` plus an explicitly registered adapter; no collector is active by default. See [transport/CSP proposal](observability.md#optional-transport-and-csp-proposal). |
 | GitHub Actions variables | `SUPABASE_URL` and `SUPABASE_ANON_KEY` (public values, used by the health check). Not secrets. |
 | GitHub production environment | Required reviewers and release branch policy for `main`; verify the live controls and administrator behavior separately. |
 
@@ -60,16 +62,11 @@ Mobile/tablet transfer and Core Web Vitals are deliberately outside CI: measure 
 
 ## Health monitoring
 
-`.github/workflows/health.yml` runs every 30 minutes (and on manual dispatch) and performs two read-only checks:
+`.github/workflows/health.yml` runs every 30 minutes from the default branch and supports manual dispatch. It checks the production SPA shell and Supabase Auth health, then optionally signs in with a dedicated read-only monitoring account and reads exactly one catalog `productos.id` through PostgREST. The only application-data operation is a bounded GET; password login creates an Auth session. Missing monitoring secrets skip the synthetic step with a notice; no credentials, tokens or response bodies enter logs.
 
-| Check | Request | What a failure means and first steps |
-| --- | --- | --- |
-| Production site | `GET https://ondina-erp.vercel.app` returns 200 and the HTML contains `<div id="root">` | The domain/alias is broken, the deployment is down, or the served shell is not the SPA. Open the run URL, review the latest Vercel deployment, and redeploy or roll back with the `ref` input of the deploy workflows. |
-| Supabase Auth | `GET <SUPABASE_URL>/auth/v1/health` with the public anon key returns 200 | The Auth endpoint or the Supabase project is unavailable, or the repository variables point to the wrong project. Check the Supabase dashboard/status and the `SUPABASE_URL`/`SUPABASE_ANON_KEY` repository variables. The check is skipped with a warning when those variables are unset. |
+The run summary distinguishes frontend, Auth and database failures. Failure opens or updates `[Incidente] Health check fallido` with label `incidente` and a run link; a run with no failed enabled checks comments and closes it, with omissions retained in the summary. Stable healthy runs add no comments. Scheduled runs may be delayed by GitHub, and the schedule activates only after integration into the default branch (`main`). `workflow_dispatch` input `simular_fallo` exercises incident/recovery handling after separate execution approval; no remote rehearsal is included in the local implementation.
 
-On failure the workflow opens (or comments on) the issue `[Incidente] Health check fallido` with the label `incidente`, the failing check, its status code and the run URL; when the service recovers it comments and closes that issue. The workflow only issues GETs, creates no sales or writes, and holds no secrets (the anon key is public). Scheduled runs can be delayed by GitHub, so this is a coarse availability signal rather than an SLA. GitHub runs `schedule` workflows from the default branch (`main`), so the 30-minute cadence activates once this file reaches `main`; `workflow_dispatch` is available from the Actions UI from then on.
-
-Error tracking (Sentry or similar) is deferred: it requires creating an account and a DSN, and no tool has been selected (#54); the health check does not cover session, query or business-flow failures.
+Read the [Observability runbook](observability.md) for thresholds, notification channel, operational owner placeholder, retention, excluded data, zero incremental subscription cost, optional service comparison and the complete external configuration checklist. Monitoring account/role creation, GitHub secrets/notifications and optional DSN/CSP changes remain owner actions. The local error reporter correlates render/mutation failures with operation UUID, build version and environment; the console is the default sink and no external error service is required or activated.
 
 ## Abuse protection (decision, 2026-10-13)
 

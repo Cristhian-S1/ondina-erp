@@ -1,8 +1,8 @@
 name: Health check
 
 # Monitor de disponibilidad (issue #54). Cada 30 minutos comprueba que el
-# frontend de producción responde y que Supabase Auth sigue sano; solo hace
-# lecturas GET, sin ventas ni escrituras. Si algo falla abre o actualiza la
+# frontend, Auth y lectura autenticada de catálogo; sin ventas ni escrituras
+# de negocio (el login crea una sesión Auth). Si algo falla abre o actualiza la
 # incidencia con etiqueta `incidente`; al recuperarse la comenta y cierra.
 # Runbook: docs/engineering/deployment.md (sección Health monitoring).
 
@@ -10,6 +10,12 @@ on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch:
+    inputs:
+      simular_fallo:
+        description: Force a controlled incident to rehearse alert and recovery
+        type: boolean
+        default: false
+        required: false
 
 permissions: {}
 
@@ -22,11 +28,15 @@ jobs:
     timeout-minutes: 5
     permissions:
       issues: write
+    concurrency:
+      group: health-production
+      cancel-in-progress: false
     steps:
       - name: Comprobar sitio y Supabase Auth
         id: checks
         env:
           SITE_URL: https://ondina-erp.vercel.app
+          SIMULAR_FALLO: ${{ inputs.simular_fallo }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: |
@@ -57,14 +67,102 @@ jobs:
             fi
           fi
 
+          if [ "$SIMULAR_FALLO" = "true" ]; then
+            failures="${failures:+$failures; }simulación controlada"
+            echo '- Simulación: **FALLO CONTROLADO** (workflow_dispatch)' >> "$checks_file"
+          fi
           echo "failures=$failures" >> "$GITHUB_OUTPUT"
           cat "$checks_file" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Recorrido sintético Auth y BD (sólo lectura)
+        id: synthetic
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          MONITOR_EMAIL: ${{ secrets.MONITOR_EMAIL }}
+          MONITOR_PASSWORD: ${{ secrets.MONITOR_PASSWORD }}
+        run: |
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+          from urllib.error import HTTPError
+          from urllib.parse import urlparse
+          from urllib.request import Request, build_opener, HTTPRedirectHandler
+
+          # Never follow redirects with credentials, print response bodies or exception details.
+          class NoRedirect(HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+          opener = build_opener(NoRedirect)
+          base = os.environ.get('SUPABASE_URL', '').rstrip('/')
+          key = os.environ.get('SUPABASE_ANON_KEY', '')
+          email = os.environ.get('MONITOR_EMAIL', '')
+          password = os.environ.get('MONITOR_PASSWORD', '')
+          lines = []
+          failure = ''
+          status = 'skipped'
+
+          def request(path, data=None, token=None):
+              headers = {'apikey': key, 'Content-Type': 'application/json'}
+              if token:
+                  headers['Authorization'] = 'Bearer ' + token
+              req = Request(base + path, data=data, headers=headers)
+              with opener.open(req, timeout=30) as response:
+                  payload = response.read(65537)
+                  if response.status != 200 or len(payload) > 65536:
+                      raise ValueError('invalid response')
+                  return json.loads(payload)
+
+          if not email or not password:
+              print('::notice::MONITOR_EMAIL/MONITOR_PASSWORD absent; synthetic Auth/DB check skipped.')
+              lines.append('- Sintético Auth/BD: OMITIDO (faltan secretos de monitoreo)')
+          else:
+              phase = 'Auth'
+              try:
+                  parsed = urlparse(base)
+                  local = parsed.hostname in ('127.0.0.1', 'localhost', '::1')
+                  if not key or parsed.username or parsed.password or parsed.query or parsed.fragment or not parsed.hostname:
+                      raise ValueError('invalid configuration')
+                  if parsed.scheme != 'https' and not (local and parsed.scheme == 'http'):
+                      raise ValueError('insecure endpoint')
+                  session = request('/auth/v1/token?grant_type=password', json.dumps({
+                      'email': email, 'password': password,
+                  }).encode())
+                  token = session['access_token']
+                  if not isinstance(token, str) or not token or session.get('token_type', '').lower() != 'bearer':
+                      raise ValueError('invalid token')
+                  lines.append('- Sintético Auth: OK (password grant HTTP 200; token no registrado)')
+                  phase = 'BD'
+                  rows = request('/rest/v1/productos?select=id&limit=1', token=token)
+                  if not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0], dict) or set(rows[0]) != {'id'} or not rows[0]['id']:
+                      raise ValueError('expected one visible catalog row')
+                  lines.append('- Sintético BD: OK (HTTP 200; una fila visible, sólo id; cuerpo descartado)')
+                  status = 'ok'
+              except Exception as error:
+                  # Only fixed labels and HTTP integer codes are allowed in logs.
+                  code = str(error.code) if isinstance(error, HTTPError) else 'red/configuración/respuesta'
+                  failure = 'Sintético ' + phase + ' (' + code + ')'
+                  status = 'failed'
+                  lines.append('- Sintético ' + phase + ': **FALLO** (' + code + ')')
+                  if phase == 'Auth':
+                      lines.append('- Sintético BD: NO EJECUTADO (Auth falló)')
+
+          summary = '\n'.join(lines) + '\n'
+          with Path(os.environ['RUNNER_TEMP'], 'health-checks.md').open('a') as output:
+              output.write(summary)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+              output.write(summary)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('failures=' + failure + '\nstatus=' + status + '\n')
+          PYTHON
+
       - name: Abrir o actualizar la incidencia de fallo
-        if: steps.checks.outputs.failures != ''
+        if: steps.checks.outputs.failures != '' || steps.synthetic.outputs.failures != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          FAILURES: ${{ steps.checks.outputs.failures }}
+          FAILURES: ${{ steps.checks.outputs.failures }} ${{ steps.synthetic.outputs.failures }}
         run: |
           {
             echo "El health check **falló**: $FAILURES"
@@ -84,15 +182,15 @@ jobs:
           fi
 
       - name: Fallar la ejecución si hubo chequeos caídos
-        if: steps.checks.outputs.failures != ''
+        if: steps.checks.outputs.failures != '' || steps.synthetic.outputs.failures != ''
         env:
-          FAILURES: ${{ steps.checks.outputs.failures }}
+          FAILURES: ${{ steps.checks.outputs.failures }} ${{ steps.synthetic.outputs.failures }}
         run: |
           echo "::error::Health check fallido: $FAILURES"
           exit 1
 
       - name: Comentar y cerrar la incidencia si el servicio se recuperó
-        if: steps.checks.outputs.failures == ''
+        if: steps.checks.outputs.failures == '' && steps.synthetic.outputs.failures == ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -104,7 +202,7 @@ jobs:
           fi
 
           {
-            echo "El health check **se recuperó**: todos los chequeos responden OK."
+            echo "El health check **se recuperó**: los chequeos habilitados responden OK (revisar omisiones en el resumen)."
             echo
             cat "$RUNNER_TEMP/health-checks.md"
             echo
