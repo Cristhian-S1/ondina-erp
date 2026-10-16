@@ -5,7 +5,7 @@ Orca owns workspaces, execution and the message/lifecycle protocol. Claude Code,
 ## Codex
 
 Codex runs as a TUI in an Orca terminal. The installed guide has no per-call model flags on `worktree create --agent codex`, so select the model at launch with `terminal create --command`, for example `codex --model gpt-6.1-sol`, then wait for `tui-idle` before sending the task. Use `-c model_reasoning_effort="..."` only when the chosen model supports that effort. Codex has its own credentials and configuration (`~/.codex/`, `.codex/` in the repo); verify its login separately from Claude and OpenCode.
-The repo has no Codex hooks (`.codex/hooks.json` was removed because `bd codex-hook` is unsupported by bd 1.0.4). Codex reads `AGENTS.md`, which tells it to run `bd prime` for Beads context. A new TUI can still stop at a "Hooks need review" prompt for global hooks; choose "Continue without trusting" or review them, or `terminal wait --for tui-idle` never settles.
+The repo's `.codex/hooks.json` runs `bd prime` on `SessionStart` and `PreCompact` (the earlier file called the unsupported `bd codex-hook` and was removed). Codex also reads `AGENTS.md`, which tells it to run `bd prime`. A new TUI stops at a "Hooks need review" prompt for new or changed hooks: trust them once to enable the Beads context, or choose "Continue without trusting"; until answered, `terminal wait --for tui-idle` never settles and `worker-start` reports `agent-hooks-review-prompt`.
 
 ## Instructions and tools
 
