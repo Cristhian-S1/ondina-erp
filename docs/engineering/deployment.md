@@ -10,8 +10,9 @@ This guide describes repository configuration. Verify live project settings, env
 | `.github/workflows/deploy-develop.yml` | Manual only: `workflow_dispatch` with a `ref` input (default `develop`) for a versioned redeploy or rollback of development; `verify` requires successful canonical CI for the resolved SHA before `deploy` can run. |
 | `.github/workflows/deploy-prod.yml` | Push to main (`verify` requires successful canonical CI for the same SHA, reruns lint/build/bundle budget/unit tests, then `deploy` uses `needs: verify` under `production`) plus `workflow_dispatch` with a `ref` input for a versioned redeploy or rollback. |
 | `.github/workflows/health.yml` | Scheduled every 30 minutes plus manual dispatch: checks production availability and Supabase Auth, and maintains the incident issue; see [Health monitoring](#health-monitoring). |
+| `.github/workflows/security.yml` | PRs/pushes to develop/main run a checksum-verified Gitleaks scan and runtime fixture self-test; PRs also review dependencies with a high-severity runtime gate. See [CI security](security.md) for commands, credential response and proposed external controls. |
 
-Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The migration job starts an isolated local Supabase stack, rebuilds migrations and synthetic seed, runs pgTAP and local role journeys, then stops the stack. Deployment jobs apply no SQL. The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
+Workflows pin actions by commit SHA (`actions/checkout`, `actions/setup-node`) and the Vercel CLI by version (`vercel@63.1.2`), take Node from `frontend/.nvmrc` (22) with npm caching, and run deploy jobs only when `github.repository` is `Cristhian-S1/ondina-erp`. The migration job starts an isolated local Supabase stack, rebuilds migrations and synthetic seed, runs pgTAP and local role journeys, then stops the stack. It does not apply production migrations; deployment jobs apply no SQL. The `workflow_dispatch` triggers and their `ref` input appear in the Actions UI only once these files exist on the default branch (`main`).
 
 `frontend/vercel.json` adds security headers (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`) and an enforced `Content-Security-Policy` for all routes. O4 preserves the complete file, including the CSP.
 
@@ -34,6 +35,8 @@ gh workflow run deploy-prod.yml --ref main -f ref=<full-successful-main-SHA>
 The production job declares `environment: production`; required reviewers, self-review prevention, branch restrictions and administrator bypass are external settings. The YAML declaration alone does not prove an effective approval gate. Scope Vercel secrets to protected environments and apply the owner-approved controls from the O4 plan before relying on them.
 
 The CLI remains pinned to `vercel@63.1.2`; deploy workflows use its native `VERCEL_TOKEN` environment variable. Publication still uploads source for a Vercel build; it is the same verified commit, not a promoted CI-built artifact. Vercel project settings and environment variables can change the resulting build. Capture deployment ID, URL, SHA and environment when verifying a release. Prebuilt artifact promotion is a separate change.
+
+Separate operational work: verified Supabase backups and recovery (#41), error tracking (#54), a justified need for stronger abuse protection (#55) and operational verification of the enforced CSP (#45). The repository migration/pgTAP job alone does not establish remote schema reconciliation or production readiness.
 
 ## Configuration
 

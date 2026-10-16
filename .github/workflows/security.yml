@@ -1,0 +1,70 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions: {}
+
+jobs:
+  secrets:
+    name: Secret scan + self-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout complete history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install checksum-verified Gitleaks
+        run: bash scripts/ci/install-gitleaks.sh "$RUNNER_TEMP/gitleaks-bin"
+
+      - name: Verify detection and redaction
+        env:
+          GITLEAKS_BIN: ${{ runner.temp }}/gitleaks-bin/gitleaks
+        run: bash scripts/ci/test-gitleaks.sh
+
+      - name: Scan introduced commits
+        env:
+          GITLEAKS_BIN: ${{ runner.temp }}/gitleaks-bin/gitleaks
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_HEAD: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == pull_request ]]; then
+            bash scripts/ci/scan-gitleaks.sh pr "$PR_BASE" "$PR_HEAD"
+          else
+            bash scripts/ci/scan-gitleaks.sh push "$PUSH_BEFORE" "$PUSH_HEAD"
+          fi
+
+  dependencies:
+    name: Dependency review (runtime high)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Review development dependencies (advisory)
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-scopes: development
+          warn-only: true
+          license-check: false
+          comment-summary-in-pr: never
+
+      - name: Block high or critical runtime vulnerabilities
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          fail-on-scopes: runtime, unknown
+          license-check: false
+          comment-summary-in-pr: never
