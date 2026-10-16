@@ -1,0 +1,162 @@
+{
+  "generated": "2026-10-15T00:23:28.606Z",
+  "variants": {
+    "retained-single-client": {
+      "files": [
+        {
+          "file": "assets/index--reDmLHU.js",
+          "raw": 294354,
+          "gzip9": 91245,
+          "mappedGeneratedBytes": {
+            "scheduler": 3538,
+            "react-dom": 206875,
+            "@tanstack/react-query": 277,
+            "@tanstack/query-core": 26137,
+            "react-router": 38191,
+            "application": 18175
+          }
+        },
+        {
+          "file": "assets/jsx-runtime-Dk72oS4N.js",
+          "raw": 8774,
+          "gzip9": 3328,
+          "mappedGeneratedBytes": {
+            "react": 8198
+          }
+        },
+        {
+          "file": "assets/vendor-supabase-1yby8ldT.js",
+          "raw": 214047,
+          "gzip9": 54467,
+          "mappedGeneratedBytes": {
+            "@supabase/supabase-js": 10659,
+            "tslib": 630,
+            "@supabase/functions-js": 2837,
+            "@supabase/postgrest-js": 16393,
+            "@supabase/realtime-js": 30681,
+            "@supabase/phoenix": 25620,
+            "iceberg-js": 5365,
+            "@supabase/storage-js": 22442,
+            "@supabase/auth-js": 99227
+          }
+        }
+      ],
+      "staticJsGzip9": 149040,
+      "mappedGeneratedBytes": {
+        "scheduler": 3538,
+        "react-dom": 206875,
+        "@tanstack/react-query": 277,
+        "@tanstack/query-core": 26137,
+        "react-router": 38191,
+        "application": 18175,
+        "react": 8198,
+        "@supabase/supabase-js": 10659,
+        "tslib": 630,
+        "@supabase/functions-js": 2837,
+        "@supabase/postgrest-js": 16393,
+        "@supabase/realtime-js": 30681,
+        "@supabase/phoenix": 25620,
+        "iceberg-js": 5365,
+        "@supabase/storage-js": 22442,
+        "@supabase/auth-js": 99227
+      },
+      "note": "Source-map spans attribute generated minified bytes approximately; gzip is measured per complete resource, never per source module."
+    },
+    "split-sdk-packages": {
+      "files": [
+        {
+          "file": "assets/index-D8ADI-WW.js",
+          "raw": 294357,
+          "gzip9": 91248,
+          "mappedGeneratedBytes": {
+            "scheduler": 3538,
+            "react-dom": 206875,
+            "@tanstack/react-query": 277,
+            "@tanstack/query-core": 26137,
+            "react-router": 38191,
+            "application": 18175
+          }
+        },
+        {
+          "file": "assets/jsx-runtime-Dk72oS4N.js",
+          "raw": 8774,
+          "gzip9": 3328,
+          "mappedGeneratedBytes": {
+            "react": 8198
+          }
+        },
+        {
+          "file": "assets/vendor-supabase-js-Cf5qz7m-.js",
+          "raw": 10817,
+          "gzip9": 4365,
+          "mappedGeneratedBytes": {
+            "@supabase/supabase-js": 10560
+          }
+        },
+        {
+          "file": "assets/vendor-auth-js-C4rzvtht.js",
+          "raw": 99769,
+          "gzip9": 22931,
+          "mappedGeneratedBytes": {
+            "tslib": 630,
+            "@supabase/auth-js": 99116
+          }
+        },
+        {
+          "file": "assets/vendor-functions-js-8_dEM-sQ.js",
+          "raw": 2889,
+          "gzip9": 1292,
+          "mappedGeneratedBytes": {
+            "@supabase/functions-js": 2840
+          }
+        },
+        {
+          "file": "assets/vendor-postgrest-js-CXdvN_6w.js",
+          "raw": 16382,
+          "gzip9": 4979,
+          "mappedGeneratedBytes": {
+            "@supabase/postgrest-js": 16382
+          }
+        },
+        {
+          "file": "assets/vendor-realtime-js-CaQxtmBC.js",
+          "raw": 56355,
+          "gzip9": 16216,
+          "mappedGeneratedBytes": {
+            "@supabase/realtime-js": 30615,
+            "@supabase/phoenix": 25570
+          }
+        },
+        {
+          "file": "assets/vendor-storage-js-fdQLVZs6.js",
+          "raw": 27675,
+          "gzip9": 6983,
+          "mappedGeneratedBytes": {
+            "iceberg-js": 5347,
+            "@supabase/storage-js": 22328
+          }
+        }
+      ],
+      "staticJsGzip9": 151342,
+      "mappedGeneratedBytes": {
+        "scheduler": 3538,
+        "react-dom": 206875,
+        "@tanstack/react-query": 277,
+        "@tanstack/query-core": 26137,
+        "react-router": 38191,
+        "application": 18175,
+        "react": 8198,
+        "@supabase/supabase-js": 10560,
+        "tslib": 630,
+        "@supabase/auth-js": 99116,
+        "@supabase/functions-js": 2840,
+        "@supabase/postgrest-js": 16382,
+        "@supabase/realtime-js": 30615,
+        "@supabase/phoenix": 25570,
+        "iceberg-js": 5347,
+        "@supabase/storage-js": 22328
+      },
+      "note": "Source-map spans attribute generated minified bytes approximately; gzip is measured per complete resource, never per source module."
+    }
+  }
+}

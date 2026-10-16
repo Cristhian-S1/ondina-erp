@@ -1,0 +1,62 @@
+[
+ {
+  "ancho": 412,
+  "alto": 915,
+  "scrollWidth": 412,
+  "innerWidth": 412,
+  "sinDesborde": true,
+  "alturaDocumento": 2636,
+  "modo": "tarjeta",
+  "altoTarjeta": 444,
+  "anchoContenedor": 378,
+  "controlesBajo44": []
+ },
+ {
+  "ancho": 375,
+  "alto": 812,
+  "scrollWidth": 375,
+  "innerWidth": 375,
+  "sinDesborde": true,
+  "alturaDocumento": 2636,
+  "modo": "tarjeta",
+  "altoTarjeta": 444,
+  "anchoContenedor": 341,
+  "controlesBajo44": []
+ },
+ {
+  "ancho": 768,
+  "alto": 1024,
+  "scrollWidth": 768,
+  "innerWidth": 768,
+  "sinDesborde": true,
+  "alturaDocumento": 2129,
+  "modo": "tarjeta",
+  "altoTarjeta": 364,
+  "anchoContenedor": 718,
+  "controlesBajo44": []
+ },
+ {
+  "ancho": 1024,
+  "alto": 1366,
+  "scrollWidth": 1024,
+  "innerWidth": 1024,
+  "sinDesborde": true,
+  "alturaDocumento": 1484,
+  "modo": "tabla",
+  "altoTarjeta": 153,
+  "anchoContenedor": 718,
+  "controlesBajo44": []
+ },
+ {
+  "ancho": 1280,
+  "alto": 800,
+  "scrollWidth": 1280,
+  "innerWidth": 1280,
+  "sinDesborde": true,
+  "alturaDocumento": 1348,
+  "modo": "tabla",
+  "altoTarjeta": 113,
+  "anchoContenedor": 974,
+  "controlesBajo44": []
+ }
+]

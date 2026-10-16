@@ -3,6 +3,8 @@ import type { Role } from '../../types'
 import type { DomainModule } from '../../types/module'
 import { BoxIcon, RecycleIcon, TruckIcon } from '../../components/icons'
 
+import EstadoVista from '../../components/EstadoVista'
+
 const allowedRoles: Role[] = ['bodega', 'administrador']
 
 const pages = {
@@ -29,9 +31,9 @@ const bodegaModule: DomainModule = {
     { path: '/stock', label: 'Stock', icon: BoxIcon, roles: allowedRoles },
   ],
   routes: [
-    { path: '/despachos', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Despachos /></Suspense> },
-    { path: '/devoluciones', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Devoluciones /></Suspense> },
-    { path: '/stock', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Stock /></Suspense> },
+    { path: '/despachos', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Despachos /></Suspense> },
+    { path: '/devoluciones', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Devoluciones /></Suspense> },
+    { path: '/stock', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Stock /></Suspense> },
   ],
 }
 

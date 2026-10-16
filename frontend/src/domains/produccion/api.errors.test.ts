@@ -10,7 +10,7 @@ const mock = vi.hoisted(() => {
   const query = {
     select: () => query, eq: () => query, order: () => query,
     gte: () => query, lt: () => query, lte: () => query,
-    in: () => query, is: () => query, not: () => query, limit: () => query,
+    in: () => query, is: () => query, not: () => query, limit: () => query, range: () => query,
     insert: resolver, returns: resolver,
     then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) => resolver().then(resolve, reject),
   }

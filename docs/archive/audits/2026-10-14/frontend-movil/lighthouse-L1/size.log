@@ -1,0 +1,15 @@
+
+> frontend@0.0.0 size
+> node scripts/check-bundle-size.mjs
+
+Bundle de 2026-10-14 (c2bcd87), margen +10%:
+Base del conjunto inicial: 2026-10-14 (c2bcd87).
+Métrica                                     Base   Presupuesto        Actual   Δ vs base  Estado
+------------------------------------------------------------------------------------------------
+JS de entrada (gzip)                      91.391       100.531        91.391       +0,0%  OK
+CSS de entrada (gzip)                      7.656         8.422         7.667       +0,1%  OK
+Chunk JS más grande (sin comprimir)       294.354       323.790       294.354       +0,0%  OK
+JS inicial total (gzip)                  149.349       164.284       149.349       +0,0%  OK
+CSS inicial total (gzip)                   7.656         8.422         7.667       +0,1%  OK
+
+[bundle] Presupuesto OK.

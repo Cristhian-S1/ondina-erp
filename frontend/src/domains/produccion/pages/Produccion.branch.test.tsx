@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { makePerfil, renderWithProviders } from '@/test/render'
 import Produccion from './Produccion'
 import * as api from '../api'
+import { obtenerProductos } from '../../../lib/catalog'
 
 const location = vi.hoisted(() => ({ pathname: '/produccion/registrar' }))
 vi.mock('react-router-dom', async (original) => ({ ...await original<typeof import('react-router-dom')>(), useLocation: () => location }))
@@ -11,15 +12,22 @@ vi.mock('@/lib/catalog', () => ({
   obtenerTiposEmpaque: vi.fn().mockResolvedValue([]),
   obtenerSucursales: vi.fn().mockResolvedValue([{ id: 's1', nombre: 'Norte' }, { id: 's2', nombre: 'Sur' }]),
 }))
-vi.mock('../api', () => ({
+vi.mock('../api', () => ({ TAMANO_PRODUCCION: 10,
+  obtenerStockBodega: vi.fn().mockResolvedValue([{ producto_id: 'p1', cantidad: 8 }]),
+  obtenerHistorialProduccion: vi.fn().mockResolvedValue([]),
+  obtenerPaginaHistorial: vi.fn(async (scope: Parameters<typeof api.obtenerHistorialProduccion>[0]) => { const filas = await api.obtenerHistorialProduccion(scope); return { filas, total: filas.length } }),
+  obtenerIndicadoresProduccion: vi.fn().mockResolvedValue([]),
   registrarIncidencia: vi.fn().mockResolvedValue(null),
   obtenerIncidencias: vi.fn().mockResolvedValue([]),
+  obtenerPaginaIncidencias: vi.fn(async (scope: Parameters<typeof api.obtenerIncidencias>[0]) => { const filas = await api.obtenerIncidencias(scope); return { filas, total: filas.length } }),
   obtenerEnvasesDisponibles: vi.fn().mockResolvedValue([]), obtenerMermas: vi.fn().mockResolvedValue([]),
-  obtenerProducciones: vi.fn().mockResolvedValue([]), registrarMerma: vi.fn().mockResolvedValue(null), registrarProduccion: vi.fn().mockResolvedValue(null),
+  obtenerPaginaMermas: vi.fn(async (scope: Parameters<typeof api.obtenerMermas>[0]) => { const filas = await api.obtenerMermas(scope); return { filas, total: filas.length } }),
+  obtenerProducciones: vi.fn().mockResolvedValue([]),
+  obtenerPaginaProducciones: vi.fn(async (scope: Parameters<typeof api.obtenerProducciones>[0]) => { const filas = await api.obtenerProducciones(scope); return { filas, total: filas.length } }), registrarMerma: vi.fn().mockResolvedValue(null), registrarProduccion: vi.fn().mockResolvedValue(null),
   subscribeProduccion: vi.fn(() => vi.fn()),
 }))
 
-beforeEach(() => { vi.clearAllMocks(); location.pathname = '/produccion/registrar'; vi.mocked(api.obtenerProducciones).mockResolvedValue([]) })
+beforeEach(() => { vi.clearAllMocks(); vi.mocked(obtenerProductos).mockResolvedValue([{ id: 'p1', nombre: 'Agua', activo: true, precio_base: 100 }]); location.pathname = '/produccion/registrar'; vi.mocked(api.obtenerProducciones).mockResolvedValue([]) })
 
 async function selectBranch(id = 's1') {
   await screen.findByRole('option', { name: 'Norte' })
@@ -27,7 +35,7 @@ async function selectBranch(id = 's1') {
 }
 
 describe('Producción operational branch', () => {
-  it.each([null, 's1'])('requires an explicit administrator selection with profile branch %s', async (sucursal_id) => {
+  it.each([null])('requires an explicit administrator selection with profile branch %s', async (sucursal_id) => {
     renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id }) })
     expect(await screen.findByRole('combobox', { name: 'Sucursal' })).toHaveValue('')
     expect(screen.getByText(/selecciona una sucursal para trabajar/i)).toBeInTheDocument()
@@ -60,10 +68,10 @@ describe('Producción operational branch', () => {
     expect(api.registrarProduccion).toHaveBeenCalledWith(expect.objectContaining({ sucursal_id: 's1', cantidad: 12 }))
     await selectBranch('s2')
     expect(await screen.findByLabelText('Cantidad')).toHaveValue('')
-    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText('Producción registrada. Las existencias se actualizaron automáticamente.')).not.toBeInTheDocument()
   })
 
-  it('does not refresh the previous scope when a submitted write finishes after switching', async () => {
+  it('FX R2-07 · bloquea el selector hasta notificar el resultado de escritura', async () => {
     let resolve!: (value: string | null) => void
     vi.mocked(api.registrarProduccion).mockReturnValueOnce(new Promise(r => { resolve = r }))
     renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id: null }) })
@@ -72,11 +80,12 @@ describe('Producción operational branch', () => {
     fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
     fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
     await waitFor(() => expect(api.registrarProduccion).toHaveBeenCalledOnce())
-    await selectBranch('s2')
-    await screen.findByText('Nueva producción')
+    expect(screen.getByLabelText('Sucursal')).toBeDisabled()
     await act(async () => { resolve(null) })
-    expect(vi.mocked(api.obtenerProducciones).mock.calls.filter(([id]) => id === 's1')).toHaveLength(1)
-    expect(screen.queryByText(/Producción registrada/)).not.toBeInTheDocument()
+    expect(await screen.findByText(/Producción registrada/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Sucursal')).not.toBeDisabled()
+    await selectBranch('s2')
+    expect(await screen.findByLabelText('Cantidad')).toHaveValue('')
   })
 
   it('writes mermas to the chosen branch', async () => {
@@ -113,4 +122,363 @@ it('B3 · distinguishes descriptive incidents from quantified losses', async () 
   fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
   await screen.findByText('Merma registrada correctamente. Las existencias fueron actualizadas.')
   expect(api.registrarMerma).toHaveBeenCalledWith(expect.objectContaining({ cantidad: 2, producto_id: 'p1', motivo: 'Bidones dañados' }))
+})
+
+it.each(['registrar', 'envases', 'historial', 'indicadores', 'incidencias'])('UX-13 · %s tiene título y enlaces de sección incluso antes de seleccionar sucursal', async (seccion) => {
+  location.pathname = `/produccion/${seccion}`
+  renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id: null }) })
+  expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Producción ·')
+  const nav = screen.getByRole('navigation', { name: 'Secciones de producción' })
+  expect(nav.querySelectorAll('a')).toHaveLength(5)
+  const selector = await screen.findByLabelText('Sucursal')
+  expect(screen.getByRole('heading', { level: 1 }).compareDocumentPosition(selector) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it('UX-12 · éxito de producción utiliza una notificación cerrable', async () => {
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(await screen.findByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
+  await screen.findByText(/Producción registrada/)
+  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(screen.queryByText(/Producción registrada/)).not.toBeInTheDocument()
+})
+
+it('UX-12 · fallo de mutación conserva los campos y se cierra con Toast', async () => {
+  vi.mocked(api.registrarProduccion).mockResolvedValueOnce('No hay envases vacíos suficientes.')
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(await screen.findByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
+  await screen.findAllByRole('alert')
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('12')
+  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
+it('UX-02 · mermas usa una sola fila con etiquetas de tarjeta y fechas de Santiago', async () => {
+  location.pathname = '/produccion/incidencias'
+  vi.mocked(api.obtenerMermas).mockResolvedValueOnce([{ id: 'm1', sucursal_id: 's1', producto_id: 'p1', tipo_empaque_id: null, despacho_id: null, cantidad: 2, motivo: 'Bidón dañado', anulado: false, creado_por: 'u1', creado_en: '2026-10-13T02:15:59Z' }])
+  renderWithProviders(<Produccion />)
+  const motivo = await screen.findByText('Bidón dañado')
+  const fila = motivo.closest('tr')!
+  expect(fila).toHaveTextContent('Fecha')
+  expect(fila).toHaveTextContent('Producto')
+  expect(fila).toHaveTextContent('Cantidad')
+  expect(fila).toHaveTextContent('Motivo')
+  expect(fila).toHaveTextContent('12-10-2026 23:15')
+  expect(screen.getAllByText('Bidón dañado')).toHaveLength(1)
+})
+
+
+it.each(['historial', 'indicadores'] as const)('A1-07 · %s comienza sin esperar productos ni lecturas de otras secciones', async (seccion) => {
+  location.pathname = `/produccion/${seccion}`
+  vi.mocked(obtenerProductos).mockReturnValueOnce(new Promise(() => {}))
+  renderWithProviders(<Produccion />)
+  expect(await screen.findByText(seccion === 'historial' ? 'No hay registros para los filtros seleccionados.' : 'No hay producción en el período.')).toBeInTheDocument()
+  expect(screen.getByText('Cargando productos...')).toBeInTheDocument()
+  expect(api.obtenerProducciones).not.toHaveBeenCalled()
+  expect(api.obtenerMermas).not.toHaveBeenCalled()
+  expect(api.obtenerIncidencias).not.toHaveBeenCalled()
+})
+
+it.each(['incidencia', 'merma'] as const)('UX-12 · fallo de %s usa Toast y conserva el formulario', async (tipo) => {
+  location.pathname = '/produccion/incidencias'
+  if (tipo === 'incidencia') vi.mocked(api.registrarIncidencia).mockResolvedValueOnce('No hay stock suficiente.')
+  else vi.mocked(api.registrarMerma).mockResolvedValueOnce('No hay stock suficiente.')
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  if (tipo === 'incidencia') fireEvent.change(screen.getByLabelText('Descripción de la incidencia'), { target: { value: 'Filtro detenido' } })
+  else {
+    fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+    fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+    fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Bidón dañado' } })
+  }
+  fireEvent.click(screen.getByRole('button', { name: tipo === 'incidencia' ? 'Registrar incidencia' : 'Registrar merma' }))
+  expect((await screen.findAllByRole('alert'))[0]).toHaveTextContent('No hay stock suficiente.')
+  expect(screen.getByLabelText(tipo === 'incidencia' ? 'Descripción de la incidencia' : 'Motivo')).toHaveValue(tipo === 'incidencia' ? 'Filtro detenido' : 'Bidón dañado')
+  fireEvent.click(screen.getByRole('button', { name: 'Cerrar notificación' }))
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
+it('FX R2-03 · el Toast se cierra automáticamente y la validación persiste', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  fireEvent.change(await screen.findByLabelText('Descripción de la incidencia'), { target: { value: 'Filtro detenido' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar incidencia' }))
+  await screen.findByText('Incidencia registrada. Las existencias se mantienen.')
+  vi.useFakeTimers()
+  try {
+    // Reabrir una notificación crea el temporizador del hook con el reloj simulado.
+    fireEvent.change(screen.getByLabelText('Descripción de la incidencia'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar incidencia' }))
+    expect(screen.getByText('Describe la incidencia en un máximo de 1000 caracteres.')).toBeVisible()
+    act(() => vi.advanceTimersByTime(4000))
+    expect(screen.getByText('Describe la incidencia en un máximo de 1000 caracteres.')).toBeVisible()
+    expect(screen.getByLabelText('Descripción de la incidencia')).toHaveAttribute('aria-invalid', 'true')
+  } finally { vi.useRealTimers() }
+})
+
+it('conserva el formulario al consultar otra sección y limpia la notificación anterior', async () => {
+  const { rerender } = renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '12' } })
+  fireEvent.change(screen.getByLabelText('Observaciones (opcional)'), { target: { value: 'Turno de mañana' } })
+  // Sin producto: validación pública, sin enviar una escritura.
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar producción' }))
+  await waitFor(() => expect(screen.getByLabelText('Producto')).toHaveAttribute('aria-invalid', 'true'))
+  location.pathname = '/produccion/historial'
+  rerender(<Produccion />)
+  await screen.findByText('Historial de producción')
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  location.pathname = '/produccion/registrar'
+  rerender(<Produccion />)
+  expect(await screen.findByLabelText('Cantidad')).toHaveValue('12')
+  expect(screen.getByLabelText('Observaciones (opcional)')).toHaveValue('Turno de mañana')
+})
+
+
+it('FX R2-01 · conserva el nodo de lista durante actualización pendiente', async () => {
+  vi.mocked(api.obtenerIncidencias).mockResolvedValueOnce([{ id: 'i1', sucursal_id: 'suc-1', produccion_id: null, descripcion: 'Turno visible', creado_por: 'u1', creado_en: '2026-10-13T12:00:00Z' }])
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  const fila = await screen.findByText('Turno visible')
+  vi.mocked(api.obtenerIncidencias).mockReturnValueOnce(new Promise(() => {}))
+  fireEvent.click(screen.getByRole('button', { name: /Actualizar/ }))
+  await waitFor(() => expect(api.obtenerIncidencias).toHaveBeenCalledTimes(2))
+  expect(screen.getByText('Turno visible')).toBe(fila)
+  expect(screen.getByText('Actualizando...')).toBeInTheDocument()
+})
+
+it.each([
+  ['registrar', 'Registrar producción', 'Producto'],
+  ['incidencias', 'Registrar incidencia', 'Descripción de la incidencia'],
+  ['incidencias', 'Registrar merma', 'Producto'],
+])('FX2 R4-11 · validación de %s persiste en campo sin Toast', async (seccion, boton, campo) => {
+  location.pathname = `/produccion/${seccion}`
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.click(screen.getByRole('button', { name: boton }))
+  expect(screen.getByLabelText(campo)).toHaveAttribute('aria-invalid', 'true')
+  const id = screen.getByLabelText(campo).getAttribute('aria-describedby')!
+  const texto = document.getElementById(id)!.textContent!
+  expect(texto).toMatch(/\S/)
+  expect(screen.getAllByText(texto)).toHaveLength(1)
+  expect(document.getElementById(id)).toHaveAttribute('role', 'alert')
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+  expect(document.getElementById(id)).toBeVisible()
+})
+
+it('FX R2-06 · administrador inicia en su sucursal asignada', async () => {
+  renderWithProviders(<Produccion />, { perfil: makePerfil({ rol: 'administrador', sucursal_id: 's1' }) })
+  await screen.findByRole('option', { name: 'Norte' })
+  expect(screen.getByLabelText('Sucursal')).toHaveValue('s1')
+  expect(api.obtenerProducciones).toHaveBeenCalledWith('s1')
+})
+
+
+it('FX R2-03 · cantidad y motivo mantienen errores asociados hasta editar el campo', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  expect(screen.getByLabelText('Cantidad')).toHaveAccessibleDescription(/La cantidad debe ser un número entero mayor que cero/)
+  expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-invalid', 'true')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  expect(screen.getByLabelText('Cantidad')).not.toHaveAttribute('aria-invalid', 'true')
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  expect(screen.getByLabelText('Motivo')).toHaveAccessibleDescription(/Indica el motivo/)
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+  expect(screen.getByText(/Indica el motivo/)).toBeVisible()
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Pérdida de producto' } })
+  expect(screen.queryByText(/Indica el motivo/)).not.toBeInTheDocument()
+  expect(api.registrarMerma).not.toHaveBeenCalled()
+})
+
+
+it.each([
+  ['Registrar incidencia', 'Descripción de la incidencia'],
+  ['Registrar merma', 'Producto'],
+])('FX2 R4-11 · %s enfoca el campo inválido sin repetir la validación en Toast', async (boton, nombre) => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  const campo = screen.getByLabelText(nombre)
+  screen.getByRole('button', { name: boton }).focus()
+  fireEvent.click(screen.getByRole('button', { name: boton }))
+  await waitFor(() => expect(campo).toHaveAttribute('aria-invalid', 'true'))
+  expect(document.getElementById(campo.getAttribute('aria-describedby')!)).toBeVisible()
+  expect(campo).toHaveFocus()
+  expect(campo).toHaveAttribute('aria-invalid','true')
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+})
+
+it('P2 · incidencias y mermas vacías ocultan los botones de paginación', async () => {
+  location.pathname = '/produccion/incidencias'
+  vi.mocked(api.obtenerIncidencias).mockResolvedValue([])
+  vi.mocked(api.obtenerMermas).mockResolvedValue([])
+  renderWithProviders(<Produccion />)
+  await screen.findByText('No hay incidencias registradas.')
+  await screen.findByText('No hay mermas registradas.')
+  for (const name of ['Paginación de incidencias', 'Paginación de mermas']) {
+    const nav = screen.getByRole('navigation', { name })
+    expect(nav).toHaveTextContent('0 registros')
+    expect(within(nav).queryAllByRole('button')).toHaveLength(0)
+  }
+})
+
+
+it('C3-12 · merma muestra stock y valida en vivo sin recortar el borrador', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  expect(await screen.findByText('Disponible: 8')).toBeInTheDocument()
+  const cantidad = screen.getByLabelText('Cantidad')
+  fireEvent.change(cantidad, { target: { value: '9' } })
+  expect(cantidad).toHaveValue('9')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription(/Excede el stock en bodega: disponibles 8/)
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Rotura' } })
+  fireEvent.submit(screen.getByRole('button', { name: 'Registrar merma' }).closest('form')!)
+  expect(api.registrarMerma).not.toHaveBeenCalled()
+  fireEvent.change(cantidad, { target: { value: '8' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(screen.queryByText(/Excede el stock/)).not.toBeInTheDocument()
+})
+
+it('C3-09 · tabs móviles enlazan paneles, mantienen borradores y admiten teclado', async () => {
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })))
+  try {
+    location.pathname = '/produccion/incidencias'
+    renderWithProviders(<Produccion />)
+    const tabs = screen.getByRole('tablist', { name: 'Tipo de registro' })
+    const incidencias = within(tabs).getByRole('tab', { name: 'Incidencias' })
+    const mermas = within(tabs).getByRole('tab', { name: 'Mermas' })
+    fireEvent.change(await screen.findByLabelText('Descripción de la incidencia'), { target: { value: 'Borrador' } })
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Incidencias')
+    fireEvent.keyDown(incidencias, { key: 'ArrowRight' })
+    expect(mermas).toHaveFocus()
+    expect(mermas).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tabpanel')).toHaveAccessibleName('Mermas')
+    expect(screen.queryByRole('button', { name: 'Registrar incidencia' })).not.toBeInTheDocument()
+    fireEvent.keyDown(mermas, { key: 'Home' })
+    expect(screen.getByLabelText('Descripción de la incidencia')).toHaveValue('Borrador')
+  } finally { vi.unstubAllGlobals() }
+})
+
+it('C3-12 · actualiza el límite de merma con el stock y trata un producto sin saldo como cero', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  await screen.findByText('Disponible: 8')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '5' } })
+  vi.mocked(api.obtenerStockBodega).mockResolvedValueOnce([{ producto_id: 'p1', cantidad: 3 } as never])
+  fireEvent.click(screen.getByRole('button', { name: 'Actualizar lista' }))
+  await screen.findByText('Disponible: 3')
+  expect(screen.getByLabelText('Cantidad')).toHaveAccessibleDescription(/Excede el stock en bodega: disponibles 3/)
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('5')
+  vi.mocked(api.obtenerStockBodega).mockResolvedValueOnce([])
+  fireEvent.click(screen.getByRole('button', { name: 'Actualizar lista' }))
+  await screen.findByText('Disponible: 0')
+  expect(screen.getByLabelText('Cantidad')).toHaveAttribute('aria-invalid', 'true')
+})
+
+it('C3-12 · fallo de stock no muestra cero ni permite escribir y su reintento conserva el borrador', async () => {
+  location.pathname = '/produccion/incidencias'
+  vi.mocked(api.obtenerStockBodega).mockRejectedValueOnce(new Error('offline'))
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Rotura' } })
+  expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible verificar el stock de bodega')
+  expect(screen.getByText('Disponible: —')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Registrar merma' })).toBeDisabled()
+  expect(api.registrarMerma).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await screen.findByText('Disponible: 8')
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('2')
+  expect(screen.getByLabelText('Motivo')).toHaveValue('Rotura')
+})
+
+it.each([
+  ['registrar', 'Registrar producción', 'Producto'],
+  ['registrar', 'Registrar producción', 'Cantidad'],
+  ['incidencias', 'Registrar incidencia', 'Descripción de la incidencia'],
+  ['incidencias', 'Registrar merma', 'Producto'],
+  ['incidencias', 'Registrar merma', 'Cantidad'],
+  ['incidencias', 'Registrar merma', 'Motivo'],
+])('R2-13 · %s: «%s» vincula label, aria-invalid y un único mensaje en «%s»', async (seccion, boton, etiqueta) => {
+  location.pathname = `/produccion/${seccion}`
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  if (etiqueta === 'Cantidad') fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  if (etiqueta === 'Motivo') {
+    fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+    fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  }
+  fireEvent.click(screen.getByRole('button', { name: boton }))
+  const control = screen.getByLabelText(etiqueta)
+  expect(document.querySelector(`label[for="${control.id}"]`)).toHaveTextContent(etiqueta)
+  expect(control).toHaveAttribute('aria-invalid', 'true')
+  const ids = control.getAttribute('aria-describedby')!.split(' ')
+  const mensajes = ids.map(id => document.getElementById(id)!).filter(el => el.id.endsWith('-error'))
+  expect(mensajes).toHaveLength(1)
+  expect(mensajes[0]).toHaveTextContent(/\S/)
+  expect(mensajes[0]).toHaveAttribute('role', 'alert')
+  expect(screen.getAllByText(mensajes[0].textContent!)).toHaveLength(1)
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+})
+
+it('R2-13 · la cantidad de merma enlaza el error y la ayuda «Disponible»', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  await screen.findByText('Disponible: 8')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '9' } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad.getAttribute('aria-describedby')!.split(' ')).toContain('disponible-merma')
+  expect(cantidad).toHaveAccessibleDescription(/Disponible: 8/)
+  expect(cantidad).toHaveAccessibleDescription(/Excede el stock en bodega/)
+  expect(screen.getAllByText(/Excede el stock en bodega/)).toHaveLength(1)
+})
+
+it('F2 V2-01 · Enter con el foco en Cantidad anuncia el error de envío como alert', async () => {
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  cantidad.focus()
+  const formulario = cantidad.closest('form')!
+  fireEvent.submit(formulario)
+  const mensaje = document.getElementById(`${cantidad.id}-error`)!
+  expect(cantidad).toHaveFocus()
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(mensaje).toHaveAttribute('role', 'alert')
+  expect(screen.getAllByText(mensaje.textContent!)).toHaveLength(1)
+  expect(cantidad.getAttribute('aria-describedby')!.split(' ')).toContain(mensaje.id)
+})
+
+it('F2 V2-01 · el error en vivo de stock no usa alert y al enviar sí', async () => {
+  location.pathname = '/produccion/incidencias'
+  renderWithProviders(<Produccion />)
+  await screen.findAllByRole('option', { name: 'Agua' })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: 'p1' } })
+  await screen.findByText('Disponible: 8')
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '9' } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  const mensaje = screen.getByText(/Excede el stock en bodega/)
+  expect(mensaje).not.toHaveAttribute('role', 'alert')
+  fireEvent.change(screen.getByLabelText('Motivo'), { target: { value: 'Rotura' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar merma' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent(/Excede el stock en bodega/)
+  expect(cantidad).toHaveFocus()
+  expect(api.registrarMerma).not.toHaveBeenCalled()
 })

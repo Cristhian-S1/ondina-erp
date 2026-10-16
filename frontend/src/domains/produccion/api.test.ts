@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   obtenerEnvasesDisponibles,
+  obtenerStockBodega,
   obtenerHistorialProduccion,
   obtenerMermas,
   obtenerIndicadoresProduccion,
@@ -21,6 +22,7 @@ const queryMock = {
   eq: vi.fn(),
   order: vi.fn(),
   limit: vi.fn(),
+  range: vi.fn(),
   returns: returnsMock,
   insert: insertMock,
   gte: gteMock,
@@ -34,6 +36,8 @@ vi.mock('../../lib/supabase', () => ({
     from: vi.fn(() => queryMock),
   },
 }))
+
+beforeEach(() => { queryMock.range.mockReturnValue(queryMock) })
 
 describe('obtenerProducciones', () => {
   beforeEach(() => {
@@ -308,15 +312,15 @@ describe('obtenerHistorialProduccion', () => {
 
     expect(gteMock).toHaveBeenCalledWith(
       'creado_en',
-      '2026-08-01T00:00:00',
+      '2026-08-01T04:00:00.000Z',
     )
 
     expect(lteMock).toHaveBeenCalledWith(
       'creado_en',
-      '2026-08-12T23:59:59.999',
+      '2026-08-13T03:59:59.999Z',
     )
 
-    expect(queryMock.limit).toHaveBeenCalledWith(100)
+    expect(queryMock.range).toHaveBeenCalledWith(0, 99)
   })
 
   it('usa el límite por defecto cuando no se especifica uno', async () => {
@@ -329,7 +333,7 @@ describe('obtenerHistorialProduccion', () => {
       sucursalId: 'sucursal-1',
     })
 
-    expect(queryMock.limit).toHaveBeenCalledWith(200)
+    expect(queryMock.range).toHaveBeenCalledWith(0, 199)
   })
 
   it('lanza un error cuando falla la consulta del historial', async () => {
@@ -510,5 +514,54 @@ describe('obtenerEnvasesDisponibles', () => {
     await expect(
       obtenerEnvasesDisponibles('sucursal-1', []),
     ).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
+  })
+})
+it('A1-07 · inicia stock de envases sin esperar el catálogo de empaques', async () => {
+  queryMock.select.mockReturnValue(queryMock)
+  queryMock.eq.mockReturnValue(queryMock)
+  returnsMock.mockResolvedValue({ data: [{ tipo_empaque_id: 'e1', cantidad: 12, modificado_en: '2026-10-13' }], error: null })
+  returnsMock.mockClear()
+  let resolve!: (value: import('../../types').TipoEmpaque[]) => void
+  const empaques = new Promise<import('../../types').TipoEmpaque[]>(r => { resolve = r })
+  const consulta = obtenerEnvasesDisponibles('s1', empaques)
+  expect(returnsMock).toHaveBeenCalledOnce()
+  resolve([{ id: 'e1', nombre: 'Bidón', categoria: 'retornable', activo: true }])
+  expect(await consulta).toEqual([{ tipo_empaque_id: 'e1', nombre: 'Bidón', cantidad: 12, modificado_en: '2026-10-13' }])
+})
+
+
+it.each([
+  ['2026-10-12', '2026-10-12T03:00:00.000Z', '2026-10-13T02:59:59.999Z'],
+  ['2026-04-04', '2026-04-04T03:00:00.000Z', '2026-04-05T03:59:59.999Z'],
+  ['2026-09-06', '2026-09-06T04:00:00.000Z', '2026-09-07T02:59:59.999Z'],
+])('FX R2-02 · filtra la jornada Santiago %s con sus límites DST', async (fecha, inicio, fin) => {
+  gteMock.mockReturnValue(queryMock)
+  lteMock.mockReturnValue(queryMock)
+  returnsMock.mockResolvedValue({ data: [], error: null })
+  await obtenerHistorialProduccion({ sucursalId: 's1', desde: fecha, hasta: fecha })
+  expect(gteMock).toHaveBeenLastCalledWith('creado_en', inicio)
+  expect(lteMock).toHaveBeenLastCalledWith('creado_en', fin)
+  if (fecha === '2026-10-12') {
+    const registro = Date.parse('2026-10-13T01:00:00Z')
+    expect(registro).toBeGreaterThanOrEqual(Date.parse(inicio))
+    expect(registro).toBeLessThanOrEqual(Date.parse(fin))
+  }
+})
+
+describe('FX5 R5-03 · lectura de stock propia de Producción', () => {
+  beforeEach(() => { vi.clearAllMocks(); queryMock.select.mockReturnValue(queryMock); queryMock.eq.mockReturnValue(queryMock) })
+  it('lee el stock de la sucursal solicitada', async () => {
+    const stock = [{ sucursal_id: 's1', producto_id: 'p1', cantidad: 15, modificado_en: '2026-10-15T00:00:00Z' }]
+    returnsMock.mockResolvedValue({ data: stock, error: null })
+    expect(await obtenerStockBodega('s1')).toEqual(stock)
+    expect(queryMock.eq).toHaveBeenCalledWith('sucursal_id', 's1')
+  })
+  it('no consulta sin sucursal', async () => {
+    expect(await obtenerStockBodega('')).toEqual([])
+    expect(returnsMock).not.toHaveBeenCalled()
+  })
+  it('no convierte un error de lectura en stock vacío', async () => {
+    returnsMock.mockResolvedValue({ data: null, error: { message: 'Database unavailable' } })
+    await expect(obtenerStockBodega('s1')).rejects.toThrow('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })

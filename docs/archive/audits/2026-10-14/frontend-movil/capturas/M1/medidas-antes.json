@@ -1,0 +1,202 @@
+[
+ {
+  "nombre": "registrar-venta",
+  "w": 412,
+  "h": 915,
+  "scrollWidth": 412,
+  "inner": 412,
+  "chicos": []
+ },
+ {
+  "nombre": "registrar-venta",
+  "w": 375,
+  "h": 812,
+  "scrollWidth": 375,
+  "inner": 375,
+  "chicos": []
+ },
+ {
+  "nombre": "registrar-venta",
+  "w": 768,
+  "h": 1024,
+  "scrollWidth": 768,
+  "inner": 768,
+  "chicos": []
+ },
+ {
+  "nombre": "registrar-venta",
+  "w": 1024,
+  "h": 1366,
+  "scrollWidth": 1024,
+  "inner": 1024,
+  "chicos": []
+ },
+ {
+  "nombre": "registrar-venta",
+  "w": 1280,
+  "h": 800,
+  "scrollWidth": 1280,
+  "inner": 1280,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-registrar",
+  "w": 412,
+  "h": 915,
+  "scrollWidth": 412,
+  "inner": 412,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-registrar",
+  "w": 375,
+  "h": 812,
+  "scrollWidth": 375,
+  "inner": 375,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-registrar",
+  "w": 768,
+  "h": 1024,
+  "scrollWidth": 768,
+  "inner": 768,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-registrar",
+  "w": 1024,
+  "h": 1366,
+  "scrollWidth": 1024,
+  "inner": 1024,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-registrar",
+  "w": 1280,
+  "h": 800,
+  "scrollWidth": 1280,
+  "inner": 1280,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-historial",
+  "w": 412,
+  "h": 915,
+  "scrollWidth": 412,
+  "inner": 412,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-historial",
+  "w": 375,
+  "h": 812,
+  "scrollWidth": 375,
+  "inner": 375,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-historial",
+  "w": 768,
+  "h": 1024,
+  "scrollWidth": 768,
+  "inner": 768,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-historial",
+  "w": 1024,
+  "h": 1366,
+  "scrollWidth": 1024,
+  "inner": 1024,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-historial",
+  "w": 1280,
+  "h": 800,
+  "scrollWidth": 1280,
+  "inner": 1280,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-indicadores",
+  "w": 412,
+  "h": 915,
+  "scrollWidth": 412,
+  "inner": 412,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-indicadores",
+  "w": 375,
+  "h": 812,
+  "scrollWidth": 375,
+  "inner": 375,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-indicadores",
+  "w": 768,
+  "h": 1024,
+  "scrollWidth": 768,
+  "inner": 768,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-indicadores",
+  "w": 1024,
+  "h": 1366,
+  "scrollWidth": 1024,
+  "inner": 1024,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-indicadores",
+  "w": 1280,
+  "h": 800,
+  "scrollWidth": 1280,
+  "inner": 1280,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-incidencias",
+  "w": 412,
+  "h": 915,
+  "scrollWidth": 412,
+  "inner": 412,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-incidencias",
+  "w": 375,
+  "h": 812,
+  "scrollWidth": 375,
+  "inner": 375,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-incidencias",
+  "w": 768,
+  "h": 1024,
+  "scrollWidth": 768,
+  "inner": 768,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-incidencias",
+  "w": 1024,
+  "h": 1366,
+  "scrollWidth": 1024,
+  "inner": 1024,
+  "chicos": []
+ },
+ {
+  "nombre": "produccion-incidencias",
+  "w": 1280,
+  "h": 800,
+  "scrollWidth": 1280,
+  "inner": 1280,
+  "chicos": []
+ }
+]

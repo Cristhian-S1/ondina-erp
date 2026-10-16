@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import Despachos from './Despachos'
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthContext } from '@/context/auth-context'
 
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('@/lib/catalog', async (importOriginal) => {
@@ -19,6 +21,8 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
     ...actual,
     obtenerVendedores: vi.fn(),
     obtenerDespachos: vi.fn(),
+    obtenerPaginaDespachos: vi.fn(),
+    obtenerDespacho: vi.fn(),
     obtenerDetallesDespacho: vi.fn(),
     obtenerEnvasesDespacho: vi.fn(),
     obtenerDevolucionesProducto: vi.fn(),
@@ -122,6 +126,14 @@ const detalle: DespachoDetalle = {
 }
 
 beforeEach(() => {
+  vi.mocked(api.obtenerPaginaDespachos).mockImplementation(async (sucursalId, opciones) => {
+    const filas = (await api.obtenerDespachos(sucursalId)).filter(d =>
+      (!opciones.vendedorId || d.vendedor_id === opciones.vendedorId) &&
+      (!opciones.desde || d.creado_en >= opciones.desde) && (!opciones.hasta || d.creado_en < opciones.hasta))
+    return { filas, total: filas.length }
+  })
+  vi.mocked(api.obtenerDespacho).mockImplementation(async (_sucursalId, id) => [{ ...makeDespachoHoy(), id }])
+
   // Reloj fijo: el filtro "Hoy" y los fixtures no deben depender de la medianoche local (TEST-02)
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-10-13T12:00:00'))
@@ -141,15 +153,26 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  focusManager.setFocused(undefined)
   vi.useRealTimers()
   vi.clearAllMocks()
+})
+
+it('C3-05 · muestra un avatar neutro y el ID del vendedor ausente del catálogo', async () => {
+  vi.mocked(api.obtenerVendedores).mockResolvedValue([])
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([{ ...makeDespachoHoy(), vendedor_id: 'inactive-123456' }])
+  renderWithProviders(<Despachos />)
+  const fila = await screen.findByRole('button', { name: /Vendedor no disponible/ })
+  expect(fila).toHaveTextContent('inactive')
+  expect(within(fila).queryByText('VN')).not.toBeInTheDocument()
+  expect(within(fila).getByText('?')).toHaveAttribute('aria-hidden', 'true')
 })
 
 describe('HU-13 · Despachos', () => {
   it('muestra el estado vacío cuando no hay despachos para la sucursal', async () => {
     renderWithProviders(<Despachos />)
     await waitFor(() => {
-      expect(screen.getByText(/Aún no hay despachos para esta sucursal/i)).toBeInTheDocument()
+      expect(screen.getByText(/No hay despachos para el día y vendedor seleccionados/i)).toBeInTheDocument()
     })
   })
 
@@ -168,12 +191,13 @@ describe('HU-13 · Nuevo despacho', () => {
   async function abrirModal() {
     renderWithProviders(<Despachos />)
     await waitFor(() => {
-      expect(screen.getByText(/Aún no hay despachos para esta sucursal/i)).toBeInTheDocument()
+      expect(screen.getByText(/No hay despachos para el día y vendedor seleccionados/i)).toBeInTheDocument()
     })
     fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
   }
 
   it('no permite elegir el mismo producto en dos filas', async () => {
+    vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
     await abrirModal()
     const selectsIniciales = screen.getAllByLabelText(/Producto/)
     fireEvent.change(selectsIniciales[0], { target: { value: producto.id } })
@@ -252,21 +276,33 @@ it('FE-05 · muestra errores de lectura y permite reintentar sin un falso estado
 })
 
 
-it('FE-05 · conserva el formulario de despacho tras un error de lectura y su reintento', async () => {
+it('B1 · limpia el borrador de despacho al cambiar de sucursal', async () => {
   vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal, { ...sucursal, id: 'suc-2', nombre: 'Sur' }])
   renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
   fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
   fireEvent.change(screen.getByLabelText('Producto'), { target: { value: producto.id } })
   fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
-  vi.mocked(api.obtenerDespachos).mockRejectedValue(new Error('Fallo de consulta'))
   fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-2' } })
-  await screen.findByRole('alert')
-  vi.mocked(api.obtenerDespachos).mockResolvedValue([])
-  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
-  expect(await screen.findByLabelText('Cantidad')).toHaveValue('7')
-  expect(screen.getByRole('combobox', { name: /Producto/ })).toHaveValue(producto.id)
-  expect(screen.getByLabelText('Sucursal')).toHaveValue('suc-2')
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('')
+  expect(screen.getByLabelText('Producto')).toHaveValue('')
+  expect(screen.getByLabelText('Vendedor')).toHaveValue('')
 })
+
+it('B1 · conserva el nodo y foco de la segunda línea al quitar la primera', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.click(screen.getByRole('button', { name: '+ Agregar producto' }))
+  const segundaCantidad = screen.getAllByLabelText('Cantidad')[1]
+  fireEvent.change(segundaCantidad, { target: { value: '8' } })
+  segundaCantidad.focus()
+  fireEvent.click(screen.getAllByRole('button', { name: 'Quitar' })[0])
+  expect(screen.getByLabelText('Cantidad')).toBe(segundaCantidad)
+  expect(segundaCantidad).toHaveFocus()
+  expect(segundaCantidad).toHaveValue('8')
+})
+
 
 it('B3 · keeps dispatch key after failure and renews it after success', async () => {
   vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
@@ -300,4 +336,404 @@ describe('Accesibilidad · filtros de Despachos', () => {
     expect(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).toHaveValue('')
     expect(screen.getByRole('button', { name: 'Hoy' })).toHaveClass('min-h-11')
   })
+})
+
+
+describe('B1 · aislamiento de sucursal y estados', () => {
+  it.each(['éxito', 'error'])('A→B→A descarta la respuesta B tardía de %s', async (resultado) => {
+    let resolver!: (data: Despacho[]) => void
+    let rechazar!: (error: Error) => void
+    const pendienteB = new Promise<Despacho[]>((res, rej) => { resolver = res; rechazar = rej })
+    vi.mocked(catalog.obtenerSucursales).mockResolvedValue([sucursal, { ...sucursal, id: 'suc-2', nombre: 'Sur' }])
+    vi.mocked(api.obtenerDespachos).mockImplementation((id) => id === 'suc-2' ? pendienteB : Promise.resolve([makeDespachoHoy()]))
+    vi.mocked(api.obtenerVendedores).mockImplementation((id) => Promise.resolve([{ ...vendedor, nombres: id === 'suc-2' ? 'Bruno' : 'Ana' }]))
+    renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+    await screen.findByRole('button', { name: /Ana López/ })
+    fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-2' } })
+    expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+    fireEvent.change(screen.getByLabelText('Sucursal'), { target: { value: 'suc-1' } })
+    await screen.findByRole('button', { name: /Ana López/ })
+    await act(async () => {
+      if (resultado === 'éxito') resolver([{ ...makeDespachoHoy(), id: 'despacho-b', sucursal_id: 'suc-2' }])
+      else rechazar(new Error('Fallo B tardío'))
+    })
+    expect(screen.getByLabelText('Sucursal')).toHaveValue('suc-1')
+    expect(screen.getByRole('button', { name: /Ana López/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Bruno/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('anuncia carga y vacío sin presentarlos como un error', async () => {
+    renderWithProviders(<Despachos />)
+    expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+    const vacio = await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
+    expect(vacio.closest('[role="status"]')).not.toBeNull()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('identifica un despacho cuyo vendedor ya no está disponible', async () => {
+    vi.mocked(api.obtenerVendedores).mockResolvedValue([])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([{ ...makeDespachoHoy(), id: 'abc12345-despacho' }])
+    renderWithProviders(<Despachos />)
+    const fila = await screen.findByRole('button', { name: /Vendedor no disponible/ })
+    expect(fila).toHaveTextContent('abc12345')
+    expect(fila).toHaveTextContent(/\d{2}:\d{2}/)
+    expect(screen.queryByText('Desconocido')).not.toBeInTheDocument()
+  })
+
+  it('Hoy cambia al reanudar después de medianoche en Santiago', async () => {
+    vi.setSystemTime(new Date('2026-10-14T02:59:59Z'))
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+    renderWithProviders(<Despachos />)
+    await screen.findByRole('button', { name: /Ana López/ })
+    await act(async () => {
+      vi.setSystemTime(new Date('2026-10-14T03:00:01Z'))
+      fireEvent.focus(window)
+    })
+    expect(await screen.findByText(/No hay despachos para el día|No hay despachos para el día/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+  })
+})
+
+
+it('B1 · descarta lectura y borrador de la identidad anterior', async () => {
+  vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+  let resolver!: (data: Despacho[]) => void
+  const pendiente = new Promise<Despacho[]>((res) => { resolver = res })
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  const contenido = (id: string) => (
+    <AuthContext.Provider value={{ perfil: makePerfil({ id, rol: 'administrador' }), loading: false, signIn: async () => {}, signOut: async () => {} }}>
+      <Despachos />
+    </AuthContext.Provider>
+  )
+  const { rerender } = renderWithProviders(contenido('primera'))
+  await screen.findByRole('button', { name: /Ana López/ })
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
+  vi.mocked(api.obtenerDespachos).mockReturnValueOnce(pendiente).mockResolvedValue([])
+  vi.setSystemTime(new Date(Date.now() + 31000))
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await waitFor(() => expect(api.obtenerDespachos).toHaveBeenCalledTimes(2))
+  rerender(contenido('segunda'))
+  await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
+  await act(async () => { resolver([makeDespachoHoy()]) })
+  expect(screen.queryByRole('button', { name: /Ana López/ })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('')
+})
+
+
+it('B1 · conserva el borrador al reintentar una lectura de la misma sucursal', async () => {
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: producto.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
+  vi.mocked(api.obtenerDespachos).mockRejectedValueOnce(new Error('Lectura fallida')).mockResolvedValue([])
+  vi.setSystemTime(new Date(Date.now() + 31000))
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await screen.findByRole('alert')
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByLabelText('Cantidad')).toHaveValue('7')
+  expect(screen.getByRole('combobox', { name: /Producto/ })).toHaveValue(producto.id)
+})
+
+
+it('FX R1-01/03 · muestra validación y etiquetas visibles dentro del diálogo', async () => {
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  const dialogo = screen.getByRole('dialog')
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  expect(within(dialogo).getByRole('alert')).toHaveTextContent('Selecciona un vendedor')
+  expect(within(dialogo).getByText('Producto')).not.toHaveClass('sr-only')
+  expect(within(dialogo).getByText('Cantidad')).not.toHaveClass('sr-only')
+})
+
+it('FX R1-02 · conserva lista, modal y borrador durante un refetch fallido', async () => {
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+  renderWithProviders(<Despachos />)
+  await screen.findByRole('button', { name: /Ana López/ })
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '7' } })
+  vi.mocked(api.obtenerDespachos).mockRejectedValueOnce(new Error('Sin red'))
+  vi.setSystemTime(new Date(Date.now() + 31000))
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await screen.findByText(/No fue posible actualizar/)
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('7')
+  expect(document.querySelector('li button')).toHaveTextContent('Ana López')
+  expect(within(screen.getByRole('dialog')).getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
+})
+
+it('FX R1-05/06 · bloquea sucursal durante RPC y conserva clave al reintentar', async () => {
+  let resolver!: (value: { error: string | null }) => void
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(api.crearDespacho).mockReturnValueOnce(new Promise(r => { resolver = r })).mockResolvedValue({ error: null })
+  renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: hielo.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  expect(screen.getByLabelText('Sucursal')).toBeDisabled()
+  await act(async () => resolver({ error: 'No fue posible completar la operación. Inténtalo de nuevo.' }))
+  expect(screen.getByLabelText('Sucursal')).not.toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  await waitFor(() => expect(api.crearDespacho).toHaveBeenCalledTimes(2))
+  expect(vi.mocked(api.crearDespacho).mock.calls[1][0].idempotency_key).toBe(vi.mocked(api.crearDespacho).mock.calls[0][0].idempotency_key)
+})
+
+it('FX R1-07 · bodega asignada funciona sin catálogo de sucursales', async () => {
+  vi.mocked(catalog.obtenerSucursales).mockRejectedValue(new Error('Sin catálogo'))
+  renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'bodega' }) })
+  expect(await screen.findByRole('button', { name: 'Nuevo despacho' })).toBeInTheDocument()
+  expect(catalog.obtenerSucursales).not.toHaveBeenCalled()
+})
+
+
+it('FX R1-02 · fallo del catálogo de sucursales no desmonta un ámbito ya cargado', async () => {
+  renderWithProviders(<Despachos />, { perfil: makePerfil({ rol: 'administrador' }) })
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '4' } })
+  vi.mocked(catalog.obtenerSucursales).mockRejectedValueOnce(new Error('Catálogo sin red'))
+  vi.setSystemTime(new Date(Date.now() + 31000))
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  await waitFor(() => expect(catalog.obtenerSucursales).toHaveBeenCalledTimes(2))
+  await waitFor(() => expect(document.querySelector('[role="alert"]')).toHaveTextContent('No fue posible actualizar las sucursales'))
+  expect(screen.getByLabelText('Cantidad')).toHaveValue('4')
+})
+
+it('FX R1-04 · volver a enfocar dentro de treinta segundos reutiliza los datos', async () => {
+  renderWithProviders(<Despachos />)
+  await screen.findByRole('button', { name: 'Nuevo despacho' })
+  await act(async () => { focusManager.setFocused(false); focusManager.setFocused(true) })
+  expect(api.obtenerDespachos).toHaveBeenCalledTimes(1)
+})
+
+
+it('FX2 R4-07 · error enfoca y describe el vendedor; éxito anuncia el despacho', async () => {
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(api.crearDespacho).mockResolvedValue({ error: null })
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  expect(screen.getByLabelText('Vendedor')).toHaveFocus()
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  const campo = screen.getByLabelText('Vendedor')
+  await waitFor(() => expect(campo).toHaveFocus())
+  expect(campo).toHaveAttribute('aria-invalid','true')
+  expect(document.getElementById(campo.getAttribute('aria-describedby')!)).toHaveAttribute('role','alert')
+  fireEvent.change(campo, { target: { value: vendedor.id } })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: hielo.id } })
+  fireEvent.change(screen.getByLabelText('Cantidad'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar despacho' }))
+  expect(await screen.findByText('Despacho registrado.')).toBeVisible()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+async function abrirDespachoF2() {
+  renderWithProviders(<Despachos />)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  return screen.getByRole('dialog', { name: 'Nuevo despacho' })
+}
+
+it('F2 · alinea arriba los controles y deja la disponibilidad fuera de la etiqueta', async () => {
+  const dialogo = await abrirDespachoF2()
+  const productoInput = within(dialogo).getByLabelText('Producto')
+  fireEvent.change(productoInput, { target: { value: producto.id } })
+  const cantidad = within(dialogo).getByLabelText('Cantidad')
+  const fila = cantidad.closest('.grid')!
+  expect(fila).toHaveClass('items-start')
+  expect(fila).not.toHaveClass('items-end')
+  expect(fila).toContainElement(cantidad)
+  expect(within(dialogo).getByText(/En bodega/).closest('label')).toBeNull()
+  expect(productoInput).toHaveAccessibleName('Producto')
+})
+
+it.each([7, 10])('F2 · limita líneas a %i productos activos y enlaza el motivo', async (total) => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([
+    ...Array.from({ length: total }, (_, i) => ({ ...producto, id: `activo-${i}`, nombre: `Producto ${i}` })),
+    { ...producto, id: 'inactivo', nombre: 'Inactivo', activo: false },
+  ])
+  const dialogo = await abrirDespachoF2()
+  const agregar = within(dialogo).getByRole('button', { name: '+ Agregar producto' })
+  for (let i = 1; i < total; i++) fireEvent.click(agregar)
+  expect(within(dialogo).getAllByLabelText('Producto')).toHaveLength(total)
+  expect(agregar).toBeDisabled()
+  expect(agregar).toHaveAccessibleDescription(`Máximo ${total} productos por despacho: ya alcanzaste el número de productos activos del catálogo.`)
+  expect(within(dialogo).queryByRole('option', { name: /Inactivo/ })).not.toBeInTheDocument()
+  fireEvent.click(within(dialogo).getAllByRole('button', { name: 'Quitar' })[0])
+  expect(agregar).toBeEnabled()
+})
+
+it('F2 · cantidad y bandejas rechazan letras y muestran exceso de stock en tiempo real', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([bandeja])
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(api.obtenerStockEnvases).mockResolvedValue([stockBandeja])
+  const dialogo = await abrirDespachoF2()
+  fireEvent.change(within(dialogo).getByLabelText('Producto'), { target: { value: hielo.id } })
+  const cantidad = within(dialogo).getByLabelText('Cantidad')
+  expect(fireEvent.keyDown(cantidad, { key: 'a' })).toBe(false)
+  fireEvent.change(cantidad, { target: { value: '1000' } })
+  expect(cantidad).toHaveValue('1.000')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription(/Excede el stock en bodega.*100/)
+  fireEvent.change(cantidad, { target: { value: '100' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  fireEvent.click(within(dialogo).getAllByRole('button', { name: 'Aumentar', exact: true })[0])
+  expect(cantidad).toHaveValue('101')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  const bandejasInput = within(dialogo).getByLabelText('Bandejas')
+  expect(fireEvent.keyDown(bandejasInput, { key: 'e' })).toBe(false)
+  fireEvent.paste(bandejasInput, { clipboardData: { getData: () => '1.2a3' } })
+  expect(bandejasInput).toHaveAttribute('aria-invalid', 'true')
+  expect(bandejasInput).toHaveAccessibleDescription(/Excede el stock de bandejas.*40/)
+  fireEvent.change(bandejasInput, { target: { value: '40' } })
+  expect(bandejasInput).toHaveAttribute('aria-invalid', 'false')
+  expect(api.crearDespacho).not.toHaveBeenCalled()
+})
+
+it('M2 · cada producto del despacho es una tarjeta con encabezado, controles y Quitar de 44 px', async () => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
+  const dialogo = await abrirDespachoF2()
+  fireEvent.click(within(dialogo).getByRole('button', { name: '+ Agregar producto' }))
+  const tarjetas = within(dialogo).getAllByTestId('linea-despacho')
+  expect(tarjetas).toHaveLength(2)
+  expect(within(dialogo).getByText('2 líneas')).toBeInTheDocument()
+  fireEvent.change(within(tarjetas[0]).getByLabelText('Producto'), { target: { value: producto.id } })
+  expect(within(tarjetas[0]).getByText('Línea 1')).toBeInTheDocument()
+  expect(within(tarjetas[0]).getAllByText('Bidón POL').length).toBeGreaterThan(0)
+  expect(within(tarjetas[1]).getByText('Línea 2')).toBeInTheDocument()
+  expect(within(tarjetas[1]).getByText('Sin producto seleccionado')).toBeInTheDocument()
+  for (const tarjeta of tarjetas) {
+    expect(tarjeta).toHaveClass('border', 'rounded-xl')
+    expect(within(tarjeta).getByLabelText('Producto')).toBeInTheDocument()
+    expect(within(tarjeta).getByLabelText('Cantidad')).toBeInTheDocument()
+    expect(within(tarjeta).getByRole('button', { name: 'Quitar' })).toHaveClass('min-h-11')
+  }
+  // Un único árbol: sin controles duplicados para otra vista.
+  expect(within(dialogo).getAllByLabelText('Cantidad')).toHaveLength(2)
+})
+
+function comprobarCampoK1(campo: HTMLElement, mensaje: RegExp) {
+  const label = document.querySelector(`label[for="${campo.id}"]`)
+  expect(label).toBeInTheDocument()
+  expect(label).toBeVisible()
+  expect(campo).toHaveAttribute('aria-invalid', 'true')
+  const mensajes = campo.getAttribute('aria-describedby')!.split(' ').map(id => document.getElementById(id)!)
+  const error = mensajes.find(elemento => mensaje.test(elemento.textContent ?? ''))!
+  expect(error).toBeVisible()
+  expect(label?.parentElement).toContainElement(error)
+}
+
+it('K1 R2-13 · vendedor usa label htmlFor y error persistente bajo su control', async () => {
+  const dialogo = await abrirDespachoF2()
+  const campo = within(dialogo).getByLabelText('Vendedor')
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  comprobarCampoK1(campo, /Selecciona un vendedor/)
+  expect(campo).toHaveFocus()
+  fireEvent.change(campo, { target: { value: vendedor.id } })
+  expect(campo).toHaveAttribute('aria-invalid', 'false')
+  expect(campo).not.toHaveAttribute('aria-describedby')
+})
+
+it('K1 R2-13 · producto y cantidad asocian su error local y conservan IDs al corregir', async () => {
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  const dialogo = await abrirDespachoF2()
+  fireEvent.change(within(dialogo).getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  const productoCampo = within(dialogo).getByLabelText('Producto')
+  const cantidad = within(dialogo).getByLabelText('Cantidad')
+  const ids = [productoCampo.id, cantidad.id]
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  comprobarCampoK1(productoCampo, /Selecciona un producto/)
+  expect(productoCampo).toHaveFocus()
+  fireEvent.change(productoCampo, { target: { value: hielo.id } })
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  comprobarCampoK1(cantidad, /Ingresa una cantidad/)
+  expect(cantidad).toHaveFocus()
+  fireEvent.change(cantidad, { target: { value: '101' } })
+  comprobarCampoK1(cantidad, /Excede el stock en bodega/)
+  fireEvent.change(cantidad, { target: { value: '1' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(productoCampo).toHaveAttribute('aria-invalid', 'false')
+  expect([productoCampo.id, cantidad.id]).toEqual(ids)
+})
+
+it('K1 R2-13 · bandejas enlaza label, estado inválido y mensaje bajo el campo', async () => {
+  vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([bandeja])
+  vi.mocked(api.obtenerStockEnvases).mockResolvedValue([stockBandeja])
+  const dialogo = await abrirDespachoF2()
+  const campo = within(dialogo).getByLabelText('Bandejas')
+  fireEvent.change(campo, { target: { value: '41' } })
+  comprobarCampoK1(campo, /Excede el stock de bandejas/)
+  fireEvent.change(campo, { target: { value: '40' } })
+  expect(campo).toHaveAttribute('aria-invalid', 'false')
+  expect(campo).not.toHaveAttribute('aria-describedby')
+})
+
+it('K1 R2-13 · conserva un error visible cuando se envía después de quitar todas las líneas', async () => {
+  const dialogo = await abrirDespachoF2()
+  fireEvent.change(within(dialogo).getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Quitar' }))
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  expect(within(dialogo).getByRole('alert')).toHaveTextContent('Selecciona un vendedor y agrega al menos un producto.')
+  expect(api.crearDespacho).not.toHaveBeenCalled()
+})
+
+
+it.each([
+  ['vendedor', 'Vendedor', 'Selecciona un vendedor.'],
+  ['producto', 'Producto', 'Selecciona un producto.'],
+  ['cantidad', 'Cantidad', 'Ingresa una cantidad mayor que cero.'],
+])('F1 V1-01 · el error de %s describe sólo el campo pendiente', async (paso, etiqueta, mensaje) => {
+  const dialogo = await abrirDespachoF2()
+  if (paso !== 'vendedor') fireEvent.change(within(dialogo).getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  if (paso === 'cantidad') fireEvent.change(within(dialogo).getByLabelText('Producto'), { target: { value: producto.id } })
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Registrar despacho' }))
+  const campo = within(dialogo).getByLabelText(etiqueta)
+  const error = document.getElementById(campo.getAttribute('aria-describedby')!)
+  expect(error).toHaveTextContent(mensaje)
+  expect(error).toHaveAttribute('role', 'alert')
+  expect(campo).toHaveFocus()
+  expect(api.crearDespacho).not.toHaveBeenCalled()
+})
+
+it.each(['carga', 'error'])('F1 V1-03 · conserva todo el borrador al atravesar %s sin datos de consulta', async fase => {
+  vi.mocked(catalog.obtenerProductos).mockResolvedValue([hielo])
+  vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([bandeja])
+  vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+  vi.mocked(api.obtenerStockEnvases).mockResolvedValue([stockBandeja])
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  renderWithProviders(<QueryClientProvider client={client}><Despachos /></QueryClientProvider>)
+  fireEvent.click(await screen.findByRole('button', { name: 'Nuevo despacho' }))
+  fireEvent.change(screen.getByLabelText('Vendedor'), { target: { value: vendedor.id } })
+  fireEvent.change(screen.getByLabelText('Producto'), { target: { value: hielo.id } })
+  const cantidad = screen.getByLabelText('Cantidad')
+  fireEvent.change(cantidad, { target: { value: '7' } })
+  fireEvent.change(screen.getByLabelText('Bandejas'), { target: { value: '3' } })
+
+  let resolver!: (productos: Producto[]) => void
+  let rechazar!: (error: Error) => void
+  vi.mocked(catalog.obtenerProductos).mockImplementationOnce(() => new Promise((resolve, reject) => { resolver = resolve; rechazar = reject }))
+  await act(async () => { void client.resetQueries({ queryKey: ['bodega'] }) })
+  expect(await screen.findByRole('status')).toHaveTextContent('Cargando')
+  expect(screen.queryByRole('dialog', { name: 'Nuevo despacho' })).not.toBeInTheDocument()
+  if (fase === 'error') {
+    await act(async () => rechazar(new Error('Catálogo temporalmente sin datos')))
+    expect(await screen.findByRole('alert')).toHaveTextContent('No fue posible cargar los despachos')
+    expect(screen.queryByRole('dialog', { name: 'Nuevo despacho' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  } else {
+    await act(async () => resolver([hielo]))
+  }
+  const dialogo = await screen.findByRole('dialog', { name: 'Nuevo despacho' })
+  expect(within(dialogo).getByLabelText('Cantidad')).toHaveValue('7')
+  expect(within(dialogo).getByLabelText('Cantidad')).toBe(cantidad)
+  expect(within(dialogo).getByLabelText('Vendedor')).toHaveValue(vendedor.id)
+  expect(within(dialogo).getByLabelText('Producto')).toHaveValue(hielo.id)
+  expect(within(dialogo).getByLabelText('Bandejas')).toHaveValue('3')
+  expect(api.crearDespacho).not.toHaveBeenCalled()
 })

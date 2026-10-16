@@ -36,7 +36,7 @@ The production job declares `environment: production`; required reviewers, self-
 
 The CLI remains pinned to `vercel@63.1.2`; deploy workflows use its native `VERCEL_TOKEN` environment variable. Publication still uploads source for a Vercel build; it is the same verified commit, not a promoted CI-built artifact. Vercel project settings and environment variables can change the resulting build. Capture deployment ID, URL, SHA and environment when verifying a release. Prebuilt artifact promotion is a separate change.
 
-Separate operational work: verified Supabase backups and recovery (#41), error tracking (#54), a justified need for stronger abuse protection (#55) and operational verification of the enforced CSP (#45). The repository migration/pgTAP job alone does not establish remote schema reconciliation or production readiness.
+Separate operational work: verified Supabase backups and recovery (#41; the interim manual procedure and the Pro plan requirement are documented in [backups](backups.md)), error tracking (#54), a justified need for stronger abuse protection (#55) and operational verification of the enforced CSP (#45). The repository migration/pgTAP job alone does not establish remote schema reconciliation or production readiness.
 
 ## Configuration
 

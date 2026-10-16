@@ -1,0 +1,52 @@
+[
+ {
+  "vista": "despachos-nuevo-3-productos",
+  "ancho": 412,
+  "alto": 915,
+  "scrollWidth": 412,
+  "innerWidth": 412,
+  "sinDesborde": true,
+  "alturaDocumento": 3431,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "despachos-nuevo-3-productos",
+  "ancho": 375,
+  "alto": 812,
+  "scrollWidth": 375,
+  "innerWidth": 375,
+  "sinDesborde": true,
+  "alturaDocumento": 3431,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "despachos-nuevo-3-productos",
+  "ancho": 768,
+  "alto": 1024,
+  "scrollWidth": 768,
+  "innerWidth": 768,
+  "sinDesborde": true,
+  "alturaDocumento": 2707,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "despachos-nuevo-3-productos",
+  "ancho": 1024,
+  "alto": 1366,
+  "scrollWidth": 1024,
+  "innerWidth": 1024,
+  "sinDesborde": true,
+  "alturaDocumento": 2681,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "despachos-nuevo-3-productos",
+  "ancho": 1280,
+  "alto": 800,
+  "scrollWidth": 1280,
+  "innerWidth": 1280,
+  "sinDesborde": true,
+  "alturaDocumento": 2125,
+  "controlesBajo44": []
+ }
+]

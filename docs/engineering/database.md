@@ -24,7 +24,8 @@ Read the `supabase` and `supabase-postgres-best-practices` skills. Confirm the e
 Rebuild with pinned Supabase CLI 2.111.0 and Docker: `supabase start`, `supabase db reset --local`, `supabase test db --local`; stop this project's containers with `supabase stop --no-backup` when finished. `supabase/tests/rehearse-upgrade.sh` exercises the baseline-to-delta upgrade using synthetic rows and exact data fingerprints. The SQL CI job executes reset and pgTAP against a local database, without production credentials.
 The SQL suite includes B1 reconstruction/stock smoke tests and B2 role, branch, inactive-profile, RPC/default ACL, dispatch deadline and nonfinite-money rollback tests. Run `supabase db lint --local --schema public,private --fail-on error` too. The eight B2 monetary checks remain NOT VALID until a separately authorized remote data review and validation scan; the exact procedure is in the reconciliation guide. Extend the remaining concurrency/stock/cancellation cases as integrity tasks land; local SQL success does not establish production REST or Realtime authorization safety.
 Discover commands through the installed CLI's `--help`, review generated migrations and preserve applied history. Serialize migration integration and never run two writers against the same database environment.
-See [deployment](deployment.md) for release coordination. Track unresolved reconstruction, security and integrity findings in Beads/GitHub.
+See [deployment](deployment.md) for release coordination. For backups, PITR and the manual dump/restore
+procedure (free plan) and the Pro plan requirement, read [backups and recovery](backups.md) (#41). Track unresolved reconstruction, security and integrity findings in Beads/GitHub.
 
 ## B3 business decisions — 2026-10-13
 

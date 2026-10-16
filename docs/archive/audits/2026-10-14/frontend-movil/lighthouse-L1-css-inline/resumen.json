@@ -1,0 +1,320 @@
+{
+  "generado": "2026-10-15T00:14:15.767Z",
+  "base": "http://127.0.0.1:5194",
+  "runs": [
+    {
+      "device": "mobile",
+      "page": "login",
+      "run": 1,
+      "file": "mobile-login-run1.lhr.json",
+      "elapsedS": 10.1,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.98,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "color-contrast",
+          "titulo": "Background and foreground colors do not have a sufficient contrast ratio.",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,3,BUTTON",
+                "selector": "div#root > div.flex > form.w-full > button.inline-flex",
+                "snippet": "<button type=\"submit\" class=\"inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand…\">",
+                "nodeLabel": "Ingresar",
+                "explanation": "Fix any of the following:\n  Element has insufficient color contrast of 4.06 (foreground color: #ffffff, background color: #3284bd, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 100 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 102762,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5194/assets/index-CCFpjaKJ.js",
+              "totalBytes": 103525,
+              "wastedBytes": 57135,
+              "wastedPercent": 55.18997688192704
+            },
+            {
+              "url": "http://127.0.0.1:5194/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 95,
+        "best-practices": 100
+      },
+      "fcpMs": 1821.6951,
+      "lcpMs": 1821.6951,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 174988,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5194/login",
+      "fetchTime": "2026-10-15T00:13:45.374Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "login",
+      "run": 2,
+      "file": "mobile-login-run2.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.98,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "color-contrast",
+          "titulo": "Background and foreground colors do not have a sufficient contrast ratio.",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,3,BUTTON",
+                "selector": "div#root > div.flex > form.w-full > button.inline-flex",
+                "snippet": "<button type=\"submit\" class=\"inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand…\">",
+                "nodeLabel": "Ingresar",
+                "explanation": "Fix any of the following:\n  Element has insufficient color contrast of 4.06 (foreground color: #ffffff, background color: #3284bd, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 100 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 102762,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5194/assets/index-CCFpjaKJ.js",
+              "totalBytes": 103525,
+              "wastedBytes": 57135,
+              "wastedPercent": 55.18997688192704
+            },
+            {
+              "url": "http://127.0.0.1:5194/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 95,
+        "best-practices": 100
+      },
+      "fcpMs": 1815.2932,
+      "lcpMs": 1815.2932,
+      "tbtMs": 0,
+      "cls": 0,
+      "transferBytes": 174988,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5194/login",
+      "fetchTime": "2026-10-15T00:13:56.130Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    },
+    {
+      "device": "mobile",
+      "page": "login",
+      "run": 3,
+      "file": "mobile-login-run3.lhr.json",
+      "elapsedS": 10.3,
+      "error": null,
+      "auditoriasLt1": [
+        {
+          "id": "first-contentful-paint",
+          "titulo": "First Contentful Paint",
+          "score": 0.89,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "largest-contentful-paint",
+          "titulo": "Largest Contentful Paint",
+          "score": 0.98,
+          "displayValue": "1.8 s"
+        },
+        {
+          "id": "color-contrast",
+          "titulo": "Background and foreground colors do not have a sufficient contrast ratio.",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {
+              "node": {
+                "path": "1,HTML,1,BODY,0,DIV,0,DIV,0,FORM,3,BUTTON",
+                "selector": "div#root > div.flex > form.w-full > button.inline-flex",
+                "snippet": "<button type=\"submit\" class=\"inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand…\">",
+                "nodeLabel": "Ingresar",
+                "explanation": "Fix any of the following:\n  Element has insufficient color contrast of 4.06 (foreground color: #ffffff, background color: #3284bd, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            }
+          ]
+        },
+        {
+          "id": "unused-javascript",
+          "titulo": "Reduce unused JavaScript",
+          "score": 0,
+          "displayValue": "Est savings of 100 KiB",
+          "wastedMs": 450,
+          "wastedBytes": 102762,
+          "items": [
+            {
+              "url": "http://127.0.0.1:5194/assets/index-CCFpjaKJ.js",
+              "totalBytes": 103525,
+              "wastedBytes": 57135,
+              "wastedPercent": 55.18997688192704
+            },
+            {
+              "url": "http://127.0.0.1:5194/assets/vendor-supabase-1yby8ldT.js",
+              "totalBytes": 54629,
+              "wastedBytes": 45627,
+              "wastedPercent": 83.51997981695096
+            }
+          ]
+        },
+        {
+          "id": "network-dependency-tree-insight",
+          "titulo": "Network dependency tree",
+          "score": 0,
+          "displayValue": null,
+          "items": [
+            {},
+            {},
+            {}
+          ]
+        }
+      ],
+      "scores": {
+        "performance": 98,
+        "accessibility": 95,
+        "best-practices": 100
+      },
+      "fcpMs": 1822.3738,
+      "lcpMs": 1822.3738,
+      "tbtMs": 2,
+      "cls": 0,
+      "transferBytes": 174988,
+      "requests": 6,
+      "finalUrl": "http://127.0.0.1:5194/login",
+      "fetchTime": "2026-10-15T00:14:06.986Z",
+      "lighthouseVersion": "12.8.2",
+      "runtimeError": null
+    }
+  ],
+  "lighthouseVersion": "12.8.2",
+  "metodo": {
+    "categorias": "performance,accessibility,best-practices",
+    "dispositivos": {
+      "mobile": [],
+      "movil-412x915": [
+        "--screenEmulation.width=412",
+        "--screenEmulation.height=915",
+        "--screenEmulation.deviceScaleFactor=2.625",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "tablet-768x1024": [
+        "--screenEmulation.width=768",
+        "--screenEmulation.height=1024",
+        "--screenEmulation.deviceScaleFactor=2",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "tablet-1024x1366": [
+        "--screenEmulation.width=1024",
+        "--screenEmulation.height=1366",
+        "--screenEmulation.deviceScaleFactor=2",
+        "--screenEmulation.mobile=true",
+        "--formFactor=mobile"
+      ],
+      "desktop": [
+        "--preset=desktop"
+      ]
+    },
+    "autenticacion": "sesión real por el formulario de /login (CDP sobre el Chrome persistente); token supabase-js en localStorage",
+    "flagsAutenticadas": [
+      "--disable-storage-reset",
+      "+ Network.clearBrowserCache (CDP) antes de cada corrida: cache HTTP fría"
+    ],
+    "servidor": "servidor-local-a3.mjs (static dist + cabeceras vercel.json con connect-src += Supabase local; NO vite preview)"
+  },
+  "medianas": {
+    "mobile": {
+      "login": {
+        "runs": 3,
+        "performance": 98,
+        "accessibility": 95,
+        "best-practices": 100,
+        "fcpMs": 1821.6951,
+        "lcpMs": 1821.6951,
+        "tbtMs": 0,
+        "cls": 0,
+        "transferBytes": 174988
+      }
+    }
+  },
+  "fallos": []
+}

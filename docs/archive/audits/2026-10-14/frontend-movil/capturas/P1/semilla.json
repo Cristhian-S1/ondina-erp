@@ -1,0 +1,9 @@
+{
+  "marker": "e1b0de00-707c-4ad2-8e26-",
+  "inserted": 0,
+  "existing": 300,
+  "syntheticTotal": 300,
+  "sucursalId": "10000000-0000-0000-0000-000000000001",
+  "balancesUnchanged": true,
+  "cleanup": "Coordinator reset + UX reseed at session closure; no annulment, no DELETE, no SQL changes."
+}

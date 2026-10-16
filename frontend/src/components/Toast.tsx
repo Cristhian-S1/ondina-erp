@@ -19,8 +19,8 @@ export function Toast({ toast, onClose }: { toast: ToastState | null; onClose: (
         <button
           type="button"
           onClick={onClose}
-          className="text-current opacity-60 transition hover:opacity-100"
-          aria-label="Cerrar"
+          className="-my-2 -mr-2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-current opacity-70 transition hover:opacity-100"
+          aria-label="Cerrar notificación"
         >
           ✕
         </button>

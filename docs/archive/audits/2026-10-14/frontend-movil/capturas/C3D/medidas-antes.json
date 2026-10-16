@@ -1,0 +1,38 @@
+[
+ {
+  "vista": "menu-movil",
+  "ancho": 412,
+  "scrollWidth": 412,
+  "innerWidth": 412,
+  "sinDesborde": true,
+  "botonesPaginacion": 0,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "menu-movil",
+  "ancho": 375,
+  "scrollWidth": 375,
+  "innerWidth": 375,
+  "sinDesborde": true,
+  "botonesPaginacion": 0,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "gastos-vacio",
+  "ancho": 412,
+  "scrollWidth": 412,
+  "innerWidth": 412,
+  "sinDesborde": true,
+  "botonesPaginacion": 2,
+  "controlesBajo44": []
+ },
+ {
+  "vista": "clientes-vacio",
+  "ancho": 412,
+  "scrollWidth": 412,
+  "innerWidth": 412,
+  "sinDesborde": true,
+  "botonesPaginacion": 2,
+  "controlesBajo44": []
+ }
+]
