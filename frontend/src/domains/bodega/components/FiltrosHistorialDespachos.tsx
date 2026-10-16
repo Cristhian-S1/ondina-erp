@@ -50,7 +50,7 @@ export default function FiltrosHistorialDespachos({ esAdmin, diaFiltro, fechaSel
           <InputFecha
             aria-label="Fecha"
             etiquetaCalendario="Abrir calendario"
-            className="min-h-11 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
+            className="min-h-11 w-40 rounded-lg border border-slate-300 px-2 py-1.5 text-sm text-slate-900 focus:border-brand-600 focus:outline-none"
             value={fechaSeleccionada}
             onChange={(e) => {
               setFechaSeleccionada(e.target.value)

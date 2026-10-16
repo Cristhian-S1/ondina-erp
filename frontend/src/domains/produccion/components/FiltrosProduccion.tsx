@@ -17,8 +17,10 @@ export default function FiltrosProduccion({ valores, productos, onChange, etique
   const hastaId = useId()
   const invalido = rangoInvertido(valores)
   const aria = { 'aria-invalid': invalido || undefined, 'aria-describedby': invalido ? errorRangoId : undefined }
-  return <div className={`${cardCls} min-w-0 grid grid-cols-1 gap-3 p-4 min-[360px]:grid-cols-2`}>
-    <label className={`${labelCls} min-w-0 min-[360px]:col-span-2`}>
+  // Two date columns only from 400px: below that a column is ~141px, too narrow for Firefox's
+  // spaced "dd / mm / aaaa" (~100px) plus the 44px calendar button.
+  return <div className={`${cardCls} min-w-0 grid grid-cols-1 gap-3 p-4 min-[400px]:grid-cols-2`}>
+    <label className={`${labelCls} min-w-0 min-[400px]:col-span-2`}>
       {etiquetaProducto}
       <select className={`${inputCls} min-w-0 max-w-full`} value={valores.productoId} onChange={event => onChange({ ...valores, productoId: event.target.value })}>
         <option value="">Todos</option>
@@ -27,7 +29,7 @@ export default function FiltrosProduccion({ valores, productos, onChange, etique
     </label>
     <div className="min-w-0"><label htmlFor={desdeId} className={labelCls}>Desde</label><InputFecha id={desdeId} etiquetaCalendario="Abrir calendario de Desde" className={`${inputCls} min-w-0 max-w-full`} value={valores.desde} {...aria} max={valores.hasta || undefined} onChange={event => onChange({ ...valores, desde: event.target.value })} /></div>
     <div className="min-w-0"><label htmlFor={hastaId} className={labelCls}>Hasta</label><InputFecha id={hastaId} etiquetaCalendario="Abrir calendario de Hasta" className={`${inputCls} min-w-0 max-w-full`} value={valores.hasta} {...aria} min={valores.desde || undefined} onChange={event => onChange({ ...valores, hasta: event.target.value })} /></div>
-    {invalido && <p id={errorRangoId} role="alert" className="text-sm text-red-700 min-[360px]:col-span-2">Desde debe ser anterior o igual a Hasta.</p>}
-    <div className="flex items-end min-[360px]:col-span-2"><button type="button" className={btnSecondary} onClick={() => onChange(filtrosVacios)}>Limpiar filtros</button></div>
+    {invalido && <p id={errorRangoId} role="alert" className="text-sm text-red-700 min-[400px]:col-span-2">Desde debe ser anterior o igual a Hasta.</p>}
+    <div className="flex items-end min-[400px]:col-span-2"><button type="button" className={btnSecondary} onClick={() => onChange(filtrosVacios)}>Limpiar filtros</button></div>
   </div>
 }
