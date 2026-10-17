@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import CampoFormulario from '../../../components/CampoFormulario'
+import EstadoVista from '../../../components/EstadoVista'
 import Dialog from '../../../components/Dialog'
 import SucursalSelector from '../../../components/SucursalSelector'
 import { useCrearCliente } from '../hooks/useCrearCliente'
 import { useVendedoresSucursal } from '../hooks/useVendedoresSucursal'
 import { useAuth } from '../../../context/auth-context'
 import { crearClienteSchema, type CrearClienteForm, type CrearClienteInput } from '../schemas'
-import { btnPrimary, btnSecondary, errorTextCls, inputCls, labelCls } from '../../../lib/ui'
+import { btnPrimary, btnSecondary } from '../../../lib/ui'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
@@ -34,7 +36,13 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
   const vendedores = useVendedoresSucursal(sucursalId)
   const crear = useCrearCliente(sucursalId)
   const { toast, mostrar, cerrar } = useToast()
+  const { reset: resetCreacion } = crear
+  const registrado = crear.isSuccess && !crear.data?.error
+  const envio = useRef(false)
   const cierreTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // onCreated may re-key this dialog in the parent; defer it until close so the
+  // success toast and the auto-close timer survive the first registration.
+  const creadoPara = useRef<string | null>(null)
   useEffect(() => () => { if (cierreTimer.current) clearTimeout(cierreTimer.current) }, [open])
 
   const {
@@ -58,6 +66,9 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
 
   useEffect(() => {
     if (open) {
+      envio.current = false
+      creadoPara.current = null
+      resetCreacion()
       reset({
         nombre: '',
         direccion: '',
@@ -67,134 +78,84 @@ export default function RegistrarCliente({ open, onClose, sucursalId: sucursalEx
         vendedor_id: esAdmin ? vendedorId ?? '' : perfil?.id ?? '',
       })
     }
-  }, [open, reset, perfil, esAdmin, vendedorId])
+  }, [open, reset, resetCreacion, perfil, esAdmin, vendedorId])
 
   const vendedorElegido = useWatch({ control, name: 'vendedor_id' })
   const seleccionValida = !esAdmin || (!!sucursalId && !!vendedores.data?.some((v) => v.id === vendedorElegido))
 
   if (!open) return null
 
+  function cerrarDialogo() {
+    const vendedorCreado = creadoPara.current
+    creadoPara.current = null
+    onClose()
+    if (vendedorCreado !== null) onCreated?.(vendedorCreado)
+  }
+
   function onSubmit(values: CrearClienteInput) {
-    if (!seleccionValida) return
+    if (!seleccionValida || envio.current) return
+    envio.current = true
     crear.mutate(values, {
       onSuccess: (res) => {
         if (res.error) {
+          envio.current = false
           mostrar(res.error, 'error')
           return
         }
-        onCreated?.(values.vendedor_id)
+        creadoPara.current = values.vendedor_id
         mostrar('Cliente registrado.', 'exito')
-        cierreTimer.current = setTimeout(onClose, 1500)
+        cierreTimer.current = setTimeout(cerrarDialogo, 1500)
       },
       onError: (err) => {
+        envio.current = false
         mostrar(mensajeErrorSupabase(err), 'error')
       },
     })
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title="Nuevo cliente">
+    <Dialog open={open} onClose={cerrarDialogo} title="Nuevo cliente">
       <form
         onSubmit={(event) => void handleSubmit(onSubmit)(event)}
         className="space-y-4"
         noValidate
       >
         {esAdmin && sucursalExterna === undefined && <SucursalSelector value={sucursalId} onChange={(id) => { setSucursalLocal(id); setValue('vendedor_id', '') }} disabled={crear.isPending} />}
-        {esAdmin && !sucursalId && <p className="text-sm text-slate-500">Selecciona una sucursal y un vendedor para registrar el cliente.</p>}
-        {esAdmin && (
-          <label className={labelCls}>
-            Vendedor responsable
-            <select className={inputCls} disabled={!sucursalId || vendedores.isLoading || !!vendedores.error || crear.isPending} {...register('vendedor_id')}>
+        {esAdmin && !sucursalId && <p className="text-sm text-slate-600">Selecciona una sucursal y un vendedor para registrar el cliente.</p>}
+        {esAdmin && <>
+          <CampoFormulario etiqueta="Vendedor responsable" error={errors.vendedor_id?.message}>
+            {atributos => <select {...atributos} disabled={!sucursalId || vendedores.isLoading || !!vendedores.error || crear.isPending} {...register('vendedor_id')}>
               <option value="">Selecciona un vendedor...</option>
-              {vendedores.data?.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.nombres} {v.apellidos}
-                </option>
-              ))}
-            </select>
-            {vendedores.isLoading && <span className="text-sm text-slate-500">Cargando vendedores...</span>}
-            {sucursalId && vendedores.isSuccess && vendedores.data.length === 0 && <span className="text-sm text-slate-500">No hay vendedores activos en esta sucursal.</span>}
-            {vendedores.error && (
-              <span role="alert" className={errorTextCls}>No fue posible cargar los vendedores. Inténtalo de nuevo.
-                <button type="button" className={btnSecondary} onClick={() => void vendedores.refetch()}>Reintentar vendedores</button>
-              </span>
-            )}
-            {errors.vendedor_id && (
-              <span className={errorTextCls}>
-                {errors.vendedor_id.message}
-              </span>
-            )}
-          </label>
-        )}
-
-        <label className={labelCls}>
-          Nombre
-          <input
-            type="text"
-            maxLength={120}
-            className={inputCls}
-            placeholder="Nombre o razón comercial"
-            {...register('nombre')}
-          />
-          {errors.nombre && (
-            <span className={errorTextCls}>{errors.nombre.message}</span>
-          )}
-        </label>
-
-        <label className={labelCls}>
-          Dirección
-          <input
-            type="text"
-            maxLength={200}
-            className={inputCls}
-            placeholder="Calle, número, comuna"
-            {...register('direccion')}
-          />
-          {errors.direccion && (
-            <span className={errorTextCls}>{errors.direccion.message}</span>
-          )}
-        </label>
-
+              {vendedores.data?.map(v => <option key={v.id} value={v.id}>{v.nombres} {v.apellidos}</option>)}
+            </select>}
+          </CampoFormulario>
+          {vendedores.isLoading && <EstadoVista variante="cargando" mensaje="Cargando vendedores..." />}
+          {sucursalId && vendedores.isSuccess && vendedores.data.length === 0 && <EstadoVista variante="vacio" mensaje="No hay vendedores activos en esta sucursal." />}
+          {vendedores.error && <EstadoVista variante="error" mensaje="No fue posible cargar los vendedores. Inténtalo de nuevo." onReintentar={() => void vendedores.refetch()} />}
+        </>}
+        <CampoFormulario etiqueta="Nombre" error={errors.nombre?.message}>
+          {atributos => <input {...atributos} type="text" autoCapitalize="words" maxLength={120} placeholder="Nombre o razón comercial" {...register('nombre')} />}
+        </CampoFormulario>
+        <CampoFormulario etiqueta="Dirección" error={errors.direccion?.message}>
+          {atributos => <input {...atributos} type="text" maxLength={200} placeholder="Calle, número, comuna" {...register('direccion')} />}
+        </CampoFormulario>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className={labelCls}>
-            Teléfono
-            <input
-              type="text"
-              maxLength={30}
-              className={inputCls}
-              placeholder="Opcional"
-              {...register('telefono')}
-            />
-          </label>
-
-          <label className={labelCls}>
-            Nº de local
-            <input
-              type="text"
-              maxLength={50}
-              className={inputCls}
-              placeholder="Opcional"
-              {...register('numero_local')}
-            />
-          </label>
+          <CampoFormulario etiqueta="Teléfono" error={errors.telefono?.message}>
+            {atributos => <input {...atributos} type="tel" inputMode="tel" autoComplete="tel" maxLength={30} placeholder="Opcional" {...register('telefono')} />}
+          </CampoFormulario>
+          <CampoFormulario etiqueta="Nº de local" error={errors.numero_local?.message}>
+            {atributos => <input {...atributos} type="text" maxLength={50} placeholder="Opcional" {...register('numero_local')} />}
+          </CampoFormulario>
         </div>
-
-        <label className={labelCls}>
-          Tipo de cliente
-          <select className={inputCls} {...register('tipo')}>
-            {TIPOS.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <CampoFormulario etiqueta="Tipo de cliente" error={errors.tipo?.message}>
+          {atributos => <select {...atributos} {...register('tipo')}>{TIPOS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}</select>}
+        </CampoFormulario>
 
         <div className="flex flex-wrap justify-end gap-3">
-          <button type="button" className={btnSecondary} onClick={onClose}>
+          <button type="button" className={btnSecondary} onClick={cerrarDialogo}>
             Cancelar
           </button>
-          <button type="submit" className={btnPrimary} disabled={crear.isPending || !seleccionValida || (esAdmin && !!vendedores.error)}>
+          <button type="submit" className={btnPrimary} disabled={registrado || crear.isPending || !seleccionValida || (esAdmin && !!vendedores.error)}>
             {crear.isPending ? 'Guardando...' : 'Guardar cliente'}
           </button>
         </div>

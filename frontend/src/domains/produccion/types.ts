@@ -1,3 +1,10 @@
+export interface StockBodegaProduccion {
+  sucursal_id: string
+  producto_id: string
+  cantidad: number
+  modificado_en: string
+}
+
 export interface Produccion {
   id: string
   sucursal_id: string

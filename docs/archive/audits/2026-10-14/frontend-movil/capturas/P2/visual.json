@@ -1,0 +1,1775 @@
+[
+  {
+    "phase": "antes",
+    "view": "reciente",
+    "width": 412,
+    "height": 915,
+    "file": "reciente-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 6070,
+    "sectionHeight": 4691,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "reciente",
+    "width": 375,
+    "height": 812,
+    "file": "reciente-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 6070,
+    "sectionHeight": 4691,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "reciente",
+    "width": 768,
+    "height": 1024,
+    "file": "reciente-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 2566,
+    "sectionHeight": 1419,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "reciente",
+    "width": 1024,
+    "height": 1366,
+    "file": "reciente-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 2498,
+    "sectionHeight": 1419,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "reciente",
+    "width": 1280,
+    "height": 800,
+    "file": "reciente-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1161,
+    "sectionHeight": 635,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "historial",
+    "width": 412,
+    "height": 915,
+    "file": "historial-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 42165,
+    "sectionHeight": 41661,
+    "visibleRows": 200,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "historial",
+    "width": 375,
+    "height": 812,
+    "file": "historial-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 42165,
+    "sectionHeight": 41661,
+    "visibleRows": 200,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "historial",
+    "width": 768,
+    "height": 1024,
+    "file": "historial-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 13577,
+    "sectionHeight": 13129,
+    "visibleRows": 200,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "historial",
+    "width": 1024,
+    "height": 1366,
+    "file": "historial-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 13509,
+    "sectionHeight": 13129,
+    "visibleRows": 200,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "historial",
+    "width": 1280,
+    "height": 800,
+    "file": "historial-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 9425,
+    "sectionHeight": 9045,
+    "visibleRows": 200,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "incidencias",
+    "width": 412,
+    "height": 915,
+    "file": "incidencias-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 11372,
+    "sectionHeight": 3671,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "incidencias",
+    "width": 375,
+    "height": 812,
+    "file": "incidencias-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 11392,
+    "sectionHeight": 3671,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "incidencias",
+    "width": 768,
+    "height": 1024,
+    "file": "incidencias-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 5772,
+    "sectionHeight": 2399,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "incidencias",
+    "width": 1024,
+    "height": 1366,
+    "file": "incidencias-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 5704,
+    "sectionHeight": 2399,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "incidencias",
+    "width": 1280,
+    "height": 800,
+    "file": "incidencias-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1440,
+    "sectionHeight": 507,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "mermas",
+    "width": 412,
+    "height": 915,
+    "file": "mermas-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 11372,
+    "sectionHeight": 6251,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "mermas",
+    "width": 375,
+    "height": 812,
+    "file": "mermas-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 11392,
+    "sectionHeight": 6251,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "mermas",
+    "width": 768,
+    "height": 1024,
+    "file": "mermas-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 5772,
+    "sectionHeight": 2019,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "mermas",
+    "width": 1024,
+    "height": 1366,
+    "file": "mermas-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 5704,
+    "sectionHeight": 2019,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "mermas",
+    "width": 1280,
+    "height": 800,
+    "file": "mermas-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1440,
+    "sectionHeight": 507,
+    "visibleRows": 30,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "clientes",
+    "width": 412,
+    "height": 915,
+    "file": "clientes-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 47099,
+    "sectionHeight": 47007,
+    "visibleRows": 301,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "clientes",
+    "width": 375,
+    "height": 812,
+    "file": "clientes-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 47099,
+    "sectionHeight": 47007,
+    "visibleRows": 301,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "clientes",
+    "width": 768,
+    "height": 1024,
+    "file": "clientes-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 13923,
+    "sectionHeight": 13831,
+    "visibleRows": 301,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "clientes",
+    "width": 1024,
+    "height": 1366,
+    "file": "clientes-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 13923,
+    "sectionHeight": 13831,
+    "visibleRows": 301,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "clientes",
+    "width": 1280,
+    "height": 800,
+    "file": "clientes-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 13923,
+    "sectionHeight": 13831,
+    "visibleRows": 301,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "role": "admin-global",
+    "pageErrors": [],
+    "requestFailures": [],
+    "consoleErrors": [],
+    "requests": [
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/tipos_empaque?select=*&activo=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 830,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "30000000-0000-0000-0000-000000000003",
+        "lastId": "30000000-0000-0000-0000-000000000007"
+      },
+      {
+        "url": "/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&order=creado_en.desc&limit=30",
+        "status": 200,
+        "bytes": 11188,
+        "rows": 30,
+        "contentRange": "0-29/*",
+        "firstId": "e2a00710-0002-4000-8000-000000000300",
+        "lastId": "e2a00710-0002-4000-8000-000000000271"
+      },
+      {
+        "url": "/rest/v1/stock_envases?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002",
+        "status": 200,
+        "bytes": 1265,
+        "rows": 7,
+        "contentRange": "0-6/*"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&order=creado_en.desc&limit=200",
+        "status": 200,
+        "bytes": 74490,
+        "rows": 200,
+        "contentRange": "0-199/*",
+        "firstId": "e2a00710-0002-4000-8000-000000000300",
+        "lastId": "e2a00710-0002-4000-8000-000000000192"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/mermas?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&despacho_id=is.null&producto_id=not.is.null&order=creado_en.desc&limit=30",
+        "status": 200,
+        "bytes": 11209,
+        "rows": 30,
+        "contentRange": "0-29/*",
+        "firstId": "e2a00710-0003-4000-8000-000000000001",
+        "lastId": "e2a00710-0003-4000-8000-000000000030"
+      },
+      {
+        "url": "/rest/v1/incidencias_produccion?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&order=creado_en.desc&limit=30",
+        "status": 200,
+        "bytes": 9379,
+        "rows": 30,
+        "contentRange": "0-29/*",
+        "firstId": "e2a00710-0004-4000-8000-000000000002",
+        "lastId": "e2a00710-0004-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/mermas?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&despacho_id=is.null&producto_id=not.is.null&order=creado_en.desc&limit=30",
+        "status": 200,
+        "bytes": 11209,
+        "rows": 30,
+        "contentRange": "0-29/*",
+        "firstId": "e2a00710-0003-4000-8000-000000000001",
+        "lastId": "e2a00710-0003-4000-8000-000000000030"
+      },
+      {
+        "url": "/rest/v1/incidencias_produccion?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&order=creado_en.desc&limit=30",
+        "status": 200,
+        "bytes": 9379,
+        "rows": 30,
+        "contentRange": "0-29/*",
+        "firstId": "e2a00710-0004-4000-8000-000000000002",
+        "lastId": "e2a00710-0004-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=id%2Cnombres%2Capellidos&sucursal_id=eq.10000000-0000-0000-0000-000000000002&rol=eq.vendedor&activo=eq.true&order=nombres.asc",
+        "status": 200,
+        "bytes": 101,
+        "rows": 1,
+        "contentRange": "0-0/*",
+        "firstId": "20000000-0000-0000-0002-000000000004",
+        "lastId": "20000000-0000-0000-0002-000000000004"
+      },
+      {
+        "url": "/rest/v1/clientes?select=id%2Cnombre%2Ctelefono%2Cdireccion%2Cnumero_local%2Ctipo%2Cactivo%2Ccreado_en&vendedor_id=eq.20000000-0000-0000-0002-000000000004&activo=eq.true&sucursal_id=eq.10000000-0000-0000-0000-000000000002&order=nombre.asc",
+        "status": 200,
+        "bytes": 70922,
+        "rows": 301,
+        "contentRange": "0-300/*",
+        "firstId": "50000000-0000-0000-0000-000000000002",
+        "lastId": "e2a00710-0005-4000-8000-000000000300"
+      }
+    ]
+  },
+  {
+    "phase": "antes",
+    "view": "gastos",
+    "width": 412,
+    "height": 915,
+    "file": "gastos-412x915-antes.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 19127,
+    "sectionHeight": 18541,
+    "visibleRows": 303,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "gastos",
+    "width": 375,
+    "height": 812,
+    "file": "gastos-375x812-antes.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 19127,
+    "sectionHeight": 18541,
+    "visibleRows": 303,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "gastos",
+    "width": 768,
+    "height": 1024,
+    "file": "gastos-768x1024-antes.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 18955,
+    "sectionHeight": 18541,
+    "visibleRows": 303,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "gastos",
+    "width": 1024,
+    "height": 1366,
+    "file": "gastos-1024x1366-antes.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 18955,
+    "sectionHeight": 18541,
+    "visibleRows": 303,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "view": "gastos",
+    "width": 1280,
+    "height": 800,
+    "file": "gastos-1280x800-antes.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 18955,
+    "sectionHeight": 18541,
+    "visibleRows": 303,
+    "targets": []
+  },
+  {
+    "phase": "antes",
+    "role": "vendedor",
+    "pageErrors": [],
+    "requestFailures": [],
+    "consoleErrors": [],
+    "requests": [
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72",
+        "status": 200,
+        "bytes": 245,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/gastos_extras?select=id%2Ctipo%2Cmonto%2Cmotivo%2Ccreado_en%2Canulado%2Cvendedor_id%2Csucursal_id&vendedor_id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&order=creado_en.desc",
+        "status": 200,
+        "bytes": 89242,
+        "rows": 303,
+        "contentRange": "0-302/*",
+        "firstId": "e2a00710-0006-4000-8000-000000000300",
+        "lastId": "e7988cd3-8691-4b61-ad9d-952edf890992"
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "reciente",
+    "width": 412,
+    "height": 915,
+    "file": "reciente-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 3087,
+    "sectionHeight": 1708,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 307 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "reciente",
+    "width": 375,
+    "height": 812,
+    "file": "reciente-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 3087,
+    "sectionHeight": 1708,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 307 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "reciente",
+    "width": 768,
+    "height": 1024,
+    "file": "reciente-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 1783,
+    "sectionHeight": 636,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 307 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "reciente",
+    "width": 1024,
+    "height": 1366,
+    "file": "reciente-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 1715,
+    "sectionHeight": 636,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 307 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "reciente",
+    "width": 1280,
+    "height": 800,
+    "file": "reciente-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1258,
+    "sectionHeight": 732,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 307 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "reciente",
+    "pageNavigation": true,
+    "rows": 10,
+    "firstId": "e2a00710-0002-4000-8000-000000000291",
+    "lastId": "e2a00710-0002-4000-8000-000000000282"
+  },
+  {
+    "phase": "despues",
+    "view": "historial",
+    "width": 412,
+    "height": 915,
+    "file": "historial-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 3122,
+    "sectionHeight": 2618,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 308 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "historial",
+    "width": 375,
+    "height": 812,
+    "file": "historial-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 3122,
+    "sectionHeight": 2618,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 308 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "historial",
+    "width": 768,
+    "height": 1024,
+    "file": "historial-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 1494,
+    "sectionHeight": 1046,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 308 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "historial",
+    "width": 1024,
+    "height": 1366,
+    "file": "historial-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 1426,
+    "sectionHeight": 1046,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 308 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "historial",
+    "width": 1280,
+    "height": 800,
+    "file": "historial-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1162,
+    "sectionHeight": 782,
+    "visibleRows": 10,
+    "pager": "Página 1 de 31 · 308 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "historial",
+    "pageNavigation": true,
+    "rows": 10,
+    "firstId": "e2a00710-0002-4000-8000-000000000291",
+    "lastId": "e2a00710-0002-4000-8000-000000000282"
+  },
+  {
+    "phase": "despues",
+    "view": "incidencias",
+    "width": 412,
+    "height": 915,
+    "file": "incidencias-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 5046,
+    "sectionHeight": 1368,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "incidencias",
+    "width": 375,
+    "height": 812,
+    "file": "incidencias-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 5066,
+    "sectionHeight": 1368,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "incidencias",
+    "width": 768,
+    "height": 1024,
+    "file": "incidencias-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 3126,
+    "sectionHeight": 936,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "incidencias",
+    "width": 1024,
+    "height": 1366,
+    "file": "incidencias-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 3058,
+    "sectionHeight": 936,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "incidencias",
+    "width": 1280,
+    "height": 800,
+    "file": "incidencias-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1612,
+    "sectionHeight": 604,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "incidencias",
+    "pageNavigation": true,
+    "rows": 10,
+    "firstId": "e2a00710-0004-4000-8000-000000000290",
+    "lastId": "e2a00710-0004-4000-8000-000000000281"
+  },
+  {
+    "phase": "despues",
+    "view": "mermas",
+    "width": 412,
+    "height": 915,
+    "file": "mermas-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 5046,
+    "sectionHeight": 2228,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "mermas",
+    "width": 375,
+    "height": 812,
+    "file": "mermas-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 5066,
+    "sectionHeight": 2228,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "mermas",
+    "width": 768,
+    "height": 1024,
+    "file": "mermas-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 3126,
+    "sectionHeight": 836,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "mermas",
+    "width": 1024,
+    "height": 1366,
+    "file": "mermas-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 3058,
+    "sectionHeight": 836,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "mermas",
+    "width": 1280,
+    "height": 800,
+    "file": "mermas-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1612,
+    "sectionHeight": 604,
+    "visibleRows": 10,
+    "pager": "Página 1 de 30 · 300 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "mermas",
+    "pageNavigation": true,
+    "rows": 10,
+    "firstId": "e2a00710-0003-4000-8000-000000000290",
+    "lastId": "e2a00710-0003-4000-8000-000000000281"
+  },
+  {
+    "phase": "despues",
+    "view": "clientes",
+    "width": 412,
+    "height": 915,
+    "file": "clientes-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 3665,
+    "sectionHeight": 3573,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 301 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "clientes",
+    "width": 375,
+    "height": 812,
+    "file": "clientes-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 3665,
+    "sectionHeight": 3573,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 301 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "clientes",
+    "width": 768,
+    "height": 1024,
+    "file": "clientes-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 1375,
+    "sectionHeight": 1283,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 301 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "clientes",
+    "width": 1024,
+    "height": 1366,
+    "file": "clientes-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 1375,
+    "sectionHeight": 1283,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 301 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "clientes",
+    "width": 1280,
+    "height": 800,
+    "file": "clientes-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1375,
+    "sectionHeight": 1283,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 301 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "clientes",
+    "pageNavigation": true,
+    "rows": 20,
+    "firstId": "e2a00710-0005-4000-8000-000000000020",
+    "lastId": "e2a00710-0005-4000-8000-000000000039"
+  },
+  {
+    "phase": "despues",
+    "role": "admin-global",
+    "pageErrors": [],
+    "requestFailures": [],
+    "consoleErrors": [],
+    "requests": [
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/tipos_empaque?select=*&activo=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 706,
+        "rows": 6,
+        "contentRange": "0-5/*",
+        "firstId": "30000000-0000-0000-0000-000000000003",
+        "lastId": "30000000-0000-0000-0000-000000000005"
+      },
+      {
+        "url": "/rest/v1/stock_envases?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002",
+        "status": 200,
+        "bytes": 1265,
+        "rows": 7,
+        "contentRange": "0-6/*"
+      },
+      {
+        "url": "/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+        "status": 206,
+        "bytes": 3728,
+        "rows": 10,
+        "contentRange": "0-9/307",
+        "firstId": "e2a00710-0002-4000-8000-000000000300",
+        "lastId": "e2a00710-0002-4000-8000-000000000291"
+      },
+      {
+        "url": "/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&order=creado_en.desc%2Cid.desc&offset=10&limit=10",
+        "status": 206,
+        "bytes": 3728,
+        "rows": 10,
+        "contentRange": "10-19/308",
+        "firstId": "e2a00710-0002-4000-8000-000000000291",
+        "lastId": "e2a00710-0002-4000-8000-000000000282"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+        "status": 206,
+        "bytes": 3748,
+        "rows": 10,
+        "contentRange": "0-9/308",
+        "firstId": "f575e10e-6adf-4c35-8951-b0b52bceb6cf",
+        "lastId": "e2a00710-0002-4000-8000-000000000292"
+      },
+      {
+        "url": "/rest/v1/producciones?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&order=creado_en.desc%2Cid.desc&offset=10&limit=10",
+        "status": 206,
+        "bytes": 3728,
+        "rows": 10,
+        "contentRange": "10-19/308",
+        "firstId": "e2a00710-0002-4000-8000-000000000291",
+        "lastId": "e2a00710-0002-4000-8000-000000000282"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/mermas?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&despacho_id=is.null&producto_id=not.is.null&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+        "status": 206,
+        "bytes": 3748,
+        "rows": 10,
+        "contentRange": "0-9/300",
+        "firstId": "e2a00710-0003-4000-8000-000000000300",
+        "lastId": "e2a00710-0003-4000-8000-000000000291"
+      },
+      {
+        "url": "/rest/v1/incidencias_produccion?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+        "status": 206,
+        "bytes": 3138,
+        "rows": 10,
+        "contentRange": "0-9/300",
+        "firstId": "e2a00710-0004-4000-8000-000000000300",
+        "lastId": "e2a00710-0004-4000-8000-000000000291"
+      },
+      {
+        "url": "/rest/v1/incidencias_produccion?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&order=creado_en.desc%2Cid.desc&offset=10&limit=10",
+        "status": 206,
+        "bytes": 3138,
+        "rows": 10,
+        "contentRange": "10-19/300",
+        "firstId": "e2a00710-0004-4000-8000-000000000290",
+        "lastId": "e2a00710-0004-4000-8000-000000000281"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/productos?select=*&order=nombre.asc",
+        "status": 200,
+        "bytes": 1596,
+        "rows": 7,
+        "contentRange": "0-6/*",
+        "firstId": "40000000-0000-0000-0000-000000000003",
+        "lastId": "e2a00710-0001-4000-8000-000000000001"
+      },
+      {
+        "url": "/rest/v1/mermas?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&despacho_id=is.null&producto_id=not.is.null&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+        "status": 206,
+        "bytes": 3748,
+        "rows": 10,
+        "contentRange": "0-9/300",
+        "firstId": "e2a00710-0003-4000-8000-000000000300",
+        "lastId": "e2a00710-0003-4000-8000-000000000291"
+      },
+      {
+        "url": "/rest/v1/incidencias_produccion?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&order=creado_en.desc%2Cid.desc&offset=0&limit=10",
+        "status": 206,
+        "bytes": 3138,
+        "rows": 10,
+        "contentRange": "0-9/300",
+        "firstId": "e2a00710-0004-4000-8000-000000000300",
+        "lastId": "e2a00710-0004-4000-8000-000000000291"
+      },
+      {
+        "url": "/rest/v1/mermas?select=*&sucursal_id=eq.10000000-0000-0000-0000-000000000002&anulado=eq.false&despacho_id=is.null&producto_id=not.is.null&order=creado_en.desc%2Cid.desc&offset=10&limit=10",
+        "status": 206,
+        "bytes": 3748,
+        "rows": 10,
+        "contentRange": "10-19/300",
+        "firstId": "e2a00710-0003-4000-8000-000000000290",
+        "lastId": "e2a00710-0003-4000-8000-000000000281"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.ae209547-72ff-43a3-a749-723e0994e4f9",
+        "status": 200,
+        "bytes": 217,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/sucursales?select=*&activa=eq.true&order=nombre.asc",
+        "status": 200,
+        "bytes": 446,
+        "rows": 2,
+        "contentRange": "0-1/*",
+        "firstId": "10000000-0000-0000-0000-000000000001",
+        "lastId": "10000000-0000-0000-0000-000000000002"
+      },
+      {
+        "url": "/rest/v1/perfiles?select=id%2Cnombres%2Capellidos&sucursal_id=eq.10000000-0000-0000-0000-000000000002&rol=eq.vendedor&activo=eq.true&order=nombres.asc",
+        "status": 200,
+        "bytes": 101,
+        "rows": 1,
+        "contentRange": "0-0/*",
+        "firstId": "20000000-0000-0000-0002-000000000004",
+        "lastId": "20000000-0000-0000-0002-000000000004"
+      },
+      {
+        "url": "/rest/v1/clientes?select=id%2Cnombre%2Ctelefono%2Cdireccion%2Cnumero_local%2Ctipo%2Cactivo%2Ccreado_en&sucursal_id=eq.10000000-0000-0000-0000-000000000002&vendedor_id=eq.20000000-0000-0000-0002-000000000004&activo=eq.true&order=nombre.asc%2Cid.asc&offset=0&limit=20",
+        "status": 206,
+        "bytes": 4686,
+        "rows": 20,
+        "contentRange": "0-19/301",
+        "firstId": "50000000-0000-0000-0000-000000000002",
+        "lastId": "e2a00710-0005-4000-8000-000000000019"
+      },
+      {
+        "url": "/rest/v1/clientes?select=id%2Cnombre%2Ctelefono%2Cdireccion%2Cnumero_local%2Ctipo%2Cactivo%2Ccreado_en&sucursal_id=eq.10000000-0000-0000-0000-000000000002&vendedor_id=eq.20000000-0000-0000-0002-000000000004&activo=eq.true&order=nombre.asc%2Cid.asc&offset=20&limit=20",
+        "status": 206,
+        "bytes": 4698,
+        "rows": 20,
+        "contentRange": "20-39/301",
+        "firstId": "e2a00710-0005-4000-8000-000000000020",
+        "lastId": "e2a00710-0005-4000-8000-000000000039"
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "gastos",
+    "width": 412,
+    "height": 915,
+    "file": "gastos-412x915-despues.png",
+    "scrollWidth": 412,
+    "innerWidth": 412,
+    "documentHeight": 1961,
+    "sectionHeight": 1375,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 303 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "gastos",
+    "width": 375,
+    "height": 812,
+    "file": "gastos-375x812-despues.png",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "documentHeight": 1961,
+    "sectionHeight": 1375,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 303 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "gastos",
+    "width": 768,
+    "height": 1024,
+    "file": "gastos-768x1024-despues.png",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "documentHeight": 1789,
+    "sectionHeight": 1375,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 303 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "gastos",
+    "width": 1024,
+    "height": 1366,
+    "file": "gastos-1024x1366-despues.png",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "documentHeight": 1789,
+    "sectionHeight": 1375,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 303 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "gastos",
+    "width": 1280,
+    "height": 800,
+    "file": "gastos-1280x800-despues.png",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "documentHeight": 1789,
+    "sectionHeight": 1375,
+    "visibleRows": 20,
+    "pager": "Página 1 de 16 · 303 registrosAnteriorSiguiente",
+    "targets": [
+      {
+        "label": "Página anterior",
+        "width": 89.59375,
+        "height": 44,
+        "disabled": true
+      },
+      {
+        "label": "Página siguiente",
+        "width": 97.015625,
+        "height": 44,
+        "disabled": false
+      }
+    ]
+  },
+  {
+    "phase": "despues",
+    "view": "gastos",
+    "pageNavigation": true,
+    "rows": 20,
+    "firstId": "e2a00710-0006-4000-8000-000000000280",
+    "lastId": "e2a00710-0006-4000-8000-000000000261"
+  },
+  {
+    "phase": "despues",
+    "role": "vendedor",
+    "pageErrors": [],
+    "requestFailures": [],
+    "consoleErrors": [],
+    "requests": [
+      {
+        "url": "/rest/v1/perfiles?select=*&id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72",
+        "status": 200,
+        "bytes": 245,
+        "contentRange": "0-0/*"
+      },
+      {
+        "url": "/rest/v1/gastos_extras?select=id%2Ctipo%2Cmonto%2Cmotivo%2Ccreado_en%2Canulado%2Cvendedor_id%2Csucursal_id&vendedor_id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72&sucursal_id=eq.10000000-0000-0000-0000-000000000001&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&order=creado_en.desc%2Cid.desc&offset=0&limit=20",
+        "status": 206,
+        "bytes": 5898,
+        "rows": 20,
+        "contentRange": "0-19/303",
+        "firstId": "e2a00710-0006-4000-8000-000000000300",
+        "lastId": "e2a00710-0006-4000-8000-000000000281"
+      },
+      {
+        "url": "/rest/v1/gastos_extras?select=monto&vendedor_id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72&sucursal_id=eq.10000000-0000-0000-0000-000000000001&anulado=eq.false&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&order=id.asc&offset=0&limit=500",
+        "status": 200,
+        "bytes": 5465,
+        "rows": 303,
+        "contentRange": "0-302/303"
+      },
+      {
+        "url": "/rest/v1/gastos_extras?select=id%2Ctipo%2Cmonto%2Cmotivo%2Ccreado_en%2Canulado%2Cvendedor_id%2Csucursal_id&vendedor_id=eq.c5dabc9c-80cb-48fa-ac3f-0960ac71cd72&sucursal_id=eq.10000000-0000-0000-0000-000000000001&creado_en=gte.2026-10-14T03%3A00%3A00.000Z&creado_en=lt.2026-10-15T03%3A00%3A00.000Z&order=creado_en.desc%2Cid.desc&offset=20&limit=20",
+        "status": 206,
+        "bytes": 5898,
+        "rows": 20,
+        "contentRange": "20-39/303",
+        "firstId": "e2a00710-0006-4000-8000-000000000280",
+        "lastId": "e2a00710-0006-4000-8000-000000000261"
+      }
+    ]
+  }
+]

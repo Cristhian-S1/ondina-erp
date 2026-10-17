@@ -1,0 +1,14 @@
+[2026-10-15T00:13:41.528Z] Q1 baseline: base=http://127.0.0.1:5194 devices=mobile pages=login runs=3 out=/home/cristhian/orca/workspaces/ondina/l1-lighthouse/docs/archive/audits/2026-10-14/frontend-movil/lighthouse-L1-css-inline
+[2026-10-15T00:13:41.565Z] Servidor de medición OK en http://127.0.0.1:5194
+[2026-10-15T00:13:41.571Z] Chrome headless en puerto CDP 9222 (perfil /tmp/opencode/q1-chrome-profile-1792023221571)
+[2026-10-15T00:13:43.208Z] LH mobile/login/run1: npx http://127.0.0.1:5194/login --chrome-path=/usr/bin/google-chrome --chrome-flags=--headless=new --output=json --output-path=/tmp/opencode/q1-lhr-mobile-login-r1.json --only-categories=performance,accessibility,best-practices --max-wait-for-load=60000 --port=9222
+[2026-10-15T00:13:53.341Z] LISTO mobile/login/run1 (10.1s) perf=98 a11y=95 bp=100 lcp=1822 aud<1=5
+[2026-10-15T00:13:53.885Z] LH mobile/login/run2: npx http://127.0.0.1:5194/login --chrome-path=/usr/bin/google-chrome --chrome-flags=--headless=new --output=json --output-path=/tmp/opencode/q1-lhr-mobile-login-r2.json --only-categories=performance,accessibility,best-practices --max-wait-for-load=60000 --port=9222
+[2026-10-15T00:14:04.203Z] LISTO mobile/login/run2 (10.3s) perf=98 a11y=95 bp=100 lcp=1815 aud<1=5
+[2026-10-15T00:14:04.721Z] LH mobile/login/run3: npx http://127.0.0.1:5194/login --chrome-path=/usr/bin/google-chrome --chrome-flags=--headless=new --output=json --output-path=/tmp/opencode/q1-lhr-mobile-login-r3.json --only-categories=performance,accessibility,best-practices --max-wait-for-load=60000 --port=9222
+[2026-10-15T00:14:15.059Z] LISTO mobile/login/run3 (10.3s) perf=98 a11y=95 bp=100 lcp=1822 aud<1=5
+[2026-10-15T00:14:15.778Z] === MEDIANAS (por combinación) ===
+[2026-10-15T00:14:15.778Z] | Dispositivo | Página | Performance | Accessibility | Best Practices | LCP (ms) | TBT (ms) | CLS | Transferido (B) |
+[2026-10-15T00:14:15.778Z] | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+[2026-10-15T00:14:15.778Z] | mobile | login | 98 | 95 | 100 | 1822 | 0 | 0.000 | 174.988 |
+[2026-10-15T00:14:15.778Z] Duración total: 34 s; fallos: 0

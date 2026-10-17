@@ -1,4 +1,5 @@
-import type { IndicadorProducto, IndicadorProduccionDiario } from './types'
+import { formatMiles } from '../../lib/format'
+import type { EnvaseDisponible, IndicadorProducto, IndicadorProduccionDiario } from './types'
 
 export interface ResumenProduccion {
   totalUnidades: number
@@ -28,3 +29,14 @@ export function calcularResumenIndicadores(filas: IndicadorProduccionDiario[]): 
 }
 
 /** Calcula HU-22 desde movimientos reales, sin persistir métricas duplicadas. */
+
+/** Envases vacíos disponibles para producir un producto retornable; null si no hay límite conocido. */
+export function limiteEnvases(empaqueId: string | null | undefined, envases: EnvaseDisponible[]): number | null {
+  if (!empaqueId) return null
+  return envases.find(item => item.tipo_empaque_id === empaqueId)?.cantidad ?? null
+}
+
+export function mensajeLimiteEnvases(cantidad: number, limite: number | null): string | undefined {
+  if (limite === null || cantidad <= limite) return undefined
+  return limite === 1 ? 'Solo hay 1 envase vacío disponible para este producto.' : `Solo hay ${formatMiles(limite)} envases vacíos disponibles para este producto.`
+}

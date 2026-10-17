@@ -1,10 +1,16 @@
 {
   "baseline": {
-    "date": "2026-10-13",
-    "commit": "059172a",
-    "entryJsGzipBytes": 95970,
-    "entryCssGzipBytes": 43502,
-    "largestJsChunkRawBytes": 301916
+    "date": "2026-10-14",
+    "commit": "c2bcd87",
+    "entryJsGzipBytes": 91391,
+    "entryCssGzipBytes": 8405,
+    "largestJsChunkRawBytes": 294354,
+    "initialDate": "2026-10-14",
+    "initialCommit": "c2bcd87",
+    "initialJsGzipBytes": 149349,
+    "initialCssGzipBytes": 8405,
+    "cssDate": "2026-10-15",
+    "cssCommit": "5466c4e"
   },
   "headroomPercent": 10
 }

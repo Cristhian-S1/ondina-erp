@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import type { Role } from '../../types'
 import type { DomainModule } from '../../types/module'
+import EstadoVista from '../../components/EstadoVista'
 import { BarChartIcon, MapPinIcon, SettingsIcon, ShieldIcon } from '../../components/icons'
 
 const allowedRoles: Role[] = ['administrador']
@@ -21,10 +22,10 @@ const administracionModule: DomainModule = {
     { path: '/auditoria', label: 'Auditoría', icon: ShieldIcon, roles: allowedRoles },
   ],
   routes: [
-    { path: '/reportes', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Reportes /></Suspense> },
-    { path: '/ubicaciones', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Ubicaciones /></Suspense> },
-    { path: '/administracion', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Administracion /></Suspense> },
-    { path: '/auditoria', roles: allowedRoles, element: <Suspense fallback={<p role="status">Cargando página...</p>}><pages.Auditoria /></Suspense> },
+    { path: '/reportes', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Reportes /></Suspense> },
+    { path: '/ubicaciones', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Ubicaciones /></Suspense> },
+    { path: '/administracion', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Administracion /></Suspense> },
+    { path: '/auditoria', roles: allowedRoles, element: <Suspense fallback={<EstadoVista variante="cargando" mensaje="Cargando página..." />}><pages.Auditoria /></Suspense> },
   ],
 }
 

@@ -136,3 +136,56 @@ it('FE-05 · muestra error de vendedores sin borrar los datos del cliente', asyn
   expect(screen.getByPlaceholderText('Nombre o razón comercial')).toHaveValue('Almacén Sur')
   expect(screen.getByRole('button', { name: 'Guardar cliente' })).toBeDisabled()
 })
+
+it('A1-12 · errores describen controles con nombre estable y RHF enfoca el primero', async () => {
+  await renderModal()
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar cliente' }))
+  await screen.findByText('Ingresa el nombre')
+  for (const nombre of ['Nombre', 'Dirección']) {
+    const campo = screen.getByRole('textbox', { name: nombre, exact: true })
+    expect(campo).toHaveAttribute('aria-invalid', 'true')
+    const descripcion = document.getElementById(campo.getAttribute('aria-describedby')!)!
+    expect(descripcion).toBeInTheDocument()
+    expect((campo as HTMLInputElement).labels?.[0]).not.toContainElement(descripcion)
+    expect(campo).toHaveClass('border-red-400')
+  }
+  expect(screen.getByRole('textbox', { name: 'Nombre', exact: true })).toHaveFocus()
+})
+
+it('UX-21 · teléfono prepara teclado y autocompletado, nombre capitaliza palabras', async () => {
+  await renderModal()
+  const telefono = screen.getByRole('textbox', { name: 'Teléfono' })
+  expect(telefono).toHaveAttribute('type', 'tel')
+  expect(telefono).toHaveAttribute('inputmode', 'tel')
+  expect(telefono).toHaveAttribute('autocomplete', 'tel')
+  expect(screen.getByRole('textbox', { name: 'Nombre' })).toHaveAttribute('autocapitalize', 'words')
+})
+
+
+it('FX2 R4-06 · éxito bloquea Guardar hasta cerrar y no duplica clientes', async () => {
+  await renderModal()
+  fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Cliente único' } })
+  fireEvent.change(screen.getByLabelText('Dirección'), { target: { value: 'Calle 123' } })
+  const guardar = screen.getByRole('button', { name: 'Guardar cliente' })
+  fireEvent.click(guardar)
+  await screen.findByText('Cliente registrado.')
+  expect(guardar).toBeDisabled()
+  fireEvent.click(guardar)
+  expect(api.crearCliente).toHaveBeenCalledTimes(1)
+})
+
+
+it('FX2 R4-06 · doble clic antes de resolver la creación envía una sola petición', async () => {
+  let resolver!: (value: { error: string | null }) => void
+  vi.mocked(api.crearCliente).mockReturnValueOnce(new Promise(r => { resolver = r }))
+  renderWithProviders(<RegistrarCliente open={true} onClose={() => {}} />, { perfil: PERFIL })
+  fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Cliente único' } })
+  fireEvent.change(screen.getByLabelText('Dirección'), { target: { value: 'Calle 123' } })
+  const guardar = screen.getByRole('button', { name: 'Guardar cliente' })
+  fireEvent.click(guardar)
+  fireEvent.click(guardar)
+  await waitFor(() => expect(api.crearCliente).toHaveBeenCalledTimes(1))
+  resolver({ error: null })
+  await screen.findByText('Cliente registrado.')
+  expect(guardar).toBeDisabled()
+})

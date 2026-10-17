@@ -1,0 +1,23 @@
+title = "Ondina secret scanning"
+
+[extend]
+useDefault = true
+
+# Public anon JWT reviewed in the deleted setup guide; never a privileged key.
+# SHA-256: 85410bc506548bca60fbeb0096e9c5fa920a2f5838b2a1e0d7c10663eaf0007a
+# Match only that exact token at its historical path, not the archive tree.
+[[allowlists]]
+description = "Reviewed public Supabase anon key in the historical setup guide"
+targetRules = ["jwt"]
+condition = "AND"
+paths = ['''^docs/setup-vercel-supabase-github\.md$''']
+regexes = ['''^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoaXZsend0b2JoaWd1em1raWF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MDAzMzEsImV4cCI6MjEwMTM3NjMzMX0\.y3rDG43A7-thpQuZYJU3rpDXN-OPLRay2EJyfWJt_0A$''']
+
+# Synthetic credential strings that the Mem0 plugin's redaction tests feed to
+# redactSecrets(); they are fixtures, not credentials. Exact values, this file only.
+[[allowlists]]
+description = "Synthetic fixtures in the Mem0 OpenCode plugin redaction tests"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^\.opencode/plugins/mem0/index\.test\.ts$''']
+regexes = ['''^sk-abcdef1234567890$''', '''^abcdef123456$''', '''^hunter2SECRET$''']

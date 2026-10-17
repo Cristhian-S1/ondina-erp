@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { screen, waitFor, within, fireEvent } from '@testing-library/react'
 import { renderWithProviders, makePerfil } from '@/test/render'
 import RegistrarVenta from './RegistrarVenta'
@@ -8,6 +8,7 @@ vi.mock('@/domains/ventas/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/domains/ventas/api')>()
   return {
     ...actual,
+    obtenerResumenVenta: vi.fn().mockResolvedValue({ id: 'venta-123', total: 1733 }),
     obtenerClientesRuta: vi.fn(),
     obtenerProductosVenta: vi.fn(),
     obtenerCargaVendedor: vi.fn(),
@@ -35,11 +36,15 @@ const CLIENTES = [
   { id: 'c1', nombre: 'Doña María', telefono: null, direccion: 'Calle 1', numero_local: null, tipo: 'minorista', activo: true, creado_en: '2026-01-01T00:00:00Z' },
 ]
 
+// El desmontaje hace flush del borrador; aislar el siguiente caso después de ese cleanup.
+beforeEach(() => sessionStorage.clear())
+
 afterEach(() => {
   vi.mocked(api.obtenerClientesRuta).mockReset()
   vi.mocked(api.obtenerProductosVenta).mockReset()
   vi.mocked(api.obtenerCargaVendedor).mockReset()
   vi.mocked(api.registrarVenta).mockReset()
+  vi.mocked(api.obtenerResumenVenta).mockReset().mockResolvedValue({ id: 'venta-123', total: 1733 })
   sessionStorage.clear()
 })
 
@@ -60,6 +65,7 @@ async function renderForm() {
     const options = screen.getAllByRole('option')
     expect(options.some((o) => o.textContent?.includes('Bidón POL'))).toBe(true)
   })
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Confirmar venta' })).toBeEnabled())
 }
 
 function setNativeValue(el: HTMLSelectElement | HTMLInputElement, value: string) {
@@ -139,25 +145,57 @@ describe('HU-01 · RegistrarVenta — cantidad 0', () => {
   })
 })
 
-describe('HU-01 · RegistrarVenta — máximo 6 productos', () => {
-  it('deshabilita el botón Agregar producto al llegar a 6 filas', async () => {
-    await renderForm()
-
-    // Empezamos con 3 filas (POL/PET/CUBO). Agregamos 3 más para llegar a 6.
-    const agregarBtn = screen.getByRole('button', { name: /Agregar producto/i })
-    expect((agregarBtn as HTMLButtonElement).disabled).toBe(false)
-
-    fireEvent.click(agregarBtn)
-    fireEvent.click(agregarBtn)
-    fireEvent.click(agregarBtn)
-
-    await waitFor(() => {
-      expect((agregarBtn as HTMLButtonElement).disabled).toBe(true)
-    })
-
-    // Debe mostrar el mensaje de límite
-    expect(screen.getByText(/Máximo 6 productos por venta/i)).toBeInTheDocument()
+describe('F1 · máximo dinámico de productos activos', () => {
+  it.each([7, 10])('adapta el límite a un catálogo de %i productos', async (total) => {
+    setup()
+    const catalogo = Array.from({ length: total }, (_, i) => ({ ...PRODUCTOS[i % 3], id: `p${i + 1}`, nombre: i < 3 ? PRODUCTOS[i].nombre : `Producto ${i + 1}` }))
+    vi.mocked(api.obtenerProductosVenta).mockResolvedValue(catalogo)
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Producto 7/ })
+    const agregar = screen.getByRole('button', { name: 'Agregar producto' })
+    for (let i = 3; i < total; i++) {
+      expect(agregar).toBeEnabled()
+      fireEvent.click(agregar)
+    }
+    expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(total)
+    expect(agregar).toBeDisabled()
+    expect(agregar).toHaveAccessibleDescription(`Máximo ${total} productos por venta: ya agregaste todos los productos activos del catálogo.`)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Quitar' })[total - 1])
+    expect(agregar).toBeEnabled()
   })
+
+  it('respeta un catálogo menor que las tres filas predeterminadas', async () => {
+    setup()
+    vi.mocked(api.obtenerProductosVenta).mockResolvedValue(PRODUCTOS.slice(0, 1))
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Bidón POL/ })
+    await waitFor(() => expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(1))
+    expect(screen.getByRole('button', { name: 'Agregar producto' })).toBeDisabled()
+  })
+
+  it('restaura borradores de diez productos sin el tope antiguo de seis', async () => {
+    setup()
+    const catalogo = Array.from({ length: 10 }, (_, i) => ({ ...PRODUCTOS[0], id: `p${i + 1}`, nombre: `Producto ${i + 1}` }))
+    vi.mocked(api.obtenerProductosVenta).mockResolvedValue(catalogo)
+    sessionStorage.setItem('ondina:draft-registrar-venta:vendedor-1', JSON.stringify({ clienteId: 'c1', metodoPago: 'efectivo', descuento: 0, detalles: catalogo.map(p => ({ productoId: p.id, cantidad: 2, precioUnitario: 1000 })) }))
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findByRole('option', { name: 'Doña María' })
+    expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(10)
+    expect(screen.getAllByRole('textbox', { name: /^Cantidad de/ })[9]).toHaveValue('2')
+  })
+})
+
+it('F1 · cantidad usa flechas y conserva el error de carga al incrementarla', async () => {
+  await renderForm()
+  const cantidad = screen.getByLabelText('Cantidad de Bidón POL')
+  fireEvent.change(cantidad, { target: { value: '1000' } })
+  fireEvent.click(screen.getAllByRole('button', { name: 'Aumentar', exact: true })[0])
+  expect(cantidad).toHaveValue('1.001')
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(cantidad).toHaveAccessibleDescription('Excede tu carga')
+  fireEvent.keyDown(cantidad, { key: 'ArrowDown' })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(screen.getAllByRole('button', { name: 'Aumentar', exact: true })).toHaveLength(3)
 })
 
 describe('HU-01 · RegistrarVenta — Toast sin productos válidos', () => {
@@ -207,5 +245,225 @@ describe('Accesibilidad · RegistrarVenta', () => {
     expect(screen.getByRole('combobox', { name: 'Producto 2' })).toHaveValue('p2')
     expect(screen.getByRole('combobox', { name: 'Producto 3' })).toHaveValue('p3')
     expect(screen.getByLabelText('Método de pago')).toBeInTheDocument()
+  })
+})
+
+it('A1-12 · cliente inválido conserva nombre, descripción y foco RHF', async () => {
+  await renderForm()
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await screen.findByText('Selecciona un cliente')
+  const campo = screen.getByRole('combobox', { name: 'Cliente de tu cartera', exact: true })
+  expect(campo).toHaveAttribute('aria-invalid', 'true')
+  expect(campo).toHaveClass('border-red-400')
+  expect(document.getElementById(campo.getAttribute('aria-describedby')!)).toHaveTextContent('Selecciona un cliente')
+  expect(campo).toHaveFocus()
+})
+
+it.each(['sin carga', 'sin clientes', 'administrador'] as const)('UX-06/A1-17 · explica y bloquea %s antes de enviar', async (caso) => {
+  setup()
+  if (caso === 'sin carga') vi.mocked(api.obtenerCargaVendedor).mockResolvedValue([])
+  if (caso === 'sin clientes') vi.mocked(api.obtenerClientesRuta).mockResolvedValue([])
+  renderWithProviders(<RegistrarVenta />, { perfil: makePerfil({ id: 'vendedor-1', rol: caso === 'administrador' ? 'administrador' : 'vendedor' }) })
+  const motivo = await screen.findByText(caso === 'sin carga' ? /pídela a bodega/i : caso === 'sin clientes' ? /crea un cliente para continuar/i : /administrador.*venta.*vendedor/i)
+  const boton = screen.getByRole('button', { name: 'Confirmar venta' })
+  expect(boton).toBeDisabled()
+  expect(boton.getAttribute('aria-describedby')?.split(' ')).toContain(motivo.id)
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it('A1-13 · Reintentar recupera lecturas sin reenviar ventas y conserva observaciones', async () => {
+  setup()
+  vi.mocked(api.obtenerClientesRuta).mockRejectedValueOnce(new Error('fallo')).mockResolvedValue(CLIENTES)
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  await screen.findByRole('alert')
+  fireEvent.change(screen.getByLabelText('Observaciones'), { target: { value: 'Pedido pendiente' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await screen.findByRole('option', { name: 'Doña María' })
+  expect(screen.getByLabelText('Observaciones')).toHaveValue('Pedido pendiente')
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it('UX-05/A1-06 · éxito conserva folio completo y refresca carga una sola vez', async () => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await screen.findByRole('heading', { name: 'Venta registrada' })
+  expect(screen.getByLabelText('Folio de la venta')).toHaveValue('venta-123')
+  expect(screen.getByRole('button', { name: 'Registrar otra venta' })).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Ir a Ventas' })).toHaveAttribute('href', '/ventas')
+  await waitFor(() => expect(api.obtenerCargaVendedor).toHaveBeenCalledTimes(2))
+})
+
+it('UX-05 · si falla el resumen conserva folio y cliente y reintenta sólo la lectura', async () => {
+  await renderForm()
+  vi.mocked(api.obtenerResumenVenta).mockRejectedValueOnce(new Error('fallo de red'))
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await screen.findByRole('alert')
+  expect(screen.getByLabelText('Folio de la venta')).toHaveValue('venta-123')
+  expect(screen.getByText('Doña María')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByText('$ 1.733')).toBeInTheDocument()
+  expect(api.registrarVenta).toHaveBeenCalledTimes(1)
+  expect(api.obtenerResumenVenta).toHaveBeenCalledTimes(2)
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar otra venta' }))
+  expect(screen.getByRole('heading', { name: 'Registrar venta' })).toBeInTheDocument()
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('')
+  expect(screen.getByLabelText('Cantidad de Bidón POL')).toHaveValue('')
+})
+
+it('A1-12 · error de cantidad mantiene nombre e ID al corregir', async () => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  const cantidad = screen.getByLabelText('Cantidad de Bidón POL')
+  const id = cantidad.id
+  fireEvent.change(cantidad, { target: { value: '1001' } })
+  expect(cantidad).toHaveAttribute('aria-invalid', 'true')
+  expect(document.getElementById(cantidad.getAttribute('aria-describedby')!)).toHaveTextContent('Excede tu carga')
+  fireEvent.change(cantidad, { target: { value: '2' } })
+  expect(cantidad.id).toBe(id)
+  expect(cantidad).toHaveAttribute('aria-invalid', 'false')
+  expect(cantidad).not.toHaveAttribute('aria-describedby')
+})
+
+it('A1-13 · recuperar productos conserva cliente, cantidad y observaciones ingresados durante el fallo', async () => {
+  setup()
+  vi.mocked(api.obtenerProductosVenta).mockRejectedValueOnce(new Error('fallo')).mockResolvedValue(PRODUCTOS)
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  await screen.findByRole('alert')
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de producto 1'), { target: { value: '7' } })
+  fireEvent.change(screen.getByLabelText('Observaciones'), { target: { value: 'Conservar al reintentar' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  await waitFor(() => expect(screen.getByLabelText('Producto 1')).toHaveValue('p1'))
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('c1')
+  expect(screen.getByLabelText('Cantidad de Bidón POL')).toHaveValue('7')
+  expect(screen.getByLabelText('Observaciones')).toHaveValue('Conservar al reintentar')
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+
+it('FX2 R4-01 · restaura el cliente cuando las opciones del borrador llegan tarde', async () => {
+  setup()
+  let resolver!: (value: typeof CLIENTES) => void
+  vi.mocked(api.obtenerClientesRuta).mockReturnValueOnce(new Promise(r => { resolver = r }))
+  sessionStorage.setItem('ondina:draft-registrar-venta:vendedor-1', JSON.stringify({ clienteId: 'c1', metodoPago: 'efectivo', descuento: 0, observaciones: 'Restaurado', detalles: [{ productoId: 'p1', cantidad: 2, precioUnitario: 1000 }] }))
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  resolver(CLIENTES)
+  await screen.findByRole('option', { name: 'Doña María' })
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('c1')
+})
+
+it('FX2 R4-01 · cliente ausente del catálogo se limpia y avisa sin enviarlo oculto', async () => {
+  setup()
+  sessionStorage.setItem('ondina:draft-registrar-venta:vendedor-1', JSON.stringify({ clienteId: 'retirado', metodoPago: 'efectivo', descuento: 0, detalles: [{ productoId: 'p1', cantidad: 2, precioUnitario: 1000 }] }))
+  renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+  await screen.findByText(/El cliente del borrador ya no está disponible/)
+  expect(screen.getByLabelText('Cliente de tu cartera')).toHaveValue('')
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it.each(['precio', 'descuento'])('FX2 R4-02 · total cero por %s requiere confirmación explícita', async (caso) => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.change(screen.getByLabelText(caso === 'precio' ? 'Precio unitario de Bidón POL' : 'Descuento (CLP)'), { target: { value: caso === 'precio' ? '' : '2000' } })
+  await screen.findByText(/El total de la venta es \$0/)
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  const dialogo = await screen.findByRole('dialog', { name: 'Confirmar venta sin cobro' })
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+  fireEvent.click(within(dialogo).getByRole('button', { name: 'Confirmar venta por $0' }))
+  await screen.findByRole('heading', { name: 'Venta registrada' })
+  expect(api.registrarVenta).toHaveBeenCalledTimes(1)
+})
+
+it.each(['vacío','exceso'])('FX2 R4-03 · %s se asocia a cantidad con foco y sin Toast duplicado', async (caso) => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  const cantidad = screen.getByLabelText('Cantidad de Bidón POL')
+  if (caso === 'exceso') fireEvent.change(cantidad, { target: { value: '1001' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  await waitFor(() => expect(cantidad).toHaveAttribute('aria-invalid', 'true'))
+  expect(cantidad).toHaveFocus()
+  const mensaje = document.getElementById(cantidad.getAttribute('aria-describedby')!)!
+  expect(mensaje).toHaveTextContent(caso === 'vacío' ? 'Agrega al menos un producto' : 'solo tienes 1000')
+  expect(screen.queryByRole('button', { name: 'Cerrar notificación' })).not.toBeInTheDocument()
+  expect(api.registrarVenta).not.toHaveBeenCalled()
+})
+
+it('FX2 R4-04 · enfoca resumen, anuncia copia fallida y devuelve foco al cliente', async () => {
+  await renderForm()
+  fireEvent.change(screen.getByLabelText('Cliente de tu cartera'), { target: { value: 'c1' } })
+  fireEvent.change(screen.getByLabelText('Cantidad de Bidón POL'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar venta' }))
+  const titulo = await screen.findByRole('heading', { name: 'Venta registrada' })
+  await waitFor(() => expect(titulo).toHaveFocus())
+  expect(screen.getByRole('status')).toHaveTextContent('La venta quedó confirmada')
+  vi.stubGlobal('navigator', { ...navigator, clipboard: undefined })
+  try {
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar folio' }))
+    expect(await screen.findByText(/No se pudo copiar el folio/)).toHaveAttribute('role','status')
+  } finally { vi.unstubAllGlobals() }
+  fireEvent.click(screen.getByRole('button', { name: 'Registrar otra venta' }))
+  await waitFor(() => expect(screen.getByLabelText('Cliente de tu cartera')).toHaveFocus())
+})
+
+it('FX2 R4-05 · administrador no puede editar los campos del formulario', async () => {
+  setup()
+  renderWithProviders(<RegistrarVenta />, { perfil: makePerfil({ rol: 'administrador' }) })
+  await screen.findByText(/El administrador consulta la gestión de ventas/)
+  expect(screen.getByLabelText('Cliente de tu cartera')).toBeDisabled()
+  expect(screen.getByLabelText('Observaciones')).toBeDisabled()
+  expect(screen.getByRole('button', { name: 'Agregar producto' })).toBeDisabled()
+})
+
+describe('M1 · tarjeta individual por línea de producto', () => {
+  it('renderiza una tarjeta por línea con encabezado, Quitar y sin duplicar controles', async () => {
+    setup()
+    renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Bidón POL/ })
+    const tarjetas = screen.getAllByTestId('linea-producto-venta')
+    expect(tarjetas).toHaveLength(3)
+    tarjetas.forEach((tarjeta, index) => {
+      expect(tarjeta).toHaveTextContent(`Línea ${index + 1}`)
+      expect(tarjeta.querySelectorAll('button').length).toBeGreaterThanOrEqual(1)
+    })
+    expect(screen.getAllByRole('button', { name: 'Quitar' })).toHaveLength(3)
+    expect(screen.getAllByRole('combobox', { name: /^Producto \d+$/ })).toHaveLength(3)
+    expect(screen.getAllByLabelText(/^Cantidad de /)).toHaveLength(3)
+    expect(screen.getAllByLabelText(/^Precio unitario de /)).toHaveLength(3)
+  })
+
+  it('C3-01/C3-02 · umbral tabla/tarjeta por ancho del contenedor, un único árbol y tarjeta compacta', async () => {
+    setup()
+    const { container } = renderWithProviders(<RegistrarVenta />, { perfil: PERFIL })
+    await screen.findAllByRole('option', { name: /Bidón POL/ })
+    const tabla = screen.getByRole('table')
+    const contenedor = tabla.parentElement?.parentElement
+    expect(contenedor).toHaveClass('@container')
+    expect(tabla).toHaveClass('@4xl:table')
+    expect(container.innerHTML).not.toMatch(/(^|[\s"])lg:(table|hidden)/)
+    const tarjetas = screen.getAllByTestId('linea-producto-venta')
+    tarjetas.forEach(tarjeta => {
+      expect(tarjeta).toHaveClass('flex', '@4xl:table-row')
+      // Disponible como metadato junto al nombre; Cantidad y Precio comparten fila desde 400 px (bajo eso se apilan: 9.999.999 no cabe junto a las flechas).
+      const celdas = within(tarjeta).getAllByRole('cell', { hidden: true })
+      expect(celdas[0]).toHaveClass('order-[-2]')
+      expect(within(tarjeta).getByText('Disponible').closest('td')).toHaveClass('order-[-1]')
+      expect(within(tarjeta).getByLabelText(/^Cantidad de /).closest('td')).toHaveClass('min-[400px]:basis-[calc(60%-0.375rem)]')
+      expect(within(tarjeta).getByLabelText(/^Precio unitario de /).closest('td')).toHaveClass('min-[400px]:basis-[calc(40%-0.375rem)]')
+    })
+    // La barra fija de total no tapa el último campo ni los botones (Quitar) al enfocar.
+    expect(container.querySelector('form')).toHaveClass('pb-28', '[&_input]:scroll-mb-28', '[&_button]:scroll-mb-28')
+    // Etiquetas de Cantidad/Precio con altura común para alinear los inputs.
+    tarjetas.forEach(tarjeta => {
+      for (const campo of [/^Cantidad de /, /^Precio unitario de /]) {
+        expect(within(tarjeta).getByLabelText(campo).closest('td')).toHaveClass('min-[400px]:max-sm:[&_label]:h-10')
+      }
+    })
+    expect(screen.getAllByLabelText(/^Cantidad de /)).toHaveLength(tarjetas.length)
   })
 })

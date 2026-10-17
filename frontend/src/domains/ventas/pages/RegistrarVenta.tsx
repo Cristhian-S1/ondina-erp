@@ -1,9 +1,9 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { formatMiles, formatMilesInput, parseMiles } from '../../../lib/format'
 import { mensajeErrorSupabase } from '../../../lib/errors'
 import { useAuth } from '../../../context/auth-context'
 import { useClientesRuta } from '../hooks/useClientesRuta'
@@ -14,19 +14,16 @@ import { registrarVentaSchema, type RegistrarVentaForm, type RegistrarVentaFormI
 import type { DetalleVentaDraft, ProductoVenta } from '../types'
 import { Toast } from '../../../components/Toast'
 import { useToast } from '../../../components/toast-utils'
-import {
-  btnPrimary,
-  btnSecondary,
-  cardCls,
-  errorTextCls,
-  errorBlockCls,
-  inputCls,
-  inputErrorCls,
-  labelCls,
-  tdCls,
-  thCls,
-} from '../../../lib/ui'
-import { PlusCircleIcon, ShoppingCartIcon } from '../../../components/icons'
+import Dialog from '../../../components/Dialog'
+import EstadoVista from '../../../components/EstadoVista'
+import InputNumerico from '../../../components/InputNumerico'
+import { btnSecondary, cardCls, errorTextCls, thCls } from '../../../lib/ui'
+import { PlusCircleIcon } from '../../../components/icons'
+import CampoFormulario from '../../../components/CampoFormulario'
+import FilaProductoVenta from '../components/FilaProductoVenta'
+import PersistenciaBorradorVenta from '../components/PersistenciaBorradorVenta'
+import ResumenFormularioVenta from '../components/ResumenFormularioVenta'
+import ResumenVentaConfirmada from '../components/ResumenVentaConfirmada'
 
 const METODOS: { value: 'efectivo' | 'transferencia'; label: string }[] = [
   { value: 'efectivo', label: 'Efectivo' },
@@ -37,18 +34,11 @@ const STORAGE_PREFIX = 'ondina:draft-registrar-venta:'
 
 const PRODUCTOS_DEFAULT = ['Bidón POL', 'Bidón PET', 'Hielo CUBO']
 
-// HU-01: limite maximo de productos por venta
-const MAX_PRODUCTOS = 6
-
 const DETALLES_VACIOS: DetalleVentaDraft[] = PRODUCTOS_DEFAULT.map(() => ({
   productoId: '',
   cantidad: 0,
   precioUnitario: 0,
 }))
-
-function fmtCLP(n: number) {
-  return formatMiles(n)
-}
 
 const draftSchema = registrarVentaSchema.extend({
   clienteId: z.string(),
@@ -57,7 +47,7 @@ const draftSchema = registrarVentaSchema.extend({
     productoId: z.string(),
     cantidad: z.number().int().min(0),
     precioUnitario: z.number().min(0),
-  })).min(1).max(MAX_PRODUCTOS),
+  })).min(1),
 })
 
 function cargarDraft(key: string): RegistrarVentaForm | null {
@@ -71,14 +61,6 @@ function cargarDraft(key: string): RegistrarVentaForm | null {
   }
   limpiarDraft(key)
   return null
-}
-
-function guardarDraft(key: string, form: RegistrarVentaFormInput) {
-  try {
-    sessionStorage.setItem(key, JSON.stringify(form))
-  } catch {
-    // noop
-  }
 }
 
 function limpiarDraft(key: string) {
@@ -96,7 +78,7 @@ function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVen
       metodoPago: 'efectivo',
       descuento: 0,
       observaciones: '',
-      detalles: PRODUCTOS_DEFAULT.map((nombre) => {
+      detalles: PRODUCTOS_DEFAULT.slice(0, productos.length).map((nombre) => {
         const p = productos.find((x) => x.nombre === nombre)
         return p
           ? { productoId: p.id, cantidad: 0, precioUnitario: p.precio_base }
@@ -117,86 +99,94 @@ function construirDefaults(productos: ProductoVenta[] | undefined): RegistrarVen
 
 export default function RegistrarVenta() {
   const { perfil } = useAuth()
-  return <FormularioVenta key={perfil?.id ?? 'sin-sesion'} />
+  const identidad = useRef(perfil?.id)
+  // El cleanup del borrador anterior no debe recrearlo después de un cambio de identidad.
+  useLayoutEffect(() => { identidad.current = perfil?.id }, [perfil?.id])
+  return <FormularioVenta key={perfil?.id ?? 'sin-sesion'} identidad={identidad} />
 }
 
-function FormularioVenta() {
+function FormularioVenta({ identidad }: { identidad: RefObject<string | undefined> }) {
   const { perfil } = useAuth()
   const storageKey = perfil ? `${STORAGE_PREFIX}${perfil.id}` : null
   const [draft] = useState(() => storageKey ? cargarDraft(storageKey) : null)
-  const [completed, setCompleted] = useState(false)
+  const [confirmada, setConfirmada] = useState<{ id: string; cliente: string } | null>(null)
+  const [ventaCero, setVentaCero] = useState<RegistrarVentaForm | null>(null)
+  const volverAlCliente = useRef(false)
+  const draftActivo = useRef(true)
   const navigate = useNavigate()
   const clientes = useClientesRuta()
   const productos = useProductosVenta()
   const carga = useCargaVendedor()
-  const errorLectura = clientes.error || productos.error || carga.error
   const registrar = useRegistrarVenta()
   const { toast, mostrar, cerrar } = useToast()
-  const clienteId = useId()
-
-  const defaults = useMemo(
-    () => construirDefaults(productos.data),
-    [productos.data],
-  )
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm<RegistrarVentaFormInput, unknown, RegistrarVentaForm>({
-    resolver: zodResolver(registrarVentaSchema),
-    defaultValues: draft ?? defaults,
+  const motivoBase = useId()
+  const defaults = useMemo(() => construirDefaults(productos.data), [productos.data])
+  const { register, handleSubmit, control, reset, subscribe, getValues, getFieldState, setValue, setError, setFocus, formState: { errors } } = useForm<RegistrarVentaFormInput, unknown, RegistrarVentaForm>({
+    resolver: zodResolver(registrarVentaSchema), defaultValues: draft ?? defaults,
   })
-
   const { fields, append, remove } = useFieldArray({ control, name: 'detalles' })
-
+  const maxProductos = productos.data?.length ?? 0
+  const limiteId = `${motivoBase}-limite-productos`
+  const motivoLimite = productos.isPending ? 'Cargando catálogo de productos...'
+    : productos.isError ? 'No fue posible cargar el catálogo. Reintenta para agregar productos.'
+    : maxProductos === 0 ? 'No hay productos activos en el catálogo.'
+    : fields.length >= maxProductos ? `Máximo ${maxProductos} productos por venta: ya agregaste todos los productos activos del catálogo.`
+    : undefined
   const didInitRef = useRef(false)
   useEffect(() => {
     if (!didInitRef.current && productos.data?.length) {
       didInitRef.current = true
-      reset(draft ?? defaults)
+      // Completar el catálogo tardío sin borrar lo escrito mientras fallaba la lectura.
+      if (!draft) defaults.detalles.forEach((detalle, index) => {
+        if (!getValues(`detalles.${index}`)) return
+        const producto = `detalles.${index}.productoId` as const
+        const precio = `detalles.${index}.precioUnitario` as const
+        if (!getFieldState(producto).isDirty) setValue(producto, detalle.productoId)
+        if (!getFieldState(precio).isDirty) setValue(precio, detalle.precioUnitario)
+      })
+      // Si el catálogo tiene menos de tres productos, quitar sólo filas iniciales vacías.
+      if (!draft) {
+        const sobrantes = getValues('detalles').flatMap((detalle, index) =>
+          index >= productos.data!.length && !detalle.productoId && !detalle.cantidad && !detalle.precioUnitario ? [index] : [])
+        if (sobrantes.length) remove(sobrantes)
+      }
     }
-  }, [productos.data, defaults, draft, reset])
-
-  const formValues = useWatch({ control })
-  const first = useWatch({ control, name: 'detalles' })
+  }, [productos.data, defaults, draft, getValues, getFieldState, setValue, remove])
   useEffect(() => {
-    if (storageKey && didInitRef.current && !completed && formValues.detalles) {
-      guardarDraft(storageKey, formValues as RegistrarVentaFormInput)
+    if (!clientes.data) return
+    const actual = getValues('clienteId')
+    if (actual && !clientes.data.some(item => item.id === actual)) {
+      setValue('clienteId', '')
+      setError('clienteId', { type: 'catalogo', message: 'El cliente del borrador ya no está disponible. Selecciona otro cliente.' })
     }
-  }, [formValues, storageKey, completed])
-
-  const productoPorId = useMemo(() => {
-    const m = new Map<string, ProductoVenta>()
-    for (const p of productos.data ?? []) m.set(p.id, p)
-    return m
-  }, [productos.data])
-
-  const cargaPorProducto = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const c of carga.data ?? []) m.set(c.producto_id, c.cantidad)
-    return m
-  }, [carga.data])
-
-  function onChangeProducto(index: number, id: string) {
-    const prod = productoPorId.get(id)
-    if (prod) setValue(`detalles.${index}.precioUnitario`, prod.precio_base)
+  }, [clientes.data, getValues, setValue, setError])
+  useEffect(() => {
+    if (!confirmada && volverAlCliente.current) {
+      volverAlCliente.current = false
+      setFocus('clienteId')
+    }
+  }, [confirmada, setFocus])
+  const idsSeleccionados = useWatch({ control, name: 'detalles', compute: detalles => detalles.map(item => item.productoId).join('|') }).split('|')
+  const productoPorId = useMemo(() => new Map((productos.data ?? []).map(item => [item.id, item])), [productos.data])
+  const cargaPorProducto = useMemo(() => new Map((carga.data ?? []).map(item => [item.producto_id, item.cantidad])), [carga.data])
+  const esAdmin = perfil?.rol === 'administrador'
+  const errorLectura = clientes.error || productos.error || carga.error
+  const cargando = clientes.isLoading || productos.isLoading || carga.isLoading
+  const motivos: string[] = []
+  if (!perfil) motivos.push('No hay sesión activa.')
+  else if (esAdmin) motivos.push('El administrador consulta la gestión de ventas; para registrar una venta debe ingresar un vendedor con su propia cartera y carga.')
+  else if (errorLectura) motivos.push('No fue posible cargar los datos de la venta. Reintenta las lecturas para continuar.')
+  else if (cargando) motivos.push('Cargando los datos necesarios para registrar la venta...')
+  else {
+    if (!clientes.data?.length) motivos.push('Crea un cliente para continuar con la venta.')
+    if (!carga.data?.some(item => item.cantidad > 0)) motivos.push('Aún no tienes carga asignada disponible; pídela a bodega antes de confirmar.')
+  }
+  const motivoIds = motivos.map((_, index) => `${motivoBase}-${index}`)
+  async function reintentarLecturas() {
+    await Promise.all([clientes, productos, carga].filter(consulta => consulta.error).map(consulta => consulta.refetch()))
   }
 
-  const detalles = first
-  const descuento = useWatch({ control, name: 'descuento' })
-  const totalPreview = useMemo(() => {
-    const sub = (detalles ?? []).reduce(
-      (sum, d) => sum + (Number(d?.cantidad) || 0) * (Number(d?.precioUnitario) || 0),
-      0,
-    )
-    return Math.max(0, sub - (Number(descuento) || 0))
-  }, [detalles, descuento])
-
-  function validarCarga(values: RegistrarVentaForm): string | null {
+  function validarCarga(values: RegistrarVentaForm): { index: number; mensaje: string } | null {
     const cantidadesPorProducto = new Map<string, number>()
     for (const d of values.detalles) {
       if (!d.productoId || d.cantidad <= 0) continue
@@ -207,411 +197,103 @@ function FormularioVenta() {
       const disponible = cargaPorProducto.get(productoId)
       if (disponible === undefined) {
         const prod = productoPorId.get(productoId)
-        return `No tienes carga asignada de ${prod?.nombre ?? 'ese producto'}.`
+        return { index: values.detalles.findIndex(item => item.productoId === productoId), mensaje: `No tienes carga asignada de ${prod?.nombre ?? 'ese producto'}.` }
       }
       if (cantidadTotal > disponible) {
         const prod = productoPorId.get(productoId)
-        return `No puedes vender ${cantidadTotal} de ${prod?.nombre ?? 'este producto'}: solo tienes ${disponible} en carga.`
+        return { index: values.detalles.findIndex(item => item.productoId === productoId), mensaje: `No puedes vender ${cantidadTotal} de ${prod?.nombre ?? 'este producto'}: solo tienes ${disponible} en carga.` }
       }
     }
     return null
   }
 
   function onSubmit(values: RegistrarVentaForm) {
-    if (errorLectura) {
-      mostrar('No fue posible cargar los datos de la venta. Inténtalo de nuevo.', 'error')
-      return
-    }
-    const limpio = {
-      ...values,
-      detalles: values.detalles.filter((d) => d.productoId && d.cantidad > 0),
-    }
-    // HU-01: filtrar cantidad>0 porque el schema permite 0
-    if (limpio.detalles.length === 0) {
-      mostrar('Agrega al menos un producto con cantidad mayor a 0.', 'error')
-      return
-    }
-
-    const errCarga = validarCarga(limpio)
-    if (errCarga) {
-      mostrar(errCarga, 'error')
-      return
-    }
-
-    registrar.mutate(limpio, {
-      onSuccess: (res) => {
+    if (motivos.length) return
+    if (values.detalles.length > maxProductos) return setError('detalles', { type: 'catalogo', message: `El catálogo tiene ${maxProductos} productos activos. Quita las filas adicionales antes de confirmar.` })
+    const limpio = { ...values, detalles: values.detalles.filter(item => item.productoId && item.cantidad > 0) }
+    if (!limpio.detalles.length) return setError('detalles.0.cantidad', { type: 'validacion', message: 'Agrega al menos un producto con cantidad mayor a 0.' }, { shouldFocus: true })
+    const errCarga = validarCarga(values)
+    if (errCarga) return setError(`detalles.${errCarga.index}.cantidad`, { type: 'carga', message: errCarga.mensaje }, { shouldFocus: true })
+    const total = Math.max(0, limpio.detalles.reduce((sum, item) => sum + item.cantidad * item.precioUnitario, 0) - limpio.descuento)
+    if (total === 0) return setVentaCero(limpio)
+    enviarVenta(limpio)
+  }
+  function enviarVenta(values: RegistrarVentaForm) {
+    setVentaCero(null)
+    registrar.mutate(values, {
+      onSuccess: res => {
         if (res.id) {
-          setCompleted(true)
+          draftActivo.current = false
           if (storageKey) limpiarDraft(storageKey)
+          setConfirmada({ id: res.id, cliente: clientes.data?.find(item => item.id === values.clienteId)?.nombre ?? 'Cliente' })
           reset(defaults)
-          mostrar(`Venta registrada. Folio: ${res.id.substring(0, 8)}`, 'exito')
-          void carga.refetch()
-          setTimeout(() => navigate('/ventas'), 2000)
-        } else if (res.error) {
-          mostrar(res.error, 'error')
-        }
+          cerrar()
+        } else if (res.error) mostrar(res.error, 'error')
       },
-      onError: (err) => {
-        mostrar(mensajeErrorSupabase(err), 'error')
-      },
+      onError: err => mostrar(mensajeErrorSupabase(err), 'error'),
     })
   }
+  if (confirmada) return <ResumenVentaConfirmada {...confirmada} perfilId={perfil?.id ?? ''} onOtra={() => {
+    draftActivo.current = true
+    volverAlCliente.current = true
+    setConfirmada(null)
+    reset(defaults)
+  }} />
 
-  return (
-    <>
-      <Toast toast={toast} onClose={cerrar} />
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Registrar venta</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Cliente, productos y pago. La venta se confirma en una sola operación.
-            </p>
-          </div>
-          <button type="button" className={btnSecondary} onClick={() => navigate('/ventas')}>
-            Cancelar
-          </button>
+  return <>
+    <PersistenciaBorradorVenta storageKey={storageKey} identidad={identidad} activo={draftActivo} subscribe={subscribe} getValues={getValues} />
+    <Toast toast={toast} onClose={cerrar} />
+    <form onSubmit={event => void handleSubmit(onSubmit)(event)} className="min-w-0 space-y-6 pb-28 sm:pb-0 [&_input]:scroll-mb-28 [&_select]:scroll-mb-28 [&_button]:scroll-mb-28 sm:[&_input]:scroll-mb-0 sm:[&_select]:scroll-mb-0 sm:[&_button]:scroll-mb-0" noValidate>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <div><h1 className="text-2xl font-bold text-slate-900">Registrar venta</h1><p className="mt-1 text-sm text-slate-600">Elige cliente, productos y forma de pago para confirmar tu venta.</p></div>
+        <button type="button" className={btnSecondary} onClick={() => navigate('/ventas')}>Cancelar</button>
+      </div>
+      {motivos.map((motivo, index) => <div key={motivoIds[index]}>
+        {errorLectura && !esAdmin ? <div id={motivoIds[index]}><EstadoVista variante="error" mensaje="No fue posible cargar los datos de la venta. Revisa tu conexión e inténtalo de nuevo." onReintentar={() => void reintentarLecturas()} /></div>
+          : cargando && !esAdmin ? <div id={motivoIds[index]}><EstadoVista variante="cargando" mensaje={motivo} /></div>
+          : <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"><p id={motivoIds[index]}>{motivo}</p>{!esAdmin && motivo.startsWith('Crea') && <Link to="/clientes" className="inline-flex min-h-11 items-center font-medium text-brand-800 underline">Crea uno primero</Link>}</div>}
+      </div>)}
+      <fieldset disabled={esAdmin} className="min-w-0 space-y-6 border-0 p-0">
+      <section className={cardCls}>
+        <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">1 · Cliente</h2>
+        <div className="p-5"><CampoFormulario etiqueta="Cliente de tu cartera" error={errors.clienteId?.message}>
+          {atributos => <Controller control={control} name="clienteId" render={({ field }) => <select {...atributos} {...field}><option value="">Selecciona un cliente...</option>{clientes.data?.map(item => <option key={item.id} value={item.id}>{item.nombre}</option>)}</select>} />}
+        </CampoFormulario></div>
+      </section>
+      <section className={`${cardCls} min-w-0`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+          <h2 className="font-semibold">2 · Productos</h2>
+          <button type="button" className={btnSecondary} disabled={!!motivoLimite} aria-describedby={motivoLimite ? limiteId : undefined} onClick={() => append({ productoId: '', cantidad: 0, precioUnitario: 0 })}><PlusCircleIcon className="h-4 w-4" />Agregar producto</button>
+          {motivoLimite && <span id={limiteId} className={errorTextCls}>{motivoLimite}</span>}
         </div>
-
-        {errorLectura && (
-          <p role="alert" className={errorBlockCls}>
-            No fue posible cargar los datos de la venta. Revisa tu conexión e inténtalo de nuevo.
-          </p>
-        )}
-
-        {/* 1. Cliente */}
-        <section className={cardCls}>
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-semibold text-slate-900">1 · Cliente</h2>
-          </div>
-          <div className="space-y-4 px-5 py-4">
-            <label htmlFor={clienteId} className={`${labelCls} max-w-md`}>
-              Cliente de tu cartera
-              <select id={clienteId} className={inputCls} {...register('clienteId')}>
-                <option value="">Selecciona un cliente...</option>
-                {clientes.data?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-              {errors.clienteId && (
-                <span className={errorTextCls}>
-                  {errors.clienteId.message}
-                </span>
-              )}
-            </label>
-            {clientes.data && clientes.data.length === 0 && (
-              <p className="text-xs text-slate-500">
-                No tienes clientes registrados.{' '}
-                <Link to="/clientes" className="font-medium text-brand-700 hover:underline">
-                  Crea uno primero
-                </Link>
-                .
-              </p>
-            )}
-          </div>
-        </section>
-
-        {/* 2. Detalles */}
-        <section className={cardCls}>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-semibold text-slate-900">2 · Productos</h2>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className={btnSecondary}
-                disabled={fields.length >= MAX_PRODUCTOS}
-                onClick={() =>
-                  append({ productoId: '', cantidad: 0, precioUnitario: 0 })
-                }
-              >
-                <PlusCircleIcon className="h-4 w-4" />
-                Agregar producto
-              </button>
-              {fields.length >= MAX_PRODUCTOS && (
-                <span className={errorTextCls}>Máximo {MAX_PRODUCTOS} productos por venta</span>
-              )}
-            </div>
-          </div>
-
-          {/* HU-01: tabla responsive — se transforma en tarjetas en movil con CSS */}
-          <div className="overflow-x-auto p-4">
-            <table className="w-full">
-              <thead className="hidden sm:table-header-group">
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className={thCls}>Producto</th>
-                  <th className={thCls}>Disponible</th>
-                  <th className={thCls}>Cantidad</th>
-                  <th className={thCls}>Precio unit.</th>
-                  <th className={thCls}>Subtotal</th>
-                  <th className={thCls}></th>
-                </tr>
-              </thead>
-              <tbody className="block gap-3 sm:table sm:table-row-group sm:divide-y sm:divide-slate-100">
-                {fields.map((field, index) => {
-                  const d = detalles?.[index]
-                  const subtotal =
-                    (Number(d?.cantidad) || 0) * (Number(d?.precioUnitario) || 0)
-                  const prodId = d?.productoId
-                  const disponible = prodId ? cargaPorProducto.get(prodId) : undefined
-                  const cantIng = Number(d?.cantidad) || 0
-                  const excede = disponible !== undefined && cantIng > disponible && cantIng > 0
-                  const idsSeleccionados = new Set(
-                    (detalles ?? [])
-                      .map((det, i) => i !== index && det?.productoId ? det.productoId : null)
-                      .filter(Boolean) as string[],
-                  )
-                  const productoReg = register(`detalles.${index}.productoId` as const)
-                  return (
-                    <tr key={field.id} className="mb-3 block rounded-xl border border-slate-200 p-4 sm:mb-0 sm:table-row sm:border-0 sm:p-0">
-                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
-                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Producto</span>
-                        <select
-                          aria-label={`Producto ${index + 1}`}
-                          className={inputCls}
-                          {...productoReg}
-                          onChange={(e) => {
-                            productoReg.onChange(e)
-                            onChangeProducto(index, e.target.value)
-                          }}
-                        >
-                          <option value="">Selecciona...</option>
-                          {productos.data?.map((p) => (
-                            <option
-                              key={p.id}
-                              value={p.id}
-                              disabled={idsSeleccionados.has(p.id)}
-                            >
-                              {p.nombre} {p.tipo_empaque ? `(${p.tipo_empaque.nombre})` : ''}
-                              {idsSeleccionados.has(p.id) ? ' (ya seleccionado)' : ''}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.detalles?.[index]?.productoId && (
-                          <span className={errorTextCls}>
-                            {errors.detalles[index]?.productoId?.message}
-                          </span>
-                        )}
-                      </td>
-                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls} text-sm font-medium`}>
-                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Disponible</span>
-                        {disponible !== undefined ? (
-                          <span className={excede ? 'text-red-600' : 'text-slate-700'}>
-                            {formatMiles(disponible)}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
-                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Cantidad</span>
-                        <Controller
-                          control={control}
-                          name={`detalles.${index}.cantidad` as const}
-                          render={({ field }) => (
-                            <input
-                              aria-label={`Cantidad de ${productos.data?.find((p) => p.id === prodId)?.nombre ?? `producto ${index + 1}`}`}
-                              type="text"
-                              inputMode="numeric"
-                              placeholder=""
-                              className={`${inputCls} w-full sm:w-24 ${excede ? inputErrorCls : ''}`}
-                              value={field.value ? formatMiles(field.value as number) : ''}
-                              onChange={(e) => {
-                                const formatted = formatMilesInput(e.target.value)
-                                e.target.value = formatted
-                                const numeric = parseMiles(formatted)
-                                field.onChange(numeric)
-                              }}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              ref={field.ref}
-                            />
-                          )}
-                        />
-                        {excede && (
-                          <span className={errorTextCls}>
-                            Excede tu carga
-                          </span>
-                        )}
-                        {errors.detalles?.[index]?.cantidad && (
-                          <span className={errorTextCls}>
-                            {errors.detalles[index]?.cantidad?.message}
-                          </span>
-                        )}
-                      </td>
-                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls}`}>
-                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Precio unit.</span>
-                        <Controller
-                          control={control}
-                          name={`detalles.${index}.precioUnitario` as const}
-                          render={({ field }) => (
-                            <input
-                              aria-label={`Precio unitario de ${productos.data?.find((p) => p.id === prodId)?.nombre ?? `producto ${index + 1}`}`}
-                              type="text"
-                              inputMode="numeric"
-                              placeholder=""
-                              className={`${inputCls} w-full sm:w-28`}
-                              value={field.value ? formatMiles(field.value as number) : ''}
-                              onChange={(e) => {
-                                const formatted = formatMilesInput(e.target.value)
-                                e.target.value = formatted
-                                const numeric = parseMiles(formatted)
-                                field.onChange(numeric)
-                              }}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                              ref={field.ref}
-                            />
-                          )}
-                        />
-                      </td>
-                      <td className={`mb-2 block sm:table-cell sm:mb-0 ${tdCls} font-semibold`}>
-                        <span className="mb-1 block text-xs font-medium text-slate-500 sm:hidden">Subtotal</span>
-                        {fmtCLP(subtotal)}
-                      </td>
-                      <td className="block sm:table-cell">
-                        <button
-                          type="button"
-                          className={btnSecondary}
-                          onClick={() => fields.length > 1 && remove(index)}
-                          disabled={fields.length <= 1}
-                        >
-                          Quitar
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-          {errors.detalles?.message && (
-            <p className={`px-5 py-2 ${errorTextCls}`}>{errors.detalles.message}</p>
-          )}
-        </section>
-
-        {/* 3. Pago */}
-        <section className={cardCls}>
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-semibold text-slate-900">3 · Pago</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-3">
-            <label className={labelCls}>
-              Método de pago
-              <select className={inputCls} {...register('metodoPago')}>
-                {METODOS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={labelCls}>
-              Descuento (CLP)
-              <Controller
-                control={control}
-                name="descuento"
-                render={({ field }) => (
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="0"
-                    className={inputCls}
-                    value={field.value ? formatMiles(field.value as number) : '0'}
-                    onChange={(e) => {
-                      const formatted = formatMilesInput(e.target.value)
-                      // Si queda vacio, mostrar 0
-                      const display = formatted || '0'
-                      e.target.value = display
-                      const numeric = parseMiles(display)
-                      field.onChange(numeric)
-                    }}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
-                  />
-                )}
-              />
-              {errors.descuento && (
-                <span className={errorTextCls}>
-                  {errors.descuento.message}
-                </span>
-              )}
-            </label>
-            <label className={labelCls}>
-              Observaciones
-              <input
-                type="text"
-                maxLength={500}
-                className={inputCls}
-                placeholder="Opcional"
-                {...register('observaciones')}
-              />
-            </label>
-          </div>
-        </section>
-
-        {/* 4. Resumen */}
-        <section className={cardCls}>
-          <div className="border-b border-slate-100 px-5 py-4">
-            <h2 className="text-base font-semibold text-slate-900">4 · Resumen</h2>
-          </div>
-          <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-            <dl className="space-y-1 text-sm">
-              <div className="flex justify-between gap-6">
-                <dt className="text-slate-500">Subtotal</dt>
-                <dd className="font-medium text-slate-900">
-                  {fmtCLP(
-                    (detalles ?? []).reduce(
-                      (s, d) =>
-                        s + (Number(d?.cantidad) || 0) * (Number(d?.precioUnitario) || 0),
-                      0,
-                    ),
-                  )}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-6">
-                <dt className="text-slate-500">Descuento</dt>
-                <dd className="font-medium text-slate-900">
-                  −{fmtCLP(Number(descuento) || 0)}
-                </dd>
-              </div>
-              <div className="flex justify-between gap-6 border-t border-slate-100 pt-1">
-                <dt className="text-slate-700 font-semibold">Total a cobrar</dt>
-                <dd className="text-lg font-bold text-slate-900">{fmtCLP(totalPreview)}</dd>
-              </div>
-            </dl>
-
-            <div className="flex flex-col items-stretch gap-2 sm:items-end">
-              {registrar.data?.error && (
-                <p className={errorBlockCls}>
-                  {registrar.data.error}
-                </p>
-              )}
-              {registrar.error && (
-                <p className={errorBlockCls}>
-                  {mensajeErrorSupabase(registrar.error)}
-                </p>
-              )}
-              <button type="submit" className={btnPrimary} disabled={registrar.isPending || !!errorLectura}>
-                <ShoppingCartIcon className="h-4 w-4" />
-                {registrar.isPending ? 'Registrando venta...' : 'Confirmar venta'}
-              </button>
-              <p className="text-xs text-slate-400">
-                El total y el descuento de carga los calcula la base de datos.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {!perfil && (
-          <p className={errorBlockCls}>
-            No hay sesión activa.
-          </p>
-        )}
-      </form>
-    </>
-  )
+        <div className="@container min-w-0"><div className="min-w-0 @4xl:overflow-x-auto"><table role="table" className="block w-full @4xl:table">
+          <thead role="rowgroup" className="sr-only @4xl:not-sr-only @4xl:table-header-group"><tr role="row" className="bg-slate-50">{['Producto', 'Disponible', 'Cantidad', 'Precio unit.', 'Subtotal', ''].map((titulo, index) => <th role="columnheader" scope="col" key={index} className={thCls}>{titulo}</th>)}</tr></thead>
+          <tbody role="rowgroup" className="block space-y-3 bg-slate-50 p-2 sm:p-3 @4xl:table-row-group @4xl:space-y-0 @4xl:bg-transparent @4xl:p-0">{fields.map((field, index) => <FilaProductoVenta key={field.id} control={control} index={index} productos={productos.data ?? []} seleccionados={idsSeleccionados} carga={cargaPorProducto} puedeQuitar={fields.length > 1} onQuitar={() => remove(index)} />)}</tbody>
+        </table></div></div>
+        {errors.detalles?.message && <p className={`px-5 py-2 ${errorTextCls}`}>{errors.detalles.message}</p>}
+      </section>
+      <section className={cardCls}>
+        <h2 className="border-b border-slate-100 px-5 py-4 font-semibold">3 · Pago</h2>
+        <div className="grid min-w-0 grid-cols-1 gap-4 p-5 sm:grid-cols-3">
+          <CampoFormulario etiqueta="Método de pago" error={errors.metodoPago?.message}>
+            {atributos => <select {...atributos} {...register('metodoPago')}>{METODOS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>}
+          </CampoFormulario>
+          <CampoFormulario etiqueta="Descuento (CLP)" error={errors.descuento?.message}>
+            {atributos => <Controller control={control} name="descuento" render={({ field }) => <InputNumerico {...atributos} {...field} value={Number(field.value) || 0} onChange={valor => field.onChange(valor ?? 0)} conFlechas={false} />} />}
+          </CampoFormulario>
+          <CampoFormulario etiqueta="Observaciones" error={errors.observaciones?.message}>
+            {atributos => <input {...atributos} type="text" maxLength={500} placeholder="Opcional" {...register('observaciones')} />}
+          </CampoFormulario>
+        </div>
+      </section>
+      <ResumenFormularioVenta control={control} pendiente={registrar.isPending} bloqueado={!!motivos.length} motivoId={motivoIds.join(' ') || undefined} />
+      </fieldset>
+    </form>
+    <Dialog open={!!ventaCero} onClose={() => setVentaCero(null)} title="Confirmar venta sin cobro" description="Registrarás una venta con total $0. Revisa los precios y el descuento antes de continuar.">
+      <div className="flex flex-wrap justify-end gap-3">
+        <button type="button" className={btnSecondary} onClick={() => setVentaCero(null)}>Volver a revisar</button>
+        <button type="button" className={btnSecondary} disabled={registrar.isPending} onClick={() => { if (ventaCero) enviarVenta(ventaCero) }}>Confirmar venta por $0</button>
+      </div>
+    </Dialog>
+  </>
 }

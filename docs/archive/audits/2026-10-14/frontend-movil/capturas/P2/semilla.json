@@ -1,0 +1,21 @@
+{
+  "marker": "e2a00710",
+  "branch": "10000000-0000-0000-0000-000000000002",
+  "product": "e2a00710-0001-4000-8000-000000000001",
+  "seller": "20000000-0000-0000-0002-000000000004",
+  "expenseSeller": "c5dabc9c-80cb-48fa-ac3f-0960ac71cd72",
+  "inserted": {
+    "producciones": 300,
+    "mermas": 300,
+    "incidencias_produccion": 300,
+    "clientes": 300,
+    "gastos_extras": 300
+  },
+  "existingBalancesUnchanged": true,
+  "syntheticStock": [
+    {
+      "cantidad": 0
+    }
+  ],
+  "impact": "Production, losses, incidents and clients confined to branch 2; 300 expenses belong to UX seller in branch 1; one synthetic product is globally visible. All remain until coordinator reset/reseed."
+}

@@ -113,6 +113,31 @@ describe('HU-13 · Stock', () => {
 })
 
 
+describe('M2 · Stock móvil y N-01', () => {
+  it('N-01 · pide los tipos de empaque incluyendo inactivos y nombra los envases sin catálogo', async () => {
+    vi.mocked(api.obtenerStockEnvases).mockResolvedValue([
+      ...stockEnvases,
+      { sucursal_id: 'suc-1', tipo_empaque_id: 'te-huerfano', cantidad: 5, modificado_en: '2026-01-01T00:00:00Z' },
+    ])
+    renderWithProviders(<Stock />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Envases' }))
+    expect(await screen.findByText('Envase no disponible')).toBeInTheDocument()
+    expect(screen.queryByText('Desconocido')).not.toBeInTheDocument()
+    expect(catalog.obtenerTiposEmpaque).toHaveBeenCalledWith(true)
+    expect(screen.getByText('Uso interno')).toBeInTheDocument()
+  })
+
+  it('cada fila es una tarjeta compacta en teléfono con la tabla como vista de escritorio (mismo DOM)', async () => {
+    vi.mocked(api.obtenerStockBodega).mockResolvedValue(stockProductos)
+    renderWithProviders(<Stock />)
+    const celda = await screen.findByRole('cell', { name: 'Bidón POL' })
+    const fila = celda.closest('tr')!
+    expect(fila).toHaveClass('grid', 'rounded-xl', 'sm:table-row')
+    expect(screen.getAllByText('Bidón POL')).toHaveLength(1)
+    expect(screen.getByRole('table')).toHaveClass('block', 'sm:table')
+  })
+})
+
 describe('FE-05 / FE-06 · lectura de stock', () => {
   it('muestra error de stock y permite recuperar la lectura con Actualizar', async () => {
     vi.mocked(api.obtenerStockBodega).mockRejectedValueOnce(new Error('Fallo de consulta')).mockResolvedValueOnce(stockProductos)
@@ -164,4 +189,21 @@ it('FE-06 · descarta la respuesta pendiente al quitar la sucursal y libera Actu
   vi.mocked(api.obtenerStockBodega).mockClear()
   fireEvent.click(screen.getByRole('button', { name: 'Actualizar' }))
   expect(api.obtenerStockBodega).not.toHaveBeenCalled()
+})
+
+
+it('B1 · oculta la exportación pendiente y presenta Actualizar como secundario', async () => {
+  renderWithProviders(<Stock />)
+  await screen.findByText(/Sin registros de stock de productos/)
+  expect(screen.queryByRole('button', { name: 'Exportar Excel' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Actualizar' })).toHaveClass('bg-white')
+})
+
+it('B1 · anuncia estados y ofrece Reintentar para un fallo de stock', async () => {
+  vi.mocked(api.obtenerStockBodega).mockRejectedValueOnce(new Error('Fallo')).mockResolvedValue(stockProductos)
+  renderWithProviders(<Stock />)
+  expect(screen.getByRole('status')).toHaveTextContent(/Cargando/)
+  await screen.findByRole('alert')
+  fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
+  expect(await screen.findByText('30')).toBeInTheDocument()
 })

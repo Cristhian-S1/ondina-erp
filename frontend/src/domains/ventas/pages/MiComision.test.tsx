@@ -31,4 +31,23 @@ describe('MiComision query', () => {
     expect(await screen.findByText('Ventas consideradas')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
+  it('UX-07 · h1 presente en carga y error, con Reintentar visible', async () => {
+    vi.mocked(obtenerMiComision).mockRejectedValueOnce(new Error('x'))
+    renderWithProviders(<MiComision />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Mi comisión' })).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Cargando comisión...')
+    await screen.findByRole('alert')
+    expect(screen.getByRole('heading', { level: 1, name: 'Mi comisión' })).toBeInTheDocument()
+  })
+  it('UX-07 · capitaliza sólo la primera letra de la jornada y etiqueta el tipo en español', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-31T15:00:00Z'))
+    vi.mocked(obtenerMiComision).mockResolvedValue([
+      { jornada: '2026-10-31', tipo: 'hielo', comision: 1500, base_comision: 30000, ventas_del_tipo: 3, porcentaje: 5, monto_fijo: null },
+    ] as never)
+    renderWithProviders(<MiComision />)
+    expect(await screen.findByText('Jornada: 31 de octubre de 2026')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Hielo' })).toBeInTheDocument()
+    vi.useRealTimers()
+  })
 })

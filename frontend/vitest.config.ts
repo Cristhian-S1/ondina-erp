@@ -14,6 +14,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // Q1 2026-10-14 (OND-c07.19): el timeout por defecto de 5 s produjo falsos fallos
+    // en blanco cuando la máquina está saturada (medido: con loadavg ≈ 31, varios
+    // tests superaron los 5 s sin ser defectuosos; 1/1 corridas con 6 pruebas
+    // >5 s y 13/15 verdes en el mismo bucle con carga). 15 s sigue fallando rápido
+    // ante colgadas reales y absorbe la latencia de spawnSync/compilación.
+    testTimeout: 15000,
     coverage: {
       provider: 'v8',
       // Solo tabla en consola: evita artefactos que ESLint no ignora (coverage/ está en .gitignore)

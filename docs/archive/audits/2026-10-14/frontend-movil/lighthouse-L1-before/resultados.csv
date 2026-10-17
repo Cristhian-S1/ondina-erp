@@ -1,0 +1,4 @@
+dispositivo,pagina,corrida,perf,a11y,bestPractices,fcpMs,lcpMs,tbtMs,cls,transferBytes,elapsedS,error,color-contrast,first-contentful-paint,interactive,largest-contentful-paint,network-dependency-tree-insight,render-blocking-insight,render-blocking-resources,speed-index,unused-javascript
+mobile,login,1,98,95,100,1965,1965,0,0.000,175724,11.1,,1,1,1,1,1,1,1,1,1
+mobile,login,2,98,95,100,1964,1964,0,0.000,175724,10.3,,1,1,1,1,1,1,1,1,1
+mobile,login,3,98,95,100,1966,1966,0,0.000,175724,10.4,,1,1,1,1,1,1,1,1,1
