@@ -15,7 +15,7 @@ OpenCode 2 recognizes `disable-model-invocation`; its `metadata.opencode/autoinv
 
 ## Model overrides
 
-Leave models unset until chosen by the user, then verify the exact available ID and client/host support. Compare `launch.requested` with `launch.effective`; arguments alone do not establish the effective model.
+Use the user's assignment in [roles](roles.md); leave a role's model unset until the user chooses it, then verify the exact available ID and client/host support. Roles assigned the OpenCode client default run without a model override, so the existing-worktree constraint below does not apply; confirm the effective default instead. Compare `launch.requested` with `launch.effective`; arguments alone do not establish the effective model.
 The installed guide permits `--model` for a new Claude terminal; `--effort` requires a supported model. OpenCode's documented override requires an existing worktree and host validation, and does not accept `--effort`. Reload the version-matched guide before relying on these constraints.
 
 Workers ask blocking questions through the Dispatch preamble and retain exact Run/Task/Dispatch/terminal identities. The coordinator verifies results before integration/publication; a chosen model does not replace evidence.
