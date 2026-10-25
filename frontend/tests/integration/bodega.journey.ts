@@ -1,6 +1,8 @@
 // B5 / issue #43 — Recorrido 2: Bodega contra Supabase local real.
-// Despacho, devolución atómica de productos y envases, topes, ventana de ajuste
-// y controles de sucursal/GPS con el cliente autenticado real.
+// Despacho, devolución atómica de productos y envases, topes y controles de
+// sucursal/GPS con el cliente autenticado real. La expiración de la ventana de
+// ajuste se prueba en pgTAP (007/008): la API no puede fabricar un despacho
+// vencido porque el INSERT sella `creado_en` y los triggers blindan el historial.
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -11,7 +13,6 @@ vi.mock('@/lib/supabase', async () => {
 
 import { inject } from 'vitest'
 import { crearDespacho, obtenerDespachos, registrarDevolucion } from '@/domains/bodega/api'
-import { mensajeErrorSupabase } from '@/lib/errors'
 import { cargaVendedor, createJourneyContext, stockEmpaque, stockProducto, type JourneyContext } from './support/context'
 
 let ctx: JourneyContext
@@ -218,62 +219,14 @@ describe('Recorrido bodega · HU-33 devolución atómica de productos y envases'
   })
 })
 
-describe('Recorrido bodega · ventana de ajuste del despacho', () => {
-  it('rechaza agregar líneas cuando la ventana expiró', async () => {
-    const bodega = await ctx.actAs('bodega-a')
-    const productoPol = productByName('Bidón POL')
-
-    const { data: despacho, error: despachoError } = await ctx.verifier
-      .from('despachos')
-      .select('id')
-      .eq('despachador_id', bodega.user.id)
-      .order('creado_en', { ascending: false })
-      .limit(1)
-      .single()
-    expect(despachoError).toBeNull()
-
-    const { data: previo } = await ctx.verifier
-      .from('configuracion')
-      .select('valor')
-      .eq('clave', 'ventana_ajuste_minutos')
-      .maybeSingle()
-
-    const stockAntes = await stockProducto(ctx.verifier, ctx.fixtures.sucursales.A, productoPol)
-    const { data: lineasAntes } = await ctx.verifier
-      .from('despacho_detalles')
-      .select('id')
-      .eq('despacho_id', despacho?.id)
-
-    try {
-      const { error: configError } = await ctx.verifier
-        .from('configuracion')
-        .upsert({ clave: 'ventana_ajuste_minutos', valor: '-1' }, { onConflict: 'clave' })
-      expect(configError).toBeNull()
-
-      const { error } = await bodega.client
-        .from('despacho_detalles')
-        .insert({ despacho_id: despacho?.id, producto_id: productoPol, cantidad: 1 })
-      expect(error).not.toBeNull()
-      expect(mensajeErrorSupabase(error)).toBe('La ventana de ajuste del despacho expiró.')
-
-      const { data: lineasDespues } = await ctx.verifier
-        .from('despacho_detalles')
-        .select('id')
-        .eq('despacho_id', despacho?.id)
-      expect(lineasDespues).toHaveLength(lineasAntes?.length ?? 0)
-      expect(await stockProducto(ctx.verifier, ctx.fixtures.sucursales.A, productoPol)).toBe(stockAntes)
-    } finally {
-      if (previo) {
-        await ctx.verifier
-          .from('configuracion')
-          .update({ valor: (previo as { valor: string }).valor })
-          .eq('clave', 'ventana_ajuste_minutos')
-      } else {
-        await ctx.verifier.from('configuracion').delete().eq('clave', 'ventana_ajuste_minutos')
-      }
-    }
-  })
-})
+// La expiración de la ventana de ajuste se cubre en la base de datos con pgTAP:
+// supabase/tests/007_hu26_ajustar_despacho.test.sql y
+// supabase/tests/008_hu26_ventana_ajuste.test.sql prueban que el rechazo
+// 'La ventana de ajuste del despacho expiró.' no altera stock ni líneas.
+// Este recorrido no puede fabricar un despacho vencido por la API:
+// trg_fecha_despacho_b2 sella `creado_en` en el INSERT y
+// private.proteger_movimiento impide editarlo; además el CHECK 5..60 ya no
+// admite forzar la ventana con un valor inválido.
 
 describe('Recorrido bodega · límites de sucursal y GPS', () => {
   it('no ve despachos de otra sucursal ni puede crearlos allí', async () => {

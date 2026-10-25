@@ -127,8 +127,8 @@ async function normalizeBalances(
   )
   if (cargaError) throw new Error(`No fue posible normalizar carga_vendedor: ${cargaError.message}`)
 
-  // Restaura la ventana de ajuste al valor por defecto (el recorrido la fuerza
-  // a expirar y la restaura; esto cubre una corrida interrumpida).
+  // Restaura la ventana de ajuste al valor por defecto por si una corrida
+  // anterior dejó una configuración distinta; el recorrido ya no la modifica.
   const { error: ventanaError } = await admin
     .from('configuracion')
     .delete()
