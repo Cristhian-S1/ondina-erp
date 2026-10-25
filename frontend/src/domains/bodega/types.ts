@@ -71,3 +71,36 @@ export interface CargaVendedor {
   cantidad: number
   modificado_en: string
 }
+
+export type OrigenMerma = 'bodega' | 'despacho'
+
+export interface Merma {
+  id: string
+  sucursal_id: string
+  despacho_id: string | null
+  producto_id: string | null
+  tipo_empaque_id: string | null
+  cantidad: number
+  motivo: string
+  anulado: boolean
+  creado_por: string
+  creado_en: string
+}
+
+// Fila de cuadre_diario_bodega con las cantidades bigint ya validadas como enteros seguros.
+// Las columnas de comparación vienen null mientras comparacion_disponible sea false.
+export interface FilaCuadre {
+  sucursal_id: string
+  vendedor_id: string
+  fecha: string
+  producto_id: string
+  despachado: number
+  vendido: number
+  devuelto: number
+  mermas: number
+  esperado_en_carga: number
+  saldo_inicial: number | null
+  carga_actual: number | null
+  diferencia_carga: number | null
+  comparacion_disponible: boolean
+}
