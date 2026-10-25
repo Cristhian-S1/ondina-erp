@@ -39,6 +39,9 @@ const mensajesDeNegocio = new Map<string, string>([
   ['Una regla nueva no puede cambiar comisiones de ventas anteriores.', 'Una regla nueva no puede cambiar comisiones de ventas anteriores.'],
   ['Selecciona una sucursal para registrar la incidencia.', 'Selecciona una sucursal para registrar la incidencia.'],
   ['La categoría de un empaque con movimientos es histórica.', 'La categoría de un empaque con movimientos es histórica.'],
+  ['La devolución y las mermas superan lo despachado de ese producto.', 'La devolución más las mermas activas superan lo despachado de ese producto. Revisa las mermas registradas.'],
+  ['Indica el motivo de la merma.', 'Indica el motivo de la merma.'],
+  ['Registra los envases dañados del despacho como devolución en estado malo.', 'Registra los envases dañados del despacho como devolución en estado malo.'],
 
   ['Cliente inexistente o fuera de su cartera/sucursal', 'El cliente no pertenece a tu cartera o sucursal.'],
   ['Método de pago inválido (efectivo o transferencia)', 'El método de pago no es válido.'],

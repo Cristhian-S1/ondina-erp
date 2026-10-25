@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { crearDespacho, corregirDevolucion, registrarDevolucionProductos, registrarDevolucionEnvases } from './api'
+import { crearDespacho, corregirDevolucion, registrarDevolucion, registrarDevolucionProductos, registrarDevolucionEnvases } from './api'
 import { obtenerVendedores, obtenerVendedoresHistorial, obtenerDespachos, obtenerDetallesDespacho, obtenerEnvasesDespacho, obtenerDevolucionesProducto, obtenerDevolucionesEnvase, obtenerStockBodega, obtenerStockEnvases, obtenerCargaVendedores } from './api'
 
 const mock = vi.hoisted(() => {
@@ -45,6 +45,19 @@ describe.each(escrituras)('REV-4 · %s', (_nombre, escribir) => {
     mock.fallar(causa, rechazar)
     const resultado = await escribir()
     expect(resultado.error).toBe(esperado)
+  })
+})
+
+describe('HU-29 · devolución sobre mermas activas', () => {
+  const mensajeServidor = 'La devolución y las mermas superan lo despachado de ese producto.'
+  const mensajeEsperado = 'La devolución más las mermas activas superan lo despachado de ese producto. Revisa las mermas registradas.'
+
+  it.each([
+    ['registrarDevolucion', () => registrarDevolucion({ despacho_id: 'd-1', creado_por: 'u-2', lineas_producto: [], lineas_envase: [], idempotency_key: 'k-1' })],
+    ['corregirDevolucion', () => corregirDevolucion({ despacho_id: 'd-1', creado_por: 'u-2', lineas_producto: [], lineas_envase: [], idempotency_key: 'k-1' })],
+  ] as const)('%s muestra el límite combinado de devolución y mermas', async (_nombre, escribir) => {
+    mock.fallar({ code: 'P0001', message: mensajeServidor })
+    expect((await escribir()).error).toBe(mensajeEsperado)
   })
 })
 

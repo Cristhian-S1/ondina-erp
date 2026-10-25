@@ -48,6 +48,9 @@ describe('REV-4 · catálogo de errores públicos', () => {
     ['Stock insuficiente', 'No hay stock suficiente.'],
     ['La venta está anulada', 'La venta está anulada.'],
     ['La merma supera lo despachado pendiente de ese producto.', 'La merma supera lo despachado pendiente de ese producto.'],
+    ['La devolución y las mermas superan lo despachado de ese producto.', 'La devolución más las mermas activas superan lo despachado de ese producto. Revisa las mermas registradas.'],
+    ['Indica el motivo de la merma.', 'Indica el motivo de la merma.'],
+    ['Registra los envases dañados del despacho como devolución en estado malo.', 'Registra los envases dañados del despacho como devolución en estado malo.'],
   ])('traduce P0001: %s', (message, esperado) => {
     expect(mensajeErrorSupabase({ code: 'P0001', message })).toBe(esperado)
     expect(mensajeErrorSupabase(new Error(esperado))).toBe(esperado)
