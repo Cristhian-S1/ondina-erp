@@ -35,9 +35,11 @@ Como despachador, quiero sumar productos adicionales a un despacho durante los p
 **Aceptación:**
 
 - Dado un despacho registrado dentro del plazo de ajuste, cuando el despachador agrega productos adicionales y confirma, entonces el sistema suma las cantidades al despacho y las descuenta del stock.
-- Pasado el plazo (configurable entre 10 y 20 minutos), el sistema bloquea cualquier ajuste sobre el despacho (RNF-15, RNF-26).
+- Pasado el plazo (configurable, 15 minutos por defecto; el cliente sugirió entre 10 y 20 minutos), el sistema bloquea cualquier ajuste sobre el despacho (RNF-15, RNF-26).
 - La ventana solo permite **sumar** productos; no se puede restar ni editar lo ya registrado.
 - Cada ajuste queda registrado con fecha, hora y responsable (RNF-11, RNF-12, RNF-13).
+
+**Nota técnica (2026-10-25):** la ventana se configura en la clave `ventana_ajuste_minutos` de `public.configuracion` (15 minutos por defecto); la base de datos acepta minutos enteros entre 5 y 60 y siempre decide con el reloj del servidor. La interfaz de bodega obtiene los minutos y la hora del servidor mediante `public.ventana_ajuste_despacho()` y usa ese dato para corregir el desfase del reloj del dispositivo. Ver la [migración](../../../supabase/migrations/20261025175810_hu26_ventana_ajuste.sql).
 
 ## HU-27
 
