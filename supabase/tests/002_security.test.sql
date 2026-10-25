@@ -74,7 +74,7 @@ select is((select count(*) from pg_class c where c.relnamespace='public'::regnam
 select ok(not exists(select 1 from pg_proc p where p.pronamespace in ('public'::regnamespace,'private'::regnamespace) and p.prorettype in ('trigger'::regtype,'event_trigger'::regtype) and has_function_privilege('authenticated',p.oid,'EXECUTE')), 'All public/private trigger helpers deny authenticated execution');
 select ok(not exists(select 1 from pg_proc p where p.pronamespace='public'::regnamespace
  and has_function_privilege('authenticated',p.oid,'EXECUTE')
- and p.proname not in ('registrar_venta','crear_despacho','ajustar_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada','vendedores_sucursal','vendedores_historial_sucursal')), 'Authenticated RPC allow-list has exactly the frontend endpoints');
+ and p.proname not in ('registrar_venta','crear_despacho','ajustar_despacho','ventana_ajuste_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada','vendedores_sucursal','vendedores_historial_sucursal')), 'Authenticated RPC allow-list has exactly the frontend endpoints');
 select ok(not exists(select 1 from pg_proc p where p.pronamespace in ('public'::regnamespace,'private'::regnamespace)
  and p.prosecdef and not coalesce(p.proconfig @> array['search_path=""'],false)), 'Every definer has empty search_path');
 select is((select count(*) from pg_constraint where conname like '%_finito_b2' and not convalidated),8::bigint,'All eight finite-money checks remain NOT VALID for remote review');

@@ -1825,6 +1825,13 @@ export type Database = {
           nombres: string
         }[]
       }
+      ventana_ajuste_despacho: {
+        Args: never
+        Returns: {
+          minutos: number
+          servidor_ahora: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
