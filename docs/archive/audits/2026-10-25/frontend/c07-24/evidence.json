@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-10-25T16:41:10.852Z",
+  "base": "http://127.0.0.1:5190",
+  "supabaseOrigin": "http://127.0.0.1:54321",
+  "results": [
+    {
+      "step": "initial-mobile",
+      "viewport": "412x915",
+      "expanded": "false",
+      "hidden": "true",
+      "inert": true,
+      "role": null,
+      "left": -256,
+      "right": 0,
+      "width": 256,
+      "overlay": false,
+      "dialog": false
+    },
+    {
+      "step": "drawer-open",
+      "viewport": "412x915",
+      "expanded": "true",
+      "hidden": "false",
+      "inert": false,
+      "role": "dialog",
+      "left": 0,
+      "right": 256,
+      "width": 256,
+      "overlay": true,
+      "dialog": true
+    },
+    {
+      "step": "desktop-after-resize",
+      "viewport": "1280x800",
+      "expanded": "true",
+      "hidden": "false",
+      "inert": false,
+      "role": null,
+      "left": 0,
+      "right": 256,
+      "width": 256,
+      "overlay": false,
+      "dialog": false
+    },
+    {
+      "step": "back-to-mobile",
+      "viewport": "412x915",
+      "expanded": "false",
+      "hidden": "true",
+      "inert": true,
+      "role": null,
+      "left": -256,
+      "right": 0,
+      "width": 256,
+      "overlay": false,
+      "dialog": false
+    },
+    {
+      "step": "layout",
+      "viewport": "375x812",
+      "expanded": "false",
+      "hidden": "true",
+      "inert": true,
+      "role": null,
+      "left": -256,
+      "right": 0,
+      "width": 256,
+      "overlay": false,
+      "dialog": false,
+      "innerWidth": 375,
+      "scrollWidth": 375,
+      "heading": "Hola, Sofía",
+      "screenshot": "04-375x812.png"
+    },
+    {
+      "step": "layout",
+      "viewport": "768x1024",
+      "expanded": "false",
+      "hidden": "true",
+      "inert": true,
+      "role": null,
+      "left": -256,
+      "right": 0,
+      "width": 256,
+      "overlay": false,
+      "dialog": false,
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "heading": "Hola, Sofía",
+      "screenshot": "05-768x1024.png"
+    }
+  ],
+  "errors": [],
+  "writes": [],
+  "unexpected": [],
+  "apiRequests": [
+    "POST /auth/v1/token",
+    "GET /rest/v1/perfiles",
+    "GET /rest/v1/sucursales",
+    "GET /rest/v1/sucursales"
+  ],
+  "failures": []
+}
