@@ -198,3 +198,46 @@ and the remote gates are in [reconciliation](../../supabase/reconciliation.md#b6
   ([migration](../../supabase/migrations/20261025175810_hu26_ventana_ajuste.sql)).
 - The migration VALIDATEs the constraint, so the remote value must be a conforming whole number before
   `supabase db push`; it was `'15'` on 2026-10-25.
+
+## Bodega losses and daily reconciliation (HU-29) — 2026-10-25
+
+- Migration `20261025180901_hu29_mermas_bodega.sql` adds the registration, cancellation and
+  reconciliation RPCs plus the `private.solicitudes_merma_bodega` idempotency ledger
+  ([migration](../../supabase/migrations/20261025180901_hu29_mermas_bodega.sql)).
+- `public.registrar_merma_bodega` admits active bodega/administrador callers for their own branch
+  (global administration names the branch) and requires a positive quantity, a nonblank reason,
+  one product or packaging type, and an idempotency key. When the loss references a dispatch, the
+  advisory key lock, dispatch `FOR UPDATE` and `private.bloquear_saldos` run in that order; existing
+  triggers own the single balance movement and audit row.
+- Replays return the original loss ID only when the actor and canonical payload match. The
+  authorization gate and replay run before mutable catalog/dispatch checks, so a deactivated item
+  or annulled dispatch does not break a valid retry; a failed first call leaves the key reusable.
+- `public.anular_merma_bodega` is administrator-only, requires a nonblank cancellation reason and
+  locks the dispatch before the loss. The existing false→true trigger compensates stock once; a
+  repeated call returns the ID without another `UPDATE` or audit row, keeps the original loss
+  reason and stores the cancellation reason in the audit context.
+- `public.cuadre_diario_bodega` returns seller/product/day aggregates for ranges of at most 31
+  days, rejects future dates and requires an explicit branch for global administration. It restates
+  active facts (cancelled sales, dispatches, returns and losses excluded); the opening/current
+  comparison columns are `null` with `comparacion_disponible=false`.
+- Local evidence: the [pgTAP suite](../../supabase/tests/009_hu29_mermas_bodega.test.sql) covers
+  authorization, replay, cancellation, DST boundaries and the report projection; the
+  [two-session check](../../supabase/tests/concurrency-hu29.py) covers same-key concurrency,
+  shared-balance serialization and double cancellation. See the
+  [design](../archive/audits/2026-10-25/backend/hu29-design.md) and
+  [security review](../archive/audits/2026-10-25/backend/hu29-security-review.md).
+- The migration is not applied remotely; `supabase db push` remains behind the
+  [deployment gate](#sources-and-deployment-gate).
+
+### Open decisions
+
+Items 2–4 of design §3 were not implemented and are pending the user's decision:
+
+- **Item 2, BEFORE INSERT guard on `public.mermas` (F2, MEDIUM).** Direct inserts still accept
+  blank reasons and dispatch-plus-packaging losses, bypassing the RPC rules and debiting the plant
+  packaging pool.
+- **Item 3, BEFORE INSERT guard on `public.devoluciones_productos` (F3, MEDIUM).** A return recorded
+  after a loss can exceed the dispatched quantity, crediting phantom warehouse stock.
+- **Item 4, revoke direct `UPDATE` on `public.mermas` (F1, MEDIUM).** A branch admin can annul a loss
+  without the cancellation reason or the dispatch-first lock, leaving the original loss reason in
+  the audit.
