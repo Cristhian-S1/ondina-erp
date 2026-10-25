@@ -1759,6 +1759,10 @@ export type Database = {
         }
         Returns: Json
       }
+      anular_merma_bodega: {
+        Args: { p_merma_id: string; p_motivo: string }
+        Returns: string
+      }
       contar_ventas_jornada: {
         Args: { p_vendedor_id: string }
         Returns: number
@@ -1786,6 +1790,29 @@ export type Database = {
         }
         Returns: string
       }
+      cuadre_diario_bodega: {
+        Args: {
+          p_desde: string
+          p_hasta: string
+          p_sucursal_id: string
+          p_vendedor_id?: string
+        }
+        Returns: {
+          carga_actual: number
+          comparacion_disponible: boolean
+          despachado: number
+          devuelto: number
+          diferencia_carga: number
+          esperado_en_carga: number
+          fecha: string
+          mermas: number
+          producto_id: string
+          saldo_inicial: number
+          sucursal_id: string
+          vendedor_id: string
+          vendido: number
+        }[]
+      }
       es_rol: { Args: { p_rol: string }; Returns: boolean }
       mi_sucursal: { Args: never; Returns: string }
       registrar_devolucion: {
@@ -1794,6 +1821,20 @@ export type Database = {
           p_envases: Json
           p_idempotency_key?: string
           p_productos: Json
+        }
+        Returns: string
+      }
+      registrar_merma_bodega: {
+        Args: {
+          p_cantidad: number
+          p_despacho_id: string
+          p_devolucion_envase_id?: string
+          p_idempotency_key: string
+          p_motivo: string
+          p_origen: string
+          p_producto_id: string
+          p_sucursal_id: string
+          p_tipo_empaque_id: string
         }
         Returns: string
       }
