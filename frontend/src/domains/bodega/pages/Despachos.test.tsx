@@ -755,3 +755,13 @@ it.each(['carga', 'error'])('F1 V1-03 · conserva todo el borrador al atravesar 
   expect(within(dialogo).getByLabelText('Bandejas')).toHaveValue('3')
   expect(api.crearDespacho).not.toHaveBeenCalled()
 })
+
+it('R1-14 · la página carga con las etiquetas previas si la RPC histórica no está disponible', async () => {
+  vi.mocked(api.obtenerVendedoresHistorial).mockRejectedValue(new Error('PGRST202'))
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([
+    makeDespachoHoy(), { ...makeDespachoHoy(), id: 'd-2', vendedor_id: 'user-off-123456' }])
+  renderWithProviders(<Despachos />)
+  expect(await screen.findByRole('button', { name: /Vendedor no disponible/ })).toHaveTextContent('Vendedor no disponible · ref. user-off')
+  expect(screen.getAllByText('Ana López').length).toBeGreaterThan(0)
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
