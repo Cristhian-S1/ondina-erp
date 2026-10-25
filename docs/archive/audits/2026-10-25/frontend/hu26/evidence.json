@@ -1,0 +1,315 @@
+{
+  "generatedAt": "2026-10-25T17:22:43.733Z",
+  "base": "http://127.0.0.1:5192",
+  "supabaseOrigin": "http://127.0.0.1:54321",
+  "results": [
+    {
+      "scenario": "ajuste-exitoso",
+      "viewport": "412x915",
+      "modoRpc": "exito",
+      "checks": {
+        "pista": "Quedan 12 min 58 s de la ventana de ajuste (aprox.).",
+        "rpc": [
+          {
+            "p_despacho_id": "11111111-1111-4111-8111-111111111126",
+            "p_lineas": [
+              {
+                "producto_id": "55555555-5555-4555-8555-555555555555",
+                "cantidad": 4
+              }
+            ],
+            "p_idempotency_key": "2395fae0-761f-4de1-aa94-43ea2ead28bb"
+          }
+        ],
+        "peticionesRpc": 1,
+        "p_despacho_id": "11111111-1111-4111-8111-111111111126",
+        "p_lineas": [
+          {
+            "producto_id": "55555555-5555-4555-8555-555555555555",
+            "cantidad": 4
+          }
+        ],
+        "p_idempotency_key": "2395fae0-761f-4de1-aa94-43ea2ead28bb",
+        "detalle": "PRODUCTOS DESPACHADOS Agua 20L 12 Hielo en bolsa 2kgAjuste · 25-10-2026 14:22 4 Total 16 ENVASES DESPACHADOS Bandeja 2 Agregar productos Quedan 12 min 58 s para agregar productos. Registrar devolución",
+        "refresco": {
+          "despachosGetAntes": 1,
+          "despachosGetDespues": 2,
+          "detallesGetAntes": 1,
+          "detallesGetDespues": 2
+        }
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal",
+        "POST /rest/v1/rpc/ajustar_despacho",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    },
+    {
+      "scenario": "ventana-cerrada",
+      "viewport": "412x915",
+      "modoRpc": "exito",
+      "checks": {
+        "accionVisible": 0,
+        "peticionesRpc": 0
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    },
+    {
+      "scenario": "ventana-expirada-servidor",
+      "viewport": "412x915",
+      "modoRpc": "expirada",
+      "checks": {
+        "mensaje": "La ventana de ajuste del despacho expiró. Ya no se pueden agregar productos.",
+        "dialogoAbierto": true,
+        "cantidad": "4",
+        "producto": "55555555-5555-4555-8555-555555555555",
+        "peticionesRpc": 1,
+        "cerradoTrasCancelar": true
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal",
+        "POST /rest/v1/rpc/ajustar_despacho"
+      ],
+      "expectedConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "failures": []
+    },
+    {
+      "scenario": "doble-click",
+      "viewport": "412x915",
+      "modoRpc": "lento",
+      "checks": {
+        "peticionesRpc": 1,
+        "claves": [
+          "70964145-0369-43ce-a840-c578f838dcb5"
+        ],
+        "clavesUnicas": [
+          "70964145-0369-43ce-a840-c578f838dcb5"
+        ],
+        "resultado": "one request"
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal",
+        "POST /rest/v1/rpc/ajustar_despacho",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    },
+    {
+      "scenario": "ajuste-exitoso",
+      "viewport": "1280x800",
+      "modoRpc": "exito",
+      "checks": {
+        "pista": "Quedan 12 min 58 s de la ventana de ajuste (aprox.).",
+        "rpc": [
+          {
+            "p_despacho_id": "11111111-1111-4111-8111-111111111126",
+            "p_lineas": [
+              {
+                "producto_id": "55555555-5555-4555-8555-555555555555",
+                "cantidad": 4
+              }
+            ],
+            "p_idempotency_key": "990af6ce-0316-4d14-8fa4-538148febb40"
+          }
+        ],
+        "peticionesRpc": 1,
+        "p_despacho_id": "11111111-1111-4111-8111-111111111126",
+        "p_lineas": [
+          {
+            "producto_id": "55555555-5555-4555-8555-555555555555",
+            "cantidad": 4
+          }
+        ],
+        "p_idempotency_key": "990af6ce-0316-4d14-8fa4-538148febb40",
+        "detalle": "PRODUCTOS DESPACHADOS Agua 20L 12 Hielo en bolsa 2kgAjuste · 25-10-2026 14:22 4 Total 16 ENVASES DESPACHADOS Bandeja 2 Agregar productos Quedan 12 min 58 s para agregar productos. Registrar devolución",
+        "refresco": {
+          "despachosGetAntes": 1,
+          "despachosGetDespues": 2,
+          "detallesGetAntes": 1,
+          "detallesGetDespues": 2
+        }
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal",
+        "POST /rest/v1/rpc/ajustar_despacho",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    },
+    {
+      "scenario": "ventana-cerrada",
+      "viewport": "1280x800",
+      "modoRpc": "exito",
+      "checks": {
+        "accionVisible": 0,
+        "peticionesRpc": 0
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    },
+    {
+      "scenario": "ventana-expirada-servidor",
+      "viewport": "1280x800",
+      "modoRpc": "expirada",
+      "checks": {
+        "mensaje": "La ventana de ajuste del despacho expiró. Ya no se pueden agregar productos.",
+        "dialogoAbierto": true,
+        "cantidad": "4",
+        "producto": "55555555-5555-4555-8555-555555555555",
+        "peticionesRpc": 1,
+        "cerradoTrasCancelar": true
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal",
+        "POST /rest/v1/rpc/ajustar_despacho"
+      ],
+      "expectedConsoleErrors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "failures": []
+    },
+    {
+      "scenario": "doble-click",
+      "viewport": "1280x800",
+      "modoRpc": "lento",
+      "checks": {
+        "peticionesRpc": 1,
+        "claves": [
+          "6a790a50-0d40-4003-bad6-8fa5d45e41b0"
+        ],
+        "clavesUnicas": [
+          "6a790a50-0d40-4003-bad6-8fa5d45e41b0"
+        ],
+        "resultado": "one request"
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal",
+        "POST /rest/v1/rpc/ajustar_despacho",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    },
+    {
+      "scenario": "sin-desborde-y-objetivos-tactiles",
+      "viewport": "375x812",
+      "modoRpc": "exito",
+      "checks": {
+        "layout": {
+          "innerWidth": 375,
+          "scrollWidth": 375,
+          "bodyScrollWidth": 375
+        },
+        "objetivos": [
+          {
+            "control": "Agregar productos",
+            "tag": "button",
+            "height": 44,
+            "width": 283
+          },
+          {
+            "control": "Cerrar",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "Quitar",
+            "tag": "button",
+            "height": 44,
+            "width": 70.14
+          },
+          {
+            "control": "Producto",
+            "tag": "select",
+            "height": 44,
+            "width": 269
+          },
+          {
+            "control": "Cantidad",
+            "tag": "input",
+            "height": 44,
+            "width": 112
+          },
+          {
+            "control": "Aumentar",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "Disminuir",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "+ Agregar producto",
+            "tag": "button",
+            "height": 44,
+            "width": 295
+          },
+          {
+            "control": "Cancelar",
+            "tag": "button",
+            "height": 44,
+            "width": 295
+          },
+          {
+            "control": "Agregar al despacho",
+            "tag": "button",
+            "height": 44,
+            "width": 295
+          }
+        ],
+        "layoutCerrado": {
+          "innerWidth": 375,
+          "scrollWidth": 375,
+          "bodyScrollWidth": 375
+        },
+        "detalleVisible": true
+      },
+      "nonGetRequests": [
+        "POST /auth/v1/token",
+        "POST /rest/v1/rpc/vendedores_sucursal",
+        "POST /rest/v1/rpc/vendedores_historial_sucursal"
+      ],
+      "expectedConsoleErrors": [],
+      "failures": []
+    }
+  ],
+  "failures": []
+}
