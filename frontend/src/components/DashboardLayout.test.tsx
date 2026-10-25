@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { AuthContext } from '@/context/auth-context'
@@ -88,6 +88,35 @@ describe('Dashboard navigation', () => {
     fireEvent.click(toggle)
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar menú' }))
     expect(toggle).toHaveFocus()
+  })
+
+  it('cierra el drawer al cruzar el breakpoint móvil → escritorio → móvil', () => {
+    let desktop = false
+    const listeners = new Set<() => void>()
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn(() => ({
+        get matches() { return desktop },
+        addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+        removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+      })),
+    })
+    const cambiarAncho = (esEscritorio: boolean) => {
+      desktop = esEscritorio
+      act(() => listeners.forEach((listener) => listener()))
+    }
+    const { container } = setup('/', 'bodega')
+    const toggle = screen.getByRole('button', { name: 'Alternar menú lateral' })
+    fireEvent.click(toggle)
+    expect(screen.getByRole('dialog', { name: 'Menú principal' })).toBeInTheDocument()
+
+    cambiarAncho(true)
+    cambiarAncho(false)
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(container.querySelector('aside')).toHaveAttribute('inert')
+    expect(container.querySelector('div.fixed.inset-0')).not.toBeInTheDocument()
   })
 
   it('no muestra la campana de notificaciones sin acción', () => {

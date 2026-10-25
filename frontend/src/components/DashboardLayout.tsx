@@ -40,6 +40,12 @@ export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const desktop = useSyncExternalStore(subscribeDesktop, isDesktop)
+  // Al cruzar el breakpoint el drawer móvil no debe reaparecer abierto al volver.
+  const [desktopPrevio, setDesktopPrevio] = useState(desktop)
+  if (desktopPrevio !== desktop) {
+    setDesktopPrevio(desktop)
+    setMobileOpen(false)
+  }
   const sidebarHidden = !desktop && !mobileOpen
   const menuButton = useRef<HTMLButtonElement>(null)
   const sidebar = useRef<HTMLElement>(null)
