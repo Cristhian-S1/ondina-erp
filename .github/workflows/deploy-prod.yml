@@ -45,31 +45,61 @@ jobs:
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "SHA resuelto: $sha"
 
-      - name: Exigir CI verde para el SHA exacto
+      - name: Require exact-SHA quality and Security results
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
           VERIFIED_SHA: ${{ steps.resolve-sha.outputs.sha }}
+          REQUIRED_WORKFLOWS: ci.yml security.yml
+          BRANCH_FILTER: '.head_branch == "main"'
         run: |
           set -euo pipefail
+          [[ "$VERIFIED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          # The automatic CI publisher uses needs for quality; never wait on itself.
           for attempt in {1..60}; do
-            result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$VERIFIED_SHA&event=push&per_page=100" \
-              --jq '[.workflow_runs[] | select(.head_branch == "main")] | sort_by(.run_number) | last // empty | [.id, .status, (.conclusion // "pending")] | @tsv')"
-            if [ -n "$result" ]; then
-              read -r run_id status conclusion <<< "$result"
-              if [ "$status" = completed ]; then
-                if [ "$conclusion" != success ]; then
-                  echo "::error::CI $run_id terminó en $conclusion para $VERIFIED_SHA"
-                  exit 1
-                fi
-                echo "CI verificado: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$run_id (SHA $VERIFIED_SHA)" >> "$GITHUB_STEP_SUMMARY"
-                exit 0
+            ready=true
+            for workflow in $REQUIRED_WORKFLOWS; do
+              result="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?head_sha=$VERIFIED_SHA&event=push&per_page=100" \
+                --jq "[.workflow_runs[] | select(.head_sha == \"$VERIFIED_SHA\" and .event == \"push\") | select($BRANCH_FILTER)] | sort_by(.run_number) | last // empty | [.id, .status, (.conclusion // \"pending\")] | @tsv")"
+              if [ -z "$result" ]; then
+                ready=false
+                continue
               fi
+              read -r run_id status conclusion <<< "$result"
+              if [ "$status" != completed ]; then
+                ready=false
+                continue
+              fi
+              if [ "$conclusion" != success ]; then
+                echo "::error::$workflow run $run_id ended in $conclusion for $VERIFIED_SHA"
+                exit 1
+              fi
+              # Explicit job success rejects skipped/missing jobs; PR dependency review
+              # is deliberately excluded because it does not execute on push.
+              required_jobs='["Secret scan + self-test"]'
+              if [ "$workflow" = ci.yml ]; then
+                required_jobs='["Lint + typecheck + build + test", "Validar migraciones Supabase"]'
+              fi
+              jobs="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/jobs?filter=latest&per_page=100" --paginate --slurp)"
+              if ! jq -e --arg sha "$VERIFIED_SHA" --argjson required "$required_jobs" '
+                [.[].jobs[]] as $jobs |
+                all($required[]; . as $name |
+                  [$jobs[] | select(.name == $name)] as $matches |
+                  ($matches | length) == 1 and
+                  all($matches[]; .head_sha == $sha and .status == "completed" and .conclusion == "success"))
+              ' <<< "$jobs" > /dev/null; then
+                echo "::error::$workflow run $run_id lacks successful required jobs for $VERIFIED_SHA"
+                exit 1
+              fi
+              echo "Verified $workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$run_id (SHA $VERIFIED_SHA)" >> "$GITHUB_STEP_SUMMARY"
+            done
+            if [ "$ready" = true ]; then
+              exit 0
             fi
-            echo "Esperando CI para $VERIFIED_SHA ($attempt/60)"
+            echo "Waiting for quality/security evidence for $VERIFIED_SHA ($attempt/60)"
             sleep 15
           done
-          echo "::error::No hay CI verde para $VERIFIED_SHA después de 15 minutos; no se publica"
+          echo "::error::Missing or pending quality/security evidence after 15 minutes; publication blocked"
           exit 1
 
       - name: Setup Node (frontend/.nvmrc)

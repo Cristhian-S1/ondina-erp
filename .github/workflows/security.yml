@@ -9,6 +9,8 @@ on:
 permissions: {}
 
 jobs:
+  # Publication gates require this push job by name and exact SHA.
+  # Keep Security independent of CI/deploy to avoid a dependency cycle.
   secrets:
     name: Secret scan + self-test
     runs-on: ubuntu-latest
@@ -45,6 +47,7 @@ jobs:
             bash scripts/ci/scan-gitleaks.sh push "$PUSH_BEFORE" "$PUSH_HEAD"
           fi
 
+  # Required at PR level; publishers must not wait for this PR-only job.
   dependencies:
     name: Dependency review (runtime high)
     if: github.event_name == 'pull_request'
