@@ -71,7 +71,7 @@ set local role authenticated;
 insert into public.mermas(id,sucursal_id,producto_id,cantidad,motivo,creado_por)
 values ('70000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
  '40000000-0000-0000-0000-000000000001', 2, 'Synthetic test', '20000000-0000-0000-0001-000000000001');
-update public.mermas set anulado=true where id='70000000-0000-0000-0000-000000000001';
+select public.anular_merma_bodega('70000000-0000-0000-0000-000000000001','Synthetic cancellation');
 reset role;
 select is((select cantidad from public.stock_bodega where sucursal_id='10000000-0000-0000-0000-000000000001' and producto_id='40000000-0000-0000-0000-000000000001'), 107, 'Ordinary merma cancellation restores stock once');
 select is((select count(*) from public.auditoria where tabla='mermas' and registro_id='70000000-0000-0000-0000-000000000001' and accion='ANULACION'), 1::bigint, 'Merma cancellation has an audit record');

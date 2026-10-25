@@ -46,6 +46,31 @@ def main():
     assert scalar(f"select count(*) from public.auditoria where tabla='mermas' and registro_id='{original}' and accion='ANULACION'") == '1'
     print('PASS: simultaneous admin cancellations wait; compensate once, one cancellation audit.')
 
+    # Exercise the new table guards, not merely the RPC's parent lock.
+    # Unrelated load must not fund returns/losses beyond a single dispatch.
+    b3.run(f"update public.stock_bodega set cantidad=100 where sucursal_id='{S}' and producto_id='{P}';")
+    for suffix, loss_first in [('10', True), ('11', False)]:
+        dispatch_id = f'98000000-0000-0000-0000-0000000000{suffix}'
+        b3.dispatch(dispatch_id)
+        direct_loss = (
+            'set local role authenticated; '
+            'insert into public.mermas(sucursal_id,despacho_id,producto_id,cantidad,motivo,creado_por) '
+            f"values('{S}','{dispatch_id}','{P}',4,'concurrent direct loss','{B}')")
+        direct_return = (
+            'set local role authenticated; '
+            'insert into public.devoluciones_productos(despacho_id,producto_id,cantidad,creado_por) '
+            f"values('{dispatch_id}','{P}',7,'{B}')")
+        first, second = (direct_loss, direct_return) if loss_first else (direct_return, direct_loss)
+        _, rejected = b3.pair(first, second, expect_error=True)
+        expected = ('La devolución y las mermas superan lo despachado de ese producto.' if loss_first
+                    else 'La merma supera lo despachado pendiente de ese producto.')
+        assert expected in rejected.stderr, rejected.stderr
+        assert scalar(
+            f"select coalesce((select sum(cantidad) from public.mermas where despacho_id='{dispatch_id}' and not anulado),0)"
+            f"+coalesce((select sum(cantidad) from public.devoluciones_productos where despacho_id='{dispatch_id}' and not anulado),0)"
+        ) == ('4' if loss_first else '7')
+        print(f'PASS: concurrent direct {"loss then return" if loss_first else "return then loss"} waits on parent; second rejects, combined bound preserved.')
+
 
 if __name__ == '__main__':
     main()
