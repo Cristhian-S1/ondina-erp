@@ -88,6 +88,7 @@ import {
   obtenerStockEnvases,
   obtenerVendedores,
   obtenerVendedoresHistorial,
+  obtenerVentanaAjuste,
   registrarDevolucion,
   registrarDevolucionEnvases,
   registrarDevolucionProductos,
@@ -426,5 +427,25 @@ describe('HU-26 · ajustarDespacho', () => {
     mock.setRpcError({ code: 'P0001', message: 'private function signature failed' })
     expect((await ajustarDespacho('d-1', lineas, 'clave-1')).error)
       .toBe('No fue posible completar la operación. Inténtalo de nuevo.')
+  })
+})
+
+describe('HU-26 · obtenerVentanaAjuste', () => {
+  it('invoca ventana_ajuste_despacho sin argumentos y devuelve minutos y hora del servidor', async () => {
+    mock.setRpcData([{ minutos: 20, servidor_ahora: '2026-10-13T12:00:00+00:00' }])
+    expect(await obtenerVentanaAjuste()).toEqual({ minutos: 20, servidorAhora: '2026-10-13T12:00:00+00:00' })
+    expect(mock.rpcSpy).toHaveBeenCalledWith('ventana_ajuste_despacho', undefined)
+  })
+
+  it.each([[[]], [null], [[{ minutos: '20', servidor_ahora: null }]]])('sin fila utilizable (%j) devuelve null', async datos => {
+    mock.setRpcData(datos)
+    expect(await obtenerVentanaAjuste()).toBeNull()
+  })
+
+  it('traduce un error de la RPC sin exponer detalles', async () => {
+    mock.setRpcError({ message: 'private SQL detail' })
+    const error = await obtenerVentanaAjuste().catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).not.toContain('private SQL detail')
   })
 })

@@ -37,10 +37,10 @@ interface Props {
 
 // Vive solo mientras el diálogo tiene un despacho, así el reloj parte fresco en cada apertura.
 function PistaVentana({ creadoEn, expiraEn }: { creadoEn: string; expiraEn?: string }) {
-  const { restanteMs, abierta } = useVentanaAjuste(creadoEn, expiraEn)
+  const { restanteMs, abierta, ventana } = useVentanaAjuste(creadoEn, expiraEn)
   return (
     <p className="text-xs text-slate-600">
-      {abierta ? `Quedan ${formatearRestante(restanteMs)} de la ventana de ajuste${expiraEn ? '' : ' (aprox.)'}.`
+      {abierta ? `Quedan ${formatearRestante(restanteMs)} de la ventana de ajuste${ventana ? ` de ${ventana.minutos} min` : expiraEn ? '' : ' (aprox.)'}.`
         : 'La ventana de ajuste parece cerrada; la base de datos confirma al guardar.'}
     </p>
   )

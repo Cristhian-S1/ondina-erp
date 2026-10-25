@@ -366,3 +366,21 @@ export async function ajustarDespacho(
     return { error: mensajeErrorAjusteDespacho(error), resultado: null }
   }
 }
+
+export interface VentanaAjusteServidor {
+  minutos: number
+  servidorAhora: string
+}
+
+// HU-26: ventana configurada y reloj del servidor. Cero filas (rol sin acceso) o fila inesperada → null.
+export async function obtenerVentanaAjuste(): Promise<VentanaAjusteServidor | null> {
+  try {
+    const { data, error } = await supabase.rpc('ventana_ajuste_despacho')
+    if (error) throw error
+    const fila = data?.[0]
+    if (!fila || typeof fila.minutos !== 'number' || typeof fila.servidor_ahora !== 'string') return null
+    return { minutos: fila.minutos, servidorAhora: fila.servidor_ahora }
+  } catch (error: unknown) {
+    throw new Error(mensajeErrorSupabase(error), { cause: error })
+  }
+}

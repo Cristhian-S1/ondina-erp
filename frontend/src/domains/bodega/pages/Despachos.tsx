@@ -14,6 +14,7 @@ import ModalAjusteDespacho from '../components/ModalAjusteDespacho'
 import type { ResultadoAjusteDespacho } from '../api'
 import type { FiltroDia } from '../components/despachos.types'
 import { useDatosBodega } from '../hooks/useDatosBodega'
+import { useVentanaServidor } from '../hooks/useVentanaServidor'
 import Paginacion from '../../../components/Paginacion'
 import { usePaginaBodega } from '../hooks/usePaginaBodega'
 import { filtrosHistorial } from '../hooks/filtrosHistorial'
@@ -27,6 +28,8 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const { perfil } = useAuth()
   const navigate = useNavigate()
   const recursos = useDatosBodega(sucursalId, true)
+  // Se pide al cargar la página; las pistas de ventana lo leen de la caché.
+  useVentanaServidor()
   const jornada = useJornadaSantiago()
   const { vendedoresHistorial = [], productos = [], tiposEmpaque = [] } = recursos.data ?? {}
   const [modalOpen, setModalOpen] = useState(false)

@@ -33,6 +33,7 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
     obtenerCargaVendedores: vi.fn(),
     crearDespacho: vi.fn(),
     ajustarDespacho: vi.fn(),
+    obtenerVentanaAjuste: vi.fn(),
   }
 })
 
@@ -128,6 +129,7 @@ const detalle: DespachoDetalle = {
 }
 
 beforeEach(() => {
+  vi.mocked(api.obtenerVentanaAjuste).mockResolvedValue(null)
   vi.mocked(api.obtenerPaginaDespachos).mockImplementation(async (sucursalId, opciones) => {
     const filas = (await api.obtenerDespachos(sucursalId)).filter(d =>
       (!opciones.vendedorId || d.vendedor_id === opciones.vendedorId) &&
@@ -802,6 +804,20 @@ describe('HU-26 · Agregar productos dentro de la ventana', () => {
     expect(screen.getByRole('button', { name: /Ana López/, expanded: true })).toBe(anulado)
     expect(screen.queryByRole('button', { name: 'Agregar productos' })).not.toBeInTheDocument()
     expect(screen.queryByText('La ventana de ajuste de este despacho está cerrada.')).not.toBeInTheDocument()
+  })
+
+  it('si la RPC de la ventana falla, la página carga y la pista usa 15 min aproximados', async () => {
+    vi.mocked(api.obtenerVentanaAjuste).mockRejectedValue(new Error('PGRST202 function not found'))
+    await abrirAjuste()
+    expect(screen.getByText(/Quedan 15 min 00 s de la ventana de ajuste \(aprox\.\)/)).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('con la RPC de la ventana, la pista muestra los minutos configurados y no es aproximada', async () => {
+    vi.mocked(api.obtenerVentanaAjuste).mockResolvedValue({ minutos: 20, servidorAhora: new Date().toISOString() })
+    await abrirAjuste()
+    expect(await screen.findByText('Quedan 20 min 00 s de la ventana de ajuste de 20 min.')).toBeInTheDocument()
+    expect(api.obtenerVentanaAjuste).toHaveBeenCalledTimes(1)
   })
 
   it('envía solo las líneas nuevas con la clave del intento y refresca despachos y stock', async () => {
