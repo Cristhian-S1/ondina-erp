@@ -74,6 +74,7 @@ const mock = vi.hoisted(() => {
 vi.mock('@/lib/supabase', () => ({ supabase: mock.supabase }))
 
 import {
+  ajustarDespacho,
   corregirDevolucion,
   crearDespacho,
   obtenerCargaVendedores,
@@ -379,5 +380,51 @@ describe('FE-05 · errores de lectura', () => {
     expect(mock.supabase.from).not.toHaveBeenCalled()
     mock.setReadError()
     await expect(obtenerPaginaDespachos('s', { pagina: 1 })).rejects.toThrow('No fue posible cargar los despachos.')
+  })
+})
+
+describe('HU-26 · ajustarDespacho', () => {
+  const lineas = [{ producto_id: 'p-1', cantidad: 3 }, { producto_id: 'p-2', cantidad: 1 }]
+
+  it('invoca ajustar_despacho con los nombres de argumento exactos y la clave recibida', async () => {
+    mock.setRpcData({ despacho_id: 'd-1', lineas_agregadas: ['dd-1', 'dd-2'], ventana_expira_en: '2026-10-13T12:15:00+00:00' })
+    const res = await ajustarDespacho('d-1', lineas, 'clave-1')
+    expect(mock.rpcSpy).toHaveBeenCalledTimes(1)
+    expect(mock.rpcSpy).toHaveBeenCalledWith('ajustar_despacho', {
+      p_despacho_id: 'd-1', p_lineas: lineas, p_idempotency_key: 'clave-1',
+    })
+    expect(res).toEqual({ error: null, resultado: {
+      despachoId: 'd-1', lineasAgregadas: ['dd-1', 'dd-2'], ventanaExpiraEn: '2026-10-13T12:15:00+00:00',
+    } })
+    expect(mock.insertSpy).not.toHaveBeenCalled()
+  })
+
+  it('un éxito con respuesta inesperada no es un error', async () => {
+    mock.setRpcData(null)
+    expect(await ajustarDespacho('d-1', lineas, 'clave-1')).toEqual({ error: null, resultado: null })
+  })
+
+  it.each([
+    ['42501', 'No tienes permisos para modificar este despacho.', 'No tienes permisos para modificar este despacho.'],
+    ['P0001', 'Indica la clave de reintento del ajuste.', 'No se pudo identificar el intento. Cierra el formulario e inténtalo de nuevo.'],
+    ['P0001', 'El despacho no existe', 'El despacho no existe.'],
+    ['P0001', 'El despacho está anulado', 'El despacho está anulado.'],
+    ['P0001', 'La clave de reintento pertenece a otra operación.', 'Este reintento pertenece a otra operación. Cierra el formulario e inténtalo de nuevo.'],
+    ['P0001', 'Agrega al menos un producto al despacho.', 'Agrega al menos un producto al despacho.'],
+    ['P0001', 'Línea de producto inválida en el despacho.', 'Revisa los productos y cantidades del ajuste.'],
+    ['P0001', 'El producto no existe o está desactivado', 'El producto no existe o está desactivado.'],
+    ['P0001', 'No repitas productos en el ajuste.', 'No repitas productos en el ajuste.'],
+    ['P0001', 'La ventana de ajuste del despacho expiró.', 'La ventana de ajuste del despacho expiró. Ya no se pueden agregar productos.'],
+    ['P0001', 'Stock o carga insuficiente para completar la operación.', 'No hay stock suficiente en bodega para completar el ajuste.'],
+  ])('traduce %s «%s» al español', async (code, message, esperado) => {
+    mock.setRpcError({ code, message })
+    const res = await ajustarDespacho('d-1', lineas, 'clave-1')
+    expect(res).toEqual({ error: esperado, resultado: null })
+  })
+
+  it('no expone errores desconocidos de la base', async () => {
+    mock.setRpcError({ code: 'P0001', message: 'private function signature failed' })
+    expect((await ajustarDespacho('d-1', lineas, 'clave-1')).error)
+      .toBe('No fue posible completar la operación. Inténtalo de nuevo.')
   })
 })

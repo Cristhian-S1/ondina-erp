@@ -32,6 +32,7 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
     obtenerStockEnvases: vi.fn(),
     obtenerCargaVendedores: vi.fn(),
     crearDespacho: vi.fn(),
+    ajustarDespacho: vi.fn(),
   }
 })
 
@@ -764,4 +765,139 @@ it('R1-14 · la página carga con las etiquetas previas si la RPC histórica no 
   expect(await screen.findByRole('button', { name: /Vendedor no disponible/ })).toHaveTextContent('Vendedor no disponible · ref. user-off')
   expect(screen.getAllByText('Ana López').length).toBeGreaterThan(0)
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
+
+describe('HU-26 · Agregar productos dentro de la ventana', () => {
+  const resultado = () => ({ despachoId: 'd-1', lineasAgregadas: ['dd-2'], ventanaExpiraEn: new Date(Date.now() + 15 * 60_000).toISOString() })
+
+  async function abrirAjuste() {
+    vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+    vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([detalle])
+    vi.mocked(api.obtenerStockBodega).mockResolvedValue([stockHielo])
+    renderWithProviders(<Despachos />)
+    fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Agregar productos' }))
+    return screen.findByRole('dialog', { name: 'Agregar productos al despacho' })
+  }
+  // «Nuevo despacho» comparte etiquetas y sigue montado; las consultas se acotan al diálogo del ajuste.
+  const dialogo = () => within(screen.getByRole('dialog', { name: 'Agregar productos al despacho' }))
+  function llenar(productoId: string, cantidad: string) {
+    fireEvent.change(dialogo().getByLabelText('Producto'), { target: { value: productoId } })
+    fireEvent.change(dialogo().getByLabelText('Cantidad'), { target: { value: cantidad } })
+  }
+
+  it('oculta la acción en un despacho fuera de la ventana o anulado', async () => {
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([
+      { ...makeDespachoHoy(), id: 'd-viejo', creado_en: new Date(Date.now() - 16 * 60_000).toISOString() },
+      { ...makeDespachoHoy(), id: 'd-anulado', anulado: true },
+    ])
+    renderWithProviders(<Despachos />)
+    const [viejo, anulado] = await screen.findAllByRole('button', { name: /Ana López/ })
+    fireEvent.click(viejo)
+    expect(screen.queryByRole('button', { name: 'Agregar productos' })).not.toBeInTheDocument()
+    expect(screen.getByText('La ventana de ajuste de este despacho está cerrada.')).toBeInTheDocument()
+    fireEvent.click(anulado)
+    expect(screen.getByRole('button', { name: /Ana López/, expanded: true })).toBe(anulado)
+    expect(screen.queryByRole('button', { name: 'Agregar productos' })).not.toBeInTheDocument()
+    expect(screen.queryByText('La ventana de ajuste de este despacho está cerrada.')).not.toBeInTheDocument()
+  })
+
+  it('envía solo las líneas nuevas con la clave del intento y refresca despachos y stock', async () => {
+    vi.mocked(api.ajustarDespacho).mockImplementation(async () => ({ error: null, resultado: resultado() }))
+    await abrirAjuste()
+    expect(screen.getByText(/Quedan 15 min 00 s de la ventana de ajuste \(aprox\.\)/)).toBeInTheDocument()
+    llenar(hielo.id, '4')
+    const paginas = vi.mocked(api.obtenerPaginaDespachos).mock.calls.length
+    const stocks = vi.mocked(api.obtenerStockBodega).mock.calls.length
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+
+    await waitFor(() => expect(api.ajustarDespacho).toHaveBeenCalledTimes(1))
+    expect(api.ajustarDespacho).toHaveBeenCalledWith('d-1', [{ producto_id: hielo.id, cantidad: 4 }], expect.stringMatching(/^[0-9a-f-]{36}$/))
+    expect(await screen.findByText('Productos agregados al despacho.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(vi.mocked(api.obtenerPaginaDespachos).mock.calls.length).toBeGreaterThan(paginas)
+      expect(vi.mocked(api.obtenerStockBodega).mock.calls.length).toBeGreaterThan(stocks)
+    })
+    expect(screen.queryByRole('dialog', { name: 'Agregar productos al despacho' })).not.toBeInTheDocument()
+    // La expiración informada por la RPC reemplaza la estimación de la pista.
+    expect(screen.getByText('Quedan 15 min 00 s para agregar productos.')).toBeInTheDocument()
+  })
+
+  it('reutiliza la clave al reintentar el mismo contenido y la renueva si cambia o tiene éxito', async () => {
+    vi.mocked(api.ajustarDespacho)
+      .mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.', resultado: null })
+      .mockResolvedValueOnce({ error: 'No fue posible completar la operación. Inténtalo de nuevo.', resultado: null })
+      .mockImplementation(async () => ({ error: null, resultado: resultado() }))
+    await abrirAjuste()
+    llenar(hielo.id, '4')
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+    await screen.findByText('No fue posible completar la operación. Inténtalo de nuevo.')
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+    await waitFor(() => expect(api.ajustarDespacho).toHaveBeenCalledTimes(2))
+    const [, , primera] = vi.mocked(api.ajustarDespacho).mock.calls[0]
+    expect(vi.mocked(api.ajustarDespacho).mock.calls[1][2]).toBe(primera)
+
+    fireEvent.change(dialogo().getByLabelText('Cantidad'), { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+    await waitFor(() => expect(api.ajustarDespacho).toHaveBeenCalledTimes(3))
+    expect(vi.mocked(api.ajustarDespacho).mock.calls[2][1]).toEqual([{ producto_id: hielo.id, cantidad: 5 }])
+    expect(vi.mocked(api.ajustarDespacho).mock.calls[2][2]).not.toBe(primera)
+  })
+
+  it('valida en el cliente: sin llamar a la RPC, con el mensaje bajo el campo', async () => {
+    await abrirAjuste()
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+    expect(await dialogo().findByText('Selecciona un producto.')).toBeInTheDocument()
+    fireEvent.change(dialogo().getByLabelText('Producto'), { target: { value: hielo.id } })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+    expect(await dialogo().findByText('Ingresa una cantidad mayor que cero.')).toBeInTheDocument()
+    expect(api.ajustarDespacho).not.toHaveBeenCalled()
+  })
+
+  it('no ofrece repetir un producto en otra línea', async () => {
+    await abrirAjuste()
+    llenar(hielo.id, '1')
+    fireEvent.click(dialogo().getByRole('button', { name: '+ Agregar producto' }))
+    const [, segunda] = dialogo().getAllByLabelText('Producto')
+    expect(within(segunda).getByRole('option', { name: /Hielo en Bolsa/ })).toBeDisabled()
+  })
+
+  it.each([
+    'No tienes permisos para modificar este despacho.',
+    'No se pudo identificar el intento. Cierra el formulario e inténtalo de nuevo.',
+    'El despacho no existe.',
+    'El despacho está anulado.',
+    'Este reintento pertenece a otra operación. Cierra el formulario e inténtalo de nuevo.',
+    'Agrega al menos un producto al despacho.',
+    'Revisa los productos y cantidades del ajuste.',
+    'El producto no existe o está desactivado.',
+    'No repitas productos en el ajuste.',
+    'La ventana de ajuste del despacho expiró. Ya no se pueden agregar productos.',
+    'No hay stock suficiente en bodega para completar el ajuste.',
+  ])('muestra el rechazo de la base: %s', async (mensaje) => {
+    vi.mocked(api.ajustarDespacho).mockResolvedValue({ error: mensaje, resultado: null })
+    await abrirAjuste()
+    llenar(hielo.id, '4')
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar al despacho' }))
+    expect(await dialogo().findByRole('alert')).toHaveTextContent(mensaje)
+    expect(screen.getByRole('dialog', { name: 'Agregar productos al despacho' })).toBeInTheDocument()
+    expect(dialogo().getByLabelText('Cantidad')).toHaveValue('4')
+  })
+
+  it('marca como Ajuste las líneas agregadas, separadas de las originales', async () => {
+    vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto, hielo])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+    vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([
+      detalle, { ...detalle, id: 'dd-2', producto_id: 'p-hielo', cantidad: 4, es_ajuste: true, creado_en: '2026-10-13T12:05:00Z' },
+    ])
+    renderWithProviders(<Despachos />)
+    fireEvent.click(await screen.findByRole('button', { name: /Ana López/ }))
+    const lineas = within(await screen.findByText('Productos despachados').then(t => t.parentElement!)).getAllByRole('listitem')
+    expect(lineas).toHaveLength(3)
+    expect(lineas[0]).not.toHaveTextContent('Ajuste')
+    expect(lineas[1]).toHaveTextContent('Hielo en Bolsa 1kg')
+    expect(lineas[1]).toHaveTextContent(/Ajuste · 13-10-2026/)
+  })
 })

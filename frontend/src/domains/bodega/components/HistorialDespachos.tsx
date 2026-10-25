@@ -32,9 +32,11 @@ interface Props {
   despachoExpandido: string | null
   setDespachoExpandido: (valor: string | null) => void
   onDevolucion: () => void
+  ventanasAjuste: Record<string, string>
+  onAgregarProductos: (despachoId: string) => void
 }
 
-export default function HistorialDespachos({ pagina, productos, tiposEmpaque, despachoExpandido, setDespachoExpandido, onDevolucion }: Props) {
+export default function HistorialDespachos({ pagina, productos, tiposEmpaque, despachoExpandido, setDespachoExpandido, onDevolucion, ventanasAjuste, onAgregarProductos }: Props) {
   const { despachos: despachosFiltrados = [], despachoDetalles = [], despachoEnvases = [], desvProducto = [], desvEnvase = [] } = pagina ?? {}
   const detallesDeDespacho = (despachoId: string) =>
     despachoDetalles.filter((d) => d.despacho_id === despachoId)
@@ -113,7 +115,8 @@ export default function HistorialDespachos({ pagina, productos, tiposEmpaque, de
 
                 {expandido && (
                   <DetalleDespacho d={d} detalles={detalles} envases={envasesDeDespacho(d.id)}
-                    devs={devs} llegada={llegada} productos={productos} tiposEmpaque={tiposEmpaque} onDevolucion={onDevolucion} />
+                    devs={devs} llegada={llegada} productos={productos} tiposEmpaque={tiposEmpaque} onDevolucion={onDevolucion}
+                    ventanaExpiraEn={ventanasAjuste[d.id]} onAgregarProductos={() => onAgregarProductos(d.id)} />
                 )}
               </li>
             )

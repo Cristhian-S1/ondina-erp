@@ -10,6 +10,8 @@ import FiltrosHistorialDespachos from '../components/FiltrosHistorialDespachos'
 import HistorialDespachos from '../components/HistorialDespachos'
 import DevolucionesHistorialDespachos from '../components/DevolucionesHistorialDespachos'
 import ModalNuevoDespacho from '../components/ModalNuevoDespacho'
+import ModalAjusteDespacho from '../components/ModalAjusteDespacho'
+import type { ResultadoAjusteDespacho } from '../api'
 import type { FiltroDia } from '../components/despachos.types'
 import { useDatosBodega } from '../hooks/useDatosBodega'
 import Paginacion from '../../../components/Paginacion'
@@ -30,6 +32,9 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const [modalOpen, setModalOpen] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
+  const [despachoAjuste, setDespachoAjuste] = useState<string | null>(null)
+  // Expiración informada por la RPC por despacho: afina la pista de la ventana tras un ajuste.
+  const [ventanasAjuste, setVentanasAjuste] = useState<Record<string, string>>({})
   const [diaFiltro, setDiaFiltro] = useState<FiltroDia>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
@@ -38,6 +43,13 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
     isError: recursos.isError || historial.isError, data: recursos.data && historial.data }
   const load = () => historial.actualizar()
   const { toast, mostrar, cerrar } = useToast()
+
+  const despachoParaAjustar = historial.data?.despachos.find(d => d.id === despachoAjuste)
+  async function alAjustar(resultado: ResultadoAjusteDespacho | null) {
+    if (resultado) setVentanasAjuste(prev => ({ ...prev, [resultado.despachoId]: resultado.ventanaExpiraEn }))
+    mostrar('Productos agregados al despacho.')
+    await load()
+  }
 
   const errorCompleto = datos.isError && !datos.data
   const vistaBloqueada = errorCompleto || datos.isPending
@@ -75,13 +87,17 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
               setVendedorFiltro={setVendedorFiltro} setDespachoExpandido={setDespachoExpandido} />
             <HistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque}
               despachoExpandido={despachoExpandido} setDespachoExpandido={setDespachoExpandido}
-              onDevolucion={() => navigate('/devoluciones')} />
+              onDevolucion={() => navigate('/devoluciones')}
+              ventanasAjuste={ventanasAjuste} onAgregarProductos={id => { cerrar(); setDespachoAjuste(id) }} />
             <Paginacion pagina={historial.pagina} total={historial.data?.total ?? 0}
               onCambiar={historial.setPagina} cargando={historial.isFetching || enviando} etiqueta="Paginación de despachos" />
           </section>
           <DevolucionesHistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque} />
         </div>
       </>}
+      <ModalAjusteDespacho despacho={vistaBloqueada ? null : despachoParaAjustar ?? null} expiraEn={despachoAjuste ? ventanasAjuste[despachoAjuste] : undefined}
+        recursos={recursos.data} onClose={() => setDespachoAjuste(null)} onAjustado={alAjustar}
+        setOcupado={valor => { setEnviando(valor); setOcupado(valor) }} />
       <ModalNuevoDespacho open={modalOpen && !vistaBloqueada} sucursalId={sucursalId} recursos={recursos.data}
         errorLectura={datos.isError} onClose={() => setModalOpen(false)} onActualizar={load}
         setOcupado={valor => { setEnviando(valor); setOcupado(valor) }}

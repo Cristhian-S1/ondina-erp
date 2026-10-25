@@ -47,6 +47,15 @@ export interface CorregirDevolucionPayload {
   lineas_envase: { tipo_empaque_id: string; cantidad: number; estado: 'bueno' | 'malo' }[]
 }
 
+// `type` y no `interface`: debe ser asignable a `Json` del cliente generado.
+export type LineaAjusteDespacho = { producto_id: string; cantidad: number }
+
+export interface ResultadoAjusteDespacho {
+  despachoId: string
+  lineasAgregadas: string[]
+  ventanaExpiraEn: string
+}
+
 // Solo nombre e identificador: bodega no lee perfiles de vendedores (RB-15).
 export type VendedorSucursal = Pick<Perfil, 'id' | 'nombres' | 'apellidos'>
 
@@ -307,5 +316,53 @@ export async function registrarDevolucion(
     return { error: error ? mensajeErrorSupabase(error) : null }
   } catch (error: unknown) {
     return { error: mensajeErrorSupabase(error) }
+  }
+}
+
+// Mensajes de ajustar_despacho que la interfaz traduce aquí: `lib/errors` no los cubre todos y el 42501
+// de esta RPC debe hablar del despacho. Cualquier otro error cae en la traducción compartida.
+const mensajesAjusteDespacho = new Map<string, string>([
+  ['No tienes permisos para modificar este despacho.', 'No tienes permisos para modificar este despacho.'],
+  ['Indica la clave de reintento del ajuste.', 'No se pudo identificar el intento. Cierra el formulario e inténtalo de nuevo.'],
+  ['El despacho no existe', 'El despacho no existe.'],
+  ['El despacho está anulado', 'El despacho está anulado.'],
+  ['La clave de reintento pertenece a otra operación.', 'Este reintento pertenece a otra operación. Cierra el formulario e inténtalo de nuevo.'],
+  ['Agrega al menos un producto al despacho.', 'Agrega al menos un producto al despacho.'],
+  ['Línea de producto inválida en el despacho.', 'Revisa los productos y cantidades del ajuste.'],
+  ['El producto no existe o está desactivado', 'El producto no existe o está desactivado.'],
+  ['No repitas productos en el ajuste.', 'No repitas productos en el ajuste.'],
+  ['La ventana de ajuste del despacho expiró.', 'La ventana de ajuste del despacho expiró. Ya no se pueden agregar productos.'],
+  ['Stock o carga insuficiente para completar la operación.', 'No hay stock suficiente en bodega para completar el ajuste.'],
+])
+
+export function mensajeErrorAjusteDespacho(error: unknown): string {
+  const message = typeof error === 'object' && error !== null ? (error as { message?: unknown }).message : undefined
+  return (typeof message === 'string' ? mensajesAjusteDespacho.get(message) : undefined) ?? mensajeErrorSupabase(error)
+}
+
+function leerResultadoAjuste(data: unknown): ResultadoAjusteDespacho | null {
+  if (typeof data !== 'object' || data === null) return null
+  const { despacho_id, lineas_agregadas, ventana_expira_en } = data as Record<string, unknown>
+  if (typeof despacho_id !== 'string' || typeof ventana_expira_en !== 'string' || !Array.isArray(lineas_agregadas)) return null
+  return { despachoId: despacho_id, lineasAgregadas: lineas_agregadas.filter((id): id is string => typeof id === 'string'),
+    ventanaExpiraEn: ventana_expira_en }
+}
+
+// HU-26: solo suma productos. El stock, la ventana (reloj del servidor) y la auditoría los resuelve la base.
+export async function ajustarDespacho(
+  despachoId: string,
+  lineas: LineaAjusteDespacho[],
+  idempotencyKey: string,
+): Promise<{ error: string | null; resultado: ResultadoAjusteDespacho | null }> {
+  try {
+    const { data, error } = await supabase.rpc('ajustar_despacho', {
+      p_despacho_id: despachoId,
+      p_lineas: lineas,
+      p_idempotency_key: idempotencyKey,
+    })
+    if (error) return { error: mensajeErrorAjusteDespacho(error), resultado: null }
+    return { error: null, resultado: leerResultadoAjuste(data) }
+  } catch (error: unknown) {
+    return { error: mensajeErrorAjusteDespacho(error), resultado: null }
   }
 }

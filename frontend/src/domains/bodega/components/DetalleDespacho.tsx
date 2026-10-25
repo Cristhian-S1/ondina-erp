@@ -1,5 +1,6 @@
 import { btnSecondary } from '../../../lib/ui'
-import { fmtFecha, formatMiles } from '../../../lib/format'
+import { fmtFecha, fmtFechaHora, formatMiles } from '../../../lib/format'
+import AccionAjusteDespacho from './AccionAjusteDespacho'
 import type { PaginaDespachos, RecursosDespacho } from './despachos.types'
 
 interface Props {
@@ -11,9 +12,12 @@ interface Props {
   productos: RecursosDespacho['productos']
   tiposEmpaque: RecursosDespacho['tiposEmpaque']
   onDevolucion: () => void
+  // HU-26: expiración devuelta por la RPC tras un ajuste, si la hay.
+  ventanaExpiraEn?: string
+  onAgregarProductos: () => void
 }
 
-export default function DetalleDespacho({ d, detalles, envases, devs, llegada, productos, tiposEmpaque, onDevolucion }: Props) {
+export default function DetalleDespacho({ d, detalles, envases, devs, llegada, productos, tiposEmpaque, onDevolucion, ventanaExpiraEn, onAgregarProductos }: Props) {
   return (
     <div id={`despacho-${d.id}`} className="space-y-3 border-t border-slate-100 px-4 py-3">
       <div>
@@ -32,6 +36,11 @@ export default function DetalleDespacho({ d, detalles, envases, devs, llegada, p
                 <span className="text-slate-700">
                   {productos.find((p) => p.id === det.producto_id)?.nombre ??
                     'Producto'}
+                  {det.es_ajuste && (
+                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                      Ajuste · {fmtFechaHora(det.creado_en)}
+                    </span>
+                  )}
                 </span>
                 <span className="font-semibold text-slate-900">
                   {formatMiles(det.cantidad)}
@@ -117,6 +126,10 @@ export default function DetalleDespacho({ d, detalles, envases, devs, llegada, p
             ))}
           </ul>
         </div>
+      )}
+
+      {!d.anulado && (
+        <AccionAjusteDespacho creadoEn={d.creado_en} expiraEn={ventanaExpiraEn} onAgregar={onAgregarProductos} />
       )}
 
       <button
