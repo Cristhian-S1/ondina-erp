@@ -2,8 +2,11 @@
 -- Whole minutes between 5 and 60 keep the existing adjustment triggers usable.
 alter table public.configuracion
     add constraint configuracion_ventana_ajuste_minutos_rango
-    check (clave <> 'ventana_ajuste_minutos'
-           or (valor ~ '^[0-9]{1,2}$' and valor::integer between 5 and 60)) not valid;
+    check (case
+        when clave <> 'ventana_ajuste_minutos' then true
+        when valor !~ '^[0-9]{1,2}$' then false
+        else valor::integer between 5 and 60
+    end) not valid;
 alter table public.configuracion
     validate constraint configuracion_ventana_ajuste_minutos_rango;
 

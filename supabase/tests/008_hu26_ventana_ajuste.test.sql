@@ -73,19 +73,24 @@ select throws_ok($q$update public.configuracion set valor = '4' where clave = 'v
 select throws_ok($q$update public.configuracion set valor = '61' where clave = 'ventana_ajuste_minutos'$q$,
                  '23514', null, 'Window above 60 rejected');
 select throws_ok($q$update public.configuracion set valor = 'abc' where clave = 'ventana_ajuste_minutos'$q$,
-                 '23514', null, 'Non-numeric window rejected');
+                 '23514', null, 'Non-numeric window update raises check_violation, not a cast error');
 select throws_ok($q$update public.configuracion set valor = '1.5' where clave = 'ventana_ajuste_minutos'$q$,
                  '23514', null, 'Fractional window rejected');
 select throws_ok($q$update public.configuracion set valor = '100' where clave = 'ventana_ajuste_minutos'$q$,
                  '23514', null, 'Three-digit window rejected');
+-- INSERT must also reject malformed text with check_violation rather than a cast error.
+delete from public.configuracion where clave = 'ventana_ajuste_minutos';
+select throws_ok($q$insert into public.configuracion(clave, valor) values ('ventana_ajuste_minutos', 'abc')$q$,
+                 '23514', null, 'Non-numeric window insert raises check_violation, not a cast error');
+insert into public.configuracion(clave, valor) values ('ventana_ajuste_minutos', '15');
 select lives_ok($q$update public.configuracion set valor = '5' where clave = 'ventana_ajuste_minutos'$q$,
                 'Minimum 5 accepted');
 select lives_ok($q$update public.configuracion set valor = '60' where clave = 'ventana_ajuste_minutos'$q$,
                 'Maximum 60 accepted');
 select lives_ok($q$update public.configuracion set valor = '20' where clave = 'ventana_ajuste_minutos'$q$,
                 'Configured 20 accepted');
-select lives_ok($q$insert into public.configuracion(clave, valor) values ('hu26_unrelated', 'abc')$q$,
-                'Guard does not restrict unrelated configuration');
+select lives_ok($q$insert into public.configuracion(clave, valor) values ('prueba_texto', 'abc')$q$,
+                'Unrelated text setting bypasses the integer cast');
 update public.perfiles set activo = true where id in (
     '20000000-0000-0000-0001-000000000001', '20000000-0000-0000-0001-000000000002');
 select set_config('request.jwt.claim.sub', '20000000-0000-0000-0001-000000000002', true);
