@@ -1800,6 +1800,15 @@ export type Database = {
         }
         Returns: string
       }
+      vendedores_historial_sucursal: {
+        Args: { p_sucursal_id: string }
+        Returns: {
+          activo: boolean
+          apellidos: string
+          id: string
+          nombres: string
+        }[]
+      }
       vendedores_sucursal: {
         Args: { p_sucursal_id: string }
         Returns: {
