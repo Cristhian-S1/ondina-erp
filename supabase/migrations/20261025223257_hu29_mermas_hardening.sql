@@ -1,9 +1,18 @@
 -- HU-29 F1-F5: enforce loss/return integrity for RPC and direct clients.
 -- Parent locks precede balance locks and FK key-share locks; movements stay in B3/B6.
+-- A reason must contain a visible character; SQL NULL and invisible-only text
+-- are rejected uniformly by direct inserts and both loss RPCs.
+create function private.motivo_merma_vacio(p_motivo text)
+returns boolean language sql immutable set search_path = '' as $$
+    select p_motivo is null or p_motivo ~ U&'^[[:space:]\00A0\200B\2060\FEFF]*$';
+$$;
+revoke execute on function private.motivo_merma_vacio(text)
+  from public, anon, authenticated, service_role;
+
 create function private.validar_merma_hu29()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
-    if new.motivo is null or new.motivo ~ '^[[:space:]]*$' then
+    if private.motivo_merma_vacio(new.motivo) then
         raise exception 'Indica el motivo de la merma.';
     end if;
     if new.despacho_id is not null and new.tipo_empaque_id is not null then
@@ -23,10 +32,18 @@ create trigger validar_merma_hu29 before insert on public.mermas
 -- BEFORE trigger name sorts before trg_devolucion_producto, which owns stock effects.
 create function private.validar_devolucion_mermas_hu29()
 returns trigger language plpgsql security definer set search_path = '' as $$
-declare v_despachado bigint; v_devuelto bigint; v_mermas bigint;
+declare d public.despachos%rowtype; v_despachado bigint; v_devuelto bigint; v_mermas bigint;
 begin
     if new.anulado then return new; end if;
-    perform 1 from public.despachos where id=new.despacho_id for update;
+    select * into d from public.despachos where id=new.despacho_id for update;
+    -- Match B3 authorization before reading private loss totals. Its NULL
+    -- semantics deliberately preserve B3's missing-dispatch error contract.
+    if auth.uid() is not null and
+       (not (private.es_rol('bodega') or private.es_rol('administrador'))
+        or not (private.es_admin_global() or d.sucursal_id=private.mi_sucursal())) then
+        raise exception using errcode='42501',
+          message='No tienes permisos para registrar devoluciones.';
+    end if;
     select coalesce(sum(cantidad),0) into v_despachado from public.despacho_detalles
       where despacho_id=new.despacho_id and producto_id=new.producto_id;
     select coalesce(sum(cantidad),0) into v_devuelto from public.devoluciones_productos
@@ -94,7 +111,7 @@ begin
         raise exception 'Registra los envases dañados del despacho como devolución en estado malo.';
     end if;
     if p_cantidad is null or p_cantidad <= 0 then raise exception 'La cantidad debe ser un entero mayor que cero.'; end if;
-    if v_motivo is null or v_motivo = '' then raise exception 'Indica el motivo de la merma.'; end if;
+    if private.motivo_merma_vacio(v_motivo) then raise exception 'Indica el motivo de la merma.'; end if;
     v_payload := pg_catalog.jsonb_build_object(
         'sucursal_id',p_sucursal_id,'origen',p_origen,'despacho_id',p_despacho_id,
         'producto_id',p_producto_id,'tipo_empaque_id',p_tipo_empaque_id,
@@ -154,7 +171,7 @@ begin
     if auth.uid() is null or private.es_rol('administrador') is not true then
         raise exception using errcode='42501',message='Solo administración puede anular mermas.';
     end if;
-    if p_motivo is null or pg_catalog.btrim(p_motivo)='' then
+    if private.motivo_merma_vacio(p_motivo) then
         raise exception 'Indica el motivo de la anulación.';
     end if;
     select * into m from public.mermas where id=p_merma_id;

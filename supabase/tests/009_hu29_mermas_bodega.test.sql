@@ -272,4 +272,44 @@ select is((select sum(despachado) from cuadre_diario_bodega('10000000-0000-0000-
 reset role; select set_config('request.jwt.claim.sub','20000000-0000-0000-0000-000000000001',true); set local role authenticated;
 select results_eq($q$select despachado,vendido,devuelto,mermas from cuadre_diario_bodega('10000000-0000-0000-0000-000000000002',(now() at time zone 'America/Santiago')::date,(now() at time zone 'America/Santiago')::date,'20000000-0000-0000-0002-000000000004') where producto_id='40000000-0000-0000-0000-000000000001'$q$,$q$select 10::bigint,4::bigint,3::bigint,2::bigint$q$,'Explicit global-admin branch B returns only its exact activity');
 reset role;
+
+-- LOW-4/5: the exact same blank/invisible rule applies to every loss entry point.
+reset role; select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000001',true); set local role authenticated;
+create temp table hu29_blank_reasons(label text, motivo text);
+insert into hu29_blank_reasons values
+ ('NULL',null), ('space','   '), ('tabs/newlines',E'\t\n\r'),
+ ('NBSP',U&'\00A0'), ('zero-width space',U&'\200B'),
+ ('word joiner',U&'\2060'), ('BOM',U&'\FEFF'),
+ ('mixed invisible',U&' \00A0\200B\2060\FEFF' || E'\t\n');
+select throws_ok(pg_catalog.format($q$
+ insert into public.mermas(sucursal_id,producto_id,cantidad,motivo,creado_por)
+ values('10000000-0000-0000-0000-000000000001','40000000-0000-0000-0000-000000000001',1,%L,'20000000-0000-0000-0001-000000000001')
+$q$,motivo),'P0001','Indica el motivo de la merma.','Direct loss rejects ' || label)
+from hu29_blank_reasons;
+select throws_ok(pg_catalog.format($q$
+ select public.registrar_merma_bodega('10000000-0000-0000-0000-000000000001','bodega',null,
+ '40000000-0000-0000-0000-000000000001',null,1,%L,gen_random_uuid())
+$q$,motivo),'P0001','Indica el motivo de la merma.','Loss RPC rejects ' || label)
+from hu29_blank_reasons;
+select throws_ok(pg_catalog.format($q$
+ select public.anular_merma_bodega((select id from receipts where name='reusable'),%L)
+$q$,motivo),'P0001','Indica el motivo de la anulación.','Cancellation RPC rejects ' || label)
+from hu29_blank_reasons;
+-- The helper is an implementation detail reachable only inside the definer gates.
+select ok(not has_function_privilege('authenticated','private.motivo_merma_vacio(text)','execute')
+ and not has_function_privilege('anon','private.motivo_merma_vacio(text)','execute'),
+ 'Blank reason helper has no direct client execute');
+-- F-A: branch gate precedes loss totals, regardless of whether the bound is exceeded.
+reset role; select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002',true); set local role authenticated;
+select throws_ok(pg_catalog.format($q$
+ insert into public.devoluciones_productos(despacho_id,producto_id,cantidad,creado_por)
+ values('89000000-0000-0000-0000-000000000011','40000000-0000-0000-0000-000000000001',%s,'20000000-0000-0000-0001-000000000002')
+$q$,cantidad),'42501','No tienes permisos para registrar devoluciones.',
+ 'Other-branch direct return hides active losses at quantity ' || cantidad)
+from (values(1),(1000)) quantities(cantidad);
+select throws_ok($q$
+ insert into public.devoluciones_productos(despacho_id,producto_id,cantidad,creado_por)
+ values('89000000-0000-0000-0000-000000000099','40000000-0000-0000-0000-000000000001',1,'20000000-0000-0000-0001-000000000002')
+$q$,'P0001','No se puede devolver más de lo despachado.','Missing dispatch retains B3 direct-return contract');
+reset role;
 select * from finish(); rollback;

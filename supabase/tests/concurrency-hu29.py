@@ -2,9 +2,16 @@
 """HU-29 real two-session checks. Local synthetic stack only; reset before/after.
 Run: python3 supabase/tests/concurrency-hu29.py
 Reuses the B3 lock-wait harness; no remote URLs or credentials are accepted.
+Use --lock-only to isolate the BEFORE INSERT parent-lock regression test.
+Mutation: remove only the despacho FOR UPDATE statement from
+private.validar_merma_hu29, run --lock-only (must fail), then restore the function.
 """
 import importlib.util
+import subprocess
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
+from uuid import uuid4
 sys.dont_write_bytecode = True
 from pathlib import Path
 
@@ -22,6 +29,83 @@ def loss(quantity, key):
 
 def scalar(sql):
     return b3.run(sql).stdout.strip()
+
+
+def check_merma_parent_lock():
+    """Prove the parent lock precedes FK/AFTER work, not just the stock trigger.
+
+    NO KEY UPDATE permits the FK's KEY SHARE but blocks FOR UPDATE. An AFTER
+    probe, ordered before trg_merma_insert, marks that INSERT has passed the
+    FK stage. Without the BEFORE parent lock the marker appears while the
+    stock trigger waits; with it the INSERT waits before reaching the marker.
+    This controlled interleaving avoids relying on a probabilistic deadlock.
+    """
+    dispatch_id = str(uuid4())
+    b3.dispatch(dispatch_id)
+    b3.run(f"""
+        create function private.hu29_after_insert_probe() returns trigger
+        language plpgsql security definer set search_path='' as $$
+        begin
+            if new.despacho_id='{dispatch_id}'::uuid then
+                perform pg_catalog.pg_advisory_xact_lock(29025,29);
+            end if;
+            return new;
+        end; $$;
+        revoke all on function private.hu29_after_insert_probe() from public,anon,authenticated;
+        create trigger a_hu29_after_insert_probe after insert on public.mermas
+        for each row execute function private.hu29_after_insert_probe();
+    """)
+    holder = subprocess.Popen(b3.DB, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, text=True, bufsize=1)
+    try:
+        holder.stdin.write(
+            f"begin; select id from public.despachos where id='{dispatch_id}' for no key update; "
+            "select 'HU29_PARENT_READY';\n")
+        holder.stdin.flush()
+        for line in holder.stdout:
+            if line.strip() == 'HU29_PARENT_READY':
+                break
+        else:
+            raise AssertionError(holder.stderr.read())
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            pending = executor.submit(b3.run, f"""
+                begin; set application_name='hu29-direct-loss-lock';
+                set request.jwt.claim.sub='{B}'; set local role authenticated;
+                insert into public.mermas(sucursal_id,despacho_id,producto_id,cantidad,motivo,creado_por)
+                values('{S}','{dispatch_id}','{P}',1,'parent lock probe','{B}');
+                commit;
+            """, False)
+            try:
+                deadline = time.monotonic() + 8
+                blocked = False
+                while time.monotonic() < deadline:
+                    blocked = scalar("select exists(select 1 from pg_stat_activity where "
+                                     "application_name='hu29-direct-loss-lock' and wait_event_type='Lock')") == 't'
+                    if blocked or pending.done():
+                        break
+                    time.sleep(0.03)
+                reached_after_insert = scalar(
+                    "select exists(select 1 from pg_locks l join pg_stat_activity a on a.pid=l.pid "
+                    "where a.application_name='hu29-direct-loss-lock' and l.locktype='advisory' "
+                    "and l.classid=29025 and l.objid=29 and l.objsubid=2 and l.granted)") == 't'
+            finally:
+                # Always release the parent before awaiting the INSERT, including failures.
+                holder.stdin.write('rollback;\n\\q\n')
+                holder.stdin.flush()
+                holder.wait(timeout=10)
+            result = pending.result(timeout=10)
+        assert result.returncode == 0, result.stderr
+        assert blocked, 'Direct loss never waited for the parent lock'
+        assert not reached_after_insert, (
+            'Direct loss reached AFTER INSERT before acquiring the despacho FOR UPDATE lock')
+        assert scalar(f"select sum(cantidad) from public.mermas where despacho_id='{dispatch_id}'") == '1'
+        print('PASS: direct loss blocks BEFORE FK/AFTER INSERT under parent NO KEY UPDATE; parent-first lock proven.')
+    finally:
+        if holder.poll() is None:
+            holder.kill()
+            holder.wait()
+        b3.run('drop trigger a_hu29_after_insert_probe on public.mermas; '
+               'drop function private.hu29_after_insert_probe();')
 
 
 def main():
@@ -71,6 +155,13 @@ def main():
         ) == ('4' if loss_first else '7')
         print(f'PASS: concurrent direct {"loss then return" if loss_first else "return then loss"} waits on parent; second rejects, combined bound preserved.')
 
+    check_merma_parent_lock()
+
 
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:] == ['--lock-only']:
+        check_merma_parent_lock()
+    elif not sys.argv[1:]:
+        main()
+    else:
+        raise SystemExit('Usage: concurrency-hu29.py [--lock-only]')
