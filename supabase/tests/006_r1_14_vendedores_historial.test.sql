@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(23);
+select plan(22);
 -- R1-14 fixtures (synthetic): an inactive seller in each branch, the one of branch A with a past dispatch.
 insert into auth.users(id,aud,role,email) values
  ('20000000-0000-0000-0001-000000000021','authenticated','authenticated','inactivo-a@example.invalid'),
@@ -83,8 +83,5 @@ select set_config('request.jwt.claim.sub','20000000-0000-0000-0001-000000000002'
 set local role authenticated;
 select throws_ok($q$insert into public.despachos(id,sucursal_id,vendedor_id,despachador_id,creado_por) values('71000000-0000-0000-0000-0000000000a2','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0001-000000000021','20000000-0000-0000-0001-000000000002','20000000-0000-0000-0001-000000000002')$q$,'42501',null,'R1-14 dispatch to an inactive seller is still denied');
 reset role;
--- 002_security allow-list, extended with the new endpoint
-select ok(not exists(select 1 from pg_proc p where p.pronamespace='public'::regnamespace and has_function_privilege('authenticated',p.oid,'EXECUTE')
- and p.proname not in ('registrar_venta','crear_despacho','corregir_devolucion','registrar_devolucion','contar_ventas_jornada','vendedores_sucursal','vendedores_historial_sucursal')),'Authenticated RPC allow-list (002) with the new endpoint');
 select * from finish();
 rollback;
