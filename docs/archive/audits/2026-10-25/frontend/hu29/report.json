@@ -1,0 +1,967 @@
+{
+  "generatedAt": "2026-10-25T22:45:55.109Z",
+  "task": "HU-29 — registro de mermas de bodega y cuadre diario (verificación de navegador)",
+  "base": "http://127.0.0.1:5193",
+  "supabaseOrigin": "http://127.0.0.1:54321",
+  "browser": "Google Chrome (local /usr/bin/google-chrome)",
+  "playwrightModule": "/home/cristhian/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs",
+  "summary": {
+    "total": 18,
+    "passed": 18,
+    "failed": 0,
+    "viewports": [
+      "375x812",
+      "412x915",
+      "768x1024",
+      "1280x800"
+    ],
+    "syntheticToday": "2026-10-25"
+  },
+  "allowedWrites": [
+    "POST /rest/v1/rpc/registrar_merma_bodega",
+    "POST /rest/v1/rpc/anular_merma_bodega"
+  ],
+  "readRpcs": [
+    "/rest/v1/rpc/vendedores_sucursal",
+    "/rest/v1/rpc/vendedores_historial_sucursal",
+    "/rest/v1/rpc/cuadre_diario_bodega"
+  ],
+  "scenarios": [
+    {
+      "scenario": "registro-merma-bodega",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "375x812",
+      "status": "PASS",
+      "checks": {
+        "origenInicial": "bodega",
+        "itemInicial": "producto",
+        "productos": [
+          "Selecciona producto...",
+          "Agua 20L",
+          "Hielo en bolsa 2kg"
+        ],
+        "objetivos": [
+          {
+            "control": "Registrar merma",
+            "tag": "button",
+            "height": 44,
+            "width": 301
+          },
+          {
+            "control": "Aumentar",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "Disminuir",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          }
+        ],
+        "layoutFormulario": {
+          "innerWidth": 375,
+          "scrollWidth": 375,
+          "bodyScrollWidth": 375
+        },
+        "tabla": {
+          "tableDisplay": "block",
+          "rowDisplay": "grid"
+        },
+        "registrosAntes": "3 registros",
+        "registrosDespues": "4 registros",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_origen": "bodega",
+            "p_despacho_id": null,
+            "p_producto_id": "55555555-5555-4555-8555-555555555555",
+            "p_tipo_empaque_id": null,
+            "p_cantidad": 4,
+            "p_motivo": "Merma browser 375x812",
+            "p_idempotency_key": "831c27af-a4fc-4863-897f-ff28ea711430"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_origen": "bodega",
+          "p_despacho_id": null,
+          "p_producto_id": "55555555-5555-4555-8555-555555555555",
+          "p_tipo_empaque_id": null,
+          "p_cantidad": 4,
+          "p_motivo": "Merma browser 375x812",
+          "p_idempotency_key": "831c27af-a4fc-4863-897f-ff28ea711430"
+        },
+        "formularioReiniciado": {
+          "producto": "",
+          "cantidad": "",
+          "motivo": ""
+        },
+        "filas": 5,
+        "refresco": {
+          "mermasGetAntes": 1,
+          "mermasGetDespues": 2,
+          "despachosGetAntes": 1,
+          "despachosGetDespues": 2
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "cuadre-diario",
+      "role": "bodega",
+      "path": "/cuadre-diario",
+      "viewport": "375x812",
+      "status": "PASS",
+      "checks": {
+        "desde": "2026-10-25",
+        "hasta": "2026-10-25",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-25",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          },
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-24",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-25",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        },
+        "estilos": {
+          "tableDisplay": "block",
+          "rowDisplay": "grid",
+          "mobileLabelDisplay": "block"
+        },
+        "comparacionNoDisponible": 1,
+        "comparacionDisponible": {
+          "saldoInicial": 1,
+          "cargaActual": 1,
+          "diferencia": 1
+        },
+        "inactivo": {
+          "fila": 1,
+          "opcion": 1
+        },
+        "objetivos": [
+          {
+            "control": "Actualizar",
+            "tag": "button",
+            "height": 44,
+            "width": 100.5
+          }
+        ],
+        "layout": {
+          "innerWidth": 375,
+          "scrollWidth": 375,
+          "bodyScrollWidth": 375
+        },
+        "rangoInvalido": {
+          "mensaje": "El rango no puede superar 31 días.",
+          "guia": 1,
+          "consultas": 0
+        },
+        "rangoCorregido": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-24",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "anulacion-administrador",
+      "role": "administrador",
+      "path": "/mermas",
+      "viewport": "375x812",
+      "status": "PASS",
+      "checks": {
+        "sucursal": {
+          "visible": 1,
+          "opciones": [
+            "Sucursal Sintética",
+            "Sucursal Sintética Dos"
+          ]
+        },
+        "botonesAntes": 2,
+        "columnas": 1,
+        "objetivos": [
+          {
+            "control": "Anular",
+            "tag": "button",
+            "height": 44,
+            "width": 283
+          },
+          {
+            "control": "Anular merma (confirmar)",
+            "tag": "button",
+            "height": 44,
+            "width": 295
+          }
+        ],
+        "layoutDialogo": {
+          "innerWidth": 375,
+          "scrollWidth": 375,
+          "bodyScrollWidth": 375
+        },
+        "anulacionesTrasMotivoVacio": 0,
+        "rpc": [
+          {
+            "p_merma_id": "33333333-3333-4333-8333-333333333301",
+            "p_motivo": "Error de conteo"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_merma_id": "33333333-3333-4333-8333-333333333301",
+          "p_motivo": "Error de conteo"
+        },
+        "registrar": 0,
+        "botonesDespues": 1,
+        "estados": 2
+      },
+      "failures": []
+    },
+    {
+      "scenario": "registro-merma-bodega",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "412x915",
+      "status": "PASS",
+      "checks": {
+        "origenInicial": "bodega",
+        "itemInicial": "producto",
+        "productos": [
+          "Selecciona producto...",
+          "Agua 20L",
+          "Hielo en bolsa 2kg"
+        ],
+        "objetivos": [
+          {
+            "control": "Registrar merma",
+            "tag": "button",
+            "height": 44,
+            "width": 338
+          },
+          {
+            "control": "Aumentar",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "Disminuir",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          }
+        ],
+        "layoutFormulario": {
+          "innerWidth": 412,
+          "scrollWidth": 412,
+          "bodyScrollWidth": 412
+        },
+        "tabla": {
+          "tableDisplay": "block",
+          "rowDisplay": "grid"
+        },
+        "registrosAntes": "3 registros",
+        "registrosDespues": "4 registros",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_origen": "bodega",
+            "p_despacho_id": null,
+            "p_producto_id": "55555555-5555-4555-8555-555555555555",
+            "p_tipo_empaque_id": null,
+            "p_cantidad": 4,
+            "p_motivo": "Merma browser 412x915",
+            "p_idempotency_key": "2d842213-4dc3-42e7-bcf1-2e82f7d7bc62"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_origen": "bodega",
+          "p_despacho_id": null,
+          "p_producto_id": "55555555-5555-4555-8555-555555555555",
+          "p_tipo_empaque_id": null,
+          "p_cantidad": 4,
+          "p_motivo": "Merma browser 412x915",
+          "p_idempotency_key": "2d842213-4dc3-42e7-bcf1-2e82f7d7bc62"
+        },
+        "formularioReiniciado": {
+          "producto": "",
+          "cantidad": "",
+          "motivo": ""
+        },
+        "filas": 5,
+        "refresco": {
+          "mermasGetAntes": 1,
+          "mermasGetDespues": 2,
+          "despachosGetAntes": 1,
+          "despachosGetDespues": 2
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "cuadre-diario",
+      "role": "bodega",
+      "path": "/cuadre-diario",
+      "viewport": "412x915",
+      "status": "PASS",
+      "checks": {
+        "desde": "2026-10-25",
+        "hasta": "2026-10-25",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-25",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          },
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-24",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-25",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        },
+        "estilos": {
+          "tableDisplay": "block",
+          "rowDisplay": "grid",
+          "mobileLabelDisplay": "block"
+        },
+        "comparacionNoDisponible": 1,
+        "comparacionDisponible": {
+          "saldoInicial": 1,
+          "cargaActual": 1,
+          "diferencia": 1
+        },
+        "inactivo": {
+          "fila": 1,
+          "opcion": 1
+        },
+        "objetivos": [
+          {
+            "control": "Actualizar",
+            "tag": "button",
+            "height": 44,
+            "width": 100.5
+          }
+        ],
+        "layout": {
+          "innerWidth": 412,
+          "scrollWidth": 412,
+          "bodyScrollWidth": 412
+        },
+        "rangoInvalido": {
+          "mensaje": "El rango no puede superar 31 días.",
+          "guia": 1,
+          "consultas": 0
+        },
+        "rangoCorregido": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-24",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "anulacion-administrador",
+      "role": "administrador",
+      "path": "/mermas",
+      "viewport": "412x915",
+      "status": "PASS",
+      "checks": {
+        "sucursal": {
+          "visible": 1,
+          "opciones": [
+            "Sucursal Sintética",
+            "Sucursal Sintética Dos"
+          ]
+        },
+        "botonesAntes": 2,
+        "columnas": 1,
+        "objetivos": [
+          {
+            "control": "Anular",
+            "tag": "button",
+            "height": 44,
+            "width": 320
+          },
+          {
+            "control": "Anular merma (confirmar)",
+            "tag": "button",
+            "height": 44,
+            "width": 332
+          }
+        ],
+        "layoutDialogo": {
+          "innerWidth": 412,
+          "scrollWidth": 412,
+          "bodyScrollWidth": 412
+        },
+        "anulacionesTrasMotivoVacio": 0,
+        "rpc": [
+          {
+            "p_merma_id": "33333333-3333-4333-8333-333333333301",
+            "p_motivo": "Error de conteo"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_merma_id": "33333333-3333-4333-8333-333333333301",
+          "p_motivo": "Error de conteo"
+        },
+        "registrar": 0,
+        "botonesDespues": 1,
+        "estados": 2
+      },
+      "failures": []
+    },
+    {
+      "scenario": "registro-merma-bodega",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "768x1024",
+      "status": "PASS",
+      "checks": {
+        "origenInicial": "bodega",
+        "itemInicial": "producto",
+        "productos": [
+          "Selecciona producto...",
+          "Agua 20L",
+          "Hielo en bolsa 2kg"
+        ],
+        "objetivos": [
+          {
+            "control": "Registrar merma",
+            "tag": "button",
+            "height": 44,
+            "width": 147.91
+          },
+          {
+            "control": "Aumentar",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "Disminuir",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          }
+        ],
+        "layoutFormulario": {
+          "innerWidth": 768,
+          "scrollWidth": 768,
+          "bodyScrollWidth": 768
+        },
+        "tabla": {
+          "tableDisplay": "table",
+          "rowDisplay": "table-row"
+        },
+        "registrosAntes": "3 registros",
+        "registrosDespues": "4 registros",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_origen": "bodega",
+            "p_despacho_id": null,
+            "p_producto_id": "55555555-5555-4555-8555-555555555555",
+            "p_tipo_empaque_id": null,
+            "p_cantidad": 4,
+            "p_motivo": "Merma browser 768x1024",
+            "p_idempotency_key": "fccf9263-75ea-4fb2-bfeb-a345aa38930b"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_origen": "bodega",
+          "p_despacho_id": null,
+          "p_producto_id": "55555555-5555-4555-8555-555555555555",
+          "p_tipo_empaque_id": null,
+          "p_cantidad": 4,
+          "p_motivo": "Merma browser 768x1024",
+          "p_idempotency_key": "fccf9263-75ea-4fb2-bfeb-a345aa38930b"
+        },
+        "formularioReiniciado": {
+          "producto": "",
+          "cantidad": "",
+          "motivo": ""
+        },
+        "filas": 5,
+        "refresco": {
+          "mermasGetAntes": 1,
+          "mermasGetDespues": 2,
+          "despachosGetAntes": 1,
+          "despachosGetDespues": 2
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "cuadre-diario",
+      "role": "bodega",
+      "path": "/cuadre-diario",
+      "viewport": "768x1024",
+      "status": "PASS",
+      "checks": {
+        "desde": "2026-10-25",
+        "hasta": "2026-10-25",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-25",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          },
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-24",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-25",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        },
+        "estilos": {
+          "tableDisplay": "table",
+          "rowDisplay": "table-row",
+          "mobileLabelDisplay": "none"
+        },
+        "comparacionNoDisponible": 1,
+        "comparacionDisponible": {
+          "saldoInicial": 1,
+          "cargaActual": 1,
+          "diferencia": 1
+        },
+        "inactivo": {
+          "fila": 1,
+          "opcion": 1
+        },
+        "objetivos": [
+          {
+            "control": "Actualizar",
+            "tag": "button",
+            "height": 44,
+            "width": 100.5
+          }
+        ],
+        "layout": {
+          "innerWidth": 768,
+          "scrollWidth": 768,
+          "bodyScrollWidth": 768
+        },
+        "rangoInvalido": {
+          "mensaje": "El rango no puede superar 31 días.",
+          "guia": 1,
+          "consultas": 0
+        },
+        "rangoCorregido": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-24",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "anulacion-administrador",
+      "role": "administrador",
+      "path": "/mermas",
+      "viewport": "768x1024",
+      "status": "PASS",
+      "checks": {
+        "sucursal": {
+          "visible": 1,
+          "opciones": [
+            "Sucursal Sintética",
+            "Sucursal Sintética Dos"
+          ]
+        },
+        "botonesAntes": 2,
+        "columnas": 1,
+        "objetivos": [
+          {
+            "control": "Anular",
+            "tag": "button",
+            "height": 44,
+            "width": 79.78
+          },
+          {
+            "control": "Anular merma (confirmar)",
+            "tag": "button",
+            "height": 44,
+            "width": 130.92
+          }
+        ],
+        "layoutDialogo": {
+          "innerWidth": 768,
+          "scrollWidth": 768,
+          "bodyScrollWidth": 768
+        },
+        "anulacionesTrasMotivoVacio": 0,
+        "rpc": [
+          {
+            "p_merma_id": "33333333-3333-4333-8333-333333333301",
+            "p_motivo": "Error de conteo"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_merma_id": "33333333-3333-4333-8333-333333333301",
+          "p_motivo": "Error de conteo"
+        },
+        "registrar": 0,
+        "botonesDespues": 1,
+        "estados": 2
+      },
+      "failures": []
+    },
+    {
+      "scenario": "registro-merma-bodega",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "origenInicial": "bodega",
+        "itemInicial": "producto",
+        "productos": [
+          "Selecciona producto...",
+          "Agua 20L",
+          "Hielo en bolsa 2kg"
+        ],
+        "objetivos": [
+          {
+            "control": "Registrar merma",
+            "tag": "button",
+            "height": 44,
+            "width": 147.91
+          },
+          {
+            "control": "Aumentar",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          },
+          {
+            "control": "Disminuir",
+            "tag": "button",
+            "height": 44,
+            "width": 44
+          }
+        ],
+        "layoutFormulario": {
+          "innerWidth": 1280,
+          "scrollWidth": 1280,
+          "bodyScrollWidth": 1280
+        },
+        "tabla": {
+          "tableDisplay": "table",
+          "rowDisplay": "table-row"
+        },
+        "registrosAntes": "3 registros",
+        "registrosDespues": "4 registros",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_origen": "bodega",
+            "p_despacho_id": null,
+            "p_producto_id": "55555555-5555-4555-8555-555555555555",
+            "p_tipo_empaque_id": null,
+            "p_cantidad": 4,
+            "p_motivo": "Merma browser 1280x800",
+            "p_idempotency_key": "68d3972c-1015-443d-80a4-fef3fe4d3d44"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_origen": "bodega",
+          "p_despacho_id": null,
+          "p_producto_id": "55555555-5555-4555-8555-555555555555",
+          "p_tipo_empaque_id": null,
+          "p_cantidad": 4,
+          "p_motivo": "Merma browser 1280x800",
+          "p_idempotency_key": "68d3972c-1015-443d-80a4-fef3fe4d3d44"
+        },
+        "formularioReiniciado": {
+          "producto": "",
+          "cantidad": "",
+          "motivo": ""
+        },
+        "filas": 5,
+        "refresco": {
+          "mermasGetAntes": 1,
+          "mermasGetDespues": 2,
+          "despachosGetAntes": 1,
+          "despachosGetDespues": 2
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "cuadre-diario",
+      "role": "bodega",
+      "path": "/cuadre-diario",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "desde": "2026-10-25",
+        "hasta": "2026-10-25",
+        "rpc": [
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-25",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          },
+          {
+            "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+            "p_desde": "2026-10-24",
+            "p_hasta": "2026-10-25",
+            "p_vendedor_id": null
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-25",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        },
+        "estilos": {
+          "tableDisplay": "table",
+          "rowDisplay": "table-row",
+          "mobileLabelDisplay": "none"
+        },
+        "comparacionNoDisponible": 1,
+        "comparacionDisponible": {
+          "saldoInicial": 1,
+          "cargaActual": 1,
+          "diferencia": 1
+        },
+        "inactivo": {
+          "fila": 1,
+          "opcion": 1
+        },
+        "objetivos": [
+          {
+            "control": "Actualizar",
+            "tag": "button",
+            "height": 44,
+            "width": 100.5
+          }
+        ],
+        "layout": {
+          "innerWidth": 1280,
+          "scrollWidth": 1280,
+          "bodyScrollWidth": 1280
+        },
+        "rangoInvalido": {
+          "mensaje": "El rango no puede superar 31 días.",
+          "guia": 1,
+          "consultas": 0
+        },
+        "rangoCorregido": {
+          "p_sucursal_id": "00000000-0000-4000-8000-000000000001",
+          "p_desde": "2026-10-24",
+          "p_hasta": "2026-10-25",
+          "p_vendedor_id": null
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "anulacion-administrador",
+      "role": "administrador",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "sucursal": {
+          "visible": 1,
+          "opciones": [
+            "Sucursal Sintética",
+            "Sucursal Sintética Dos"
+          ]
+        },
+        "botonesAntes": 2,
+        "columnas": 1,
+        "objetivos": [
+          {
+            "control": "Anular",
+            "tag": "button",
+            "height": 44,
+            "width": 79.78
+          },
+          {
+            "control": "Anular merma (confirmar)",
+            "tag": "button",
+            "height": 44,
+            "width": 130.92
+          }
+        ],
+        "layoutDialogo": {
+          "innerWidth": 1280,
+          "scrollWidth": 1280,
+          "bodyScrollWidth": 1280
+        },
+        "anulacionesTrasMotivoVacio": 0,
+        "rpc": [
+          {
+            "p_merma_id": "33333333-3333-4333-8333-333333333301",
+            "p_motivo": "Error de conteo"
+          }
+        ],
+        "peticionesRpc": 1,
+        "cuerpo": {
+          "p_merma_id": "33333333-3333-4333-8333-333333333301",
+          "p_motivo": "Error de conteo"
+        },
+        "registrar": 0,
+        "botonesDespues": 1,
+        "estados": 2
+      },
+      "failures": []
+    },
+    {
+      "scenario": "reintento-tras-fallo-red",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "mensajeFallo": "No fue posible completar la operación. Inténtalo de nuevo.",
+        "claveTrasFallo": "3ce1b934-3ce1-4565-981f-401c423c1a7b",
+        "formularioTrasFallo": {
+          "producto": "44444444-4444-4444-8444-444444444444",
+          "cantidad": "2",
+          "motivo": "Merma reintentada tras fallo de red"
+        },
+        "claves": [
+          "3ce1b934-3ce1-4565-981f-401c423c1a7b",
+          "3ce1b934-3ce1-4565-981f-401c423c1a7b"
+        ],
+        "peticionesRpc": 2
+      },
+      "failures": []
+    },
+    {
+      "scenario": "doble-click",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "peticionesRpc": 1,
+        "claves": [
+          "6aed46f6-74eb-44d4-8b72-6f0582492fb7"
+        ]
+      },
+      "failures": []
+    },
+    {
+      "scenario": "validacion-cliente",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "motivoVacio": {
+          "mensaje": "Indica el motivo de la merma.",
+          "peticiones": 0
+        },
+        "cantidadCero": "",
+        "cantidadNoPositiva": {
+          "mensaje": "Ingresa una cantidad mayor que cero.",
+          "peticiones": 0,
+          "motivo": "Prueba de validación",
+          "producto": "55555555-5555-4555-8555-555555555555"
+        }
+      },
+      "failures": []
+    },
+    {
+      "scenario": "error-stock-servidor",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "mensaje": "No hay stock o carga suficiente para registrar la merma.",
+        "mensajeEsperado": "No hay stock o carga suficiente para registrar la merma.",
+        "formulario": {
+          "producto": "55555555-5555-4555-8555-555555555555",
+          "cantidad": "9.999",
+          "motivo": "Merma sin saldo suficiente"
+        },
+        "peticionesRpc": 1,
+        "registros": 1
+      },
+      "failures": []
+    },
+    {
+      "scenario": "sin-anular-bodega",
+      "role": "bodega",
+      "path": "/mermas",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "acciones": 0,
+        "columna": 0,
+        "anularTexto": 0
+      },
+      "failures": []
+    },
+    {
+      "scenario": "cuadre-vacio",
+      "role": "bodega",
+      "path": "/cuadre-diario",
+      "viewport": "1280x800",
+      "status": "PASS",
+      "checks": {
+        "mensaje": "No hay movimientos entre 25-10-2026 y 25-10-2026.",
+        "tabla": 0,
+        "peticionesRpc": 1
+      },
+      "failures": []
+    }
+  ],
+  "failures": [],
+  "defects": []
+}
