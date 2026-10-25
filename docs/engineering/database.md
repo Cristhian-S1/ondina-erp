@@ -226,18 +226,44 @@ and the remote gates are in [reconciliation](../../supabase/reconciliation.md#b6
   shared-balance serialization and double cancellation. See the
   [design](../archive/audits/2026-10-25/backend/hu29-design.md) and
   [security review](../archive/audits/2026-10-25/backend/hu29-security-review.md).
-- The migration is not applied remotely; `supabase db push` remains behind the
-  [deployment gate](#sources-and-deployment-gate).
 
-### Open decisions
+### Hardening (approved 2026-10-25)
 
-Items 2–4 of design §3 were not implemented and are pending the user's decision:
+Items 2–4 of design §3 and the F4/F5 review fixes were approved on 2026-10-25 and implemented by
+[`20261025223257_hu29_mermas_hardening.sql`](../../supabase/migrations/20261025223257_hu29_mermas_hardening.sql):
 
-- **Item 2, BEFORE INSERT guard on `public.mermas` (F2, MEDIUM).** Direct inserts still accept
-  blank reasons and dispatch-plus-packaging losses, bypassing the RPC rules and debiting the plant
-  packaging pool.
-- **Item 3, BEFORE INSERT guard on `public.devoluciones_productos` (F3, MEDIUM).** A return recorded
-  after a loss can exceed the dispatched quantity, crediting phantom warehouse stock.
-- **Item 4, revoke direct `UPDATE` on `public.mermas` (F1, MEDIUM).** A branch admin can annul a loss
-  without the cancellation reason or the dispatch-first lock, leaving the original loss reason in
-  the audit.
+- **Loss guard at the table boundary (item 2, F2).** BEFORE INSERT trigger
+  `private.validar_merma_hu29` on `public.mermas` rejects a reason with no visible character using
+  the same rule as the RPCs (`private.motivo_merma_vacio`), rejects a dispatch loss that also names
+  a packaging type, and locks the dispatch `FOR UPDATE` before the FK key-share and the AFTER
+  trigger acquire their locks. Producción keeps its direct INSERT path through the same checks.
+- **Return bound against active losses (item 3, F3).** BEFORE INSERT trigger
+  `a_validar_devolucion_mermas_hu29` on `public.devoluciones_productos` repeats the B3 role/branch
+  gate with the same `42501` and then, when active losses exist, enforces
+  `devuelto + mermas + new <= despachado` per dispatch and product using non-annulled rows. Its
+  `a_` prefix sorts before `trg_devolucion_producto`; with no active losses it leaves the original
+  B3 bound and message in charge.
+- **Loss cancellation only through the RPC (item 4, F1).** `UPDATE` on `public.mermas` is revoked
+  from `authenticated` at table and `anulado`-column level, so cancellation requires
+  `public.anular_merma_bodega`, its reason and its dispatch-first lock.
+- **One authorization message per RPC (F5).** `registrar_merma_bodega` and `anular_merma_bodega`
+  answer a missing or foreign dispatch/loss with the same `42501` message they use for the other
+  branch/role denials, removing the RPC existence oracle.
+- **Evidence.** Local pgTAP 919/919 with `009_hu29` at 175/175 and no `SKIP`; `concurrency-hu29.py`
+  6/6, including the `--lock-only` run that fails when the new dispatch lock is removed. The
+  [hardening review](../archive/audits/2026-10-25/backend/hu29-hardening-review.md) (reviewed
+  743c3bc, integrated as 590d281) and its
+  [re-verification addendum](../archive/audits/2026-10-25/backend/hu29-hardening-review-addendum.md)
+  (reviewed 1e066dd, integrated as 91c57dc) both report PASS, and the
+  [browser verification](../archive/audits/2026-10-25/frontend/hu29/README.md) covers the `/mermas`
+  and `/cuadre-diario` flows.
+- Neither the base migration nor the hardening migration is applied remotely; `supabase db push`
+  remains behind the [deployment gate](#sources-and-deployment-gate).
+
+### Follow-ups
+
+- **LOW, test coverage.** No test fails when the role clause of the new return gate is removed; the
+  branch clause is covered.
+- **INFO, reason list.** The invisible-character blocklist is not exhaustive and still accepts
+  ZWNJ/ZWJ, U+00AD, U+3164 and U+2800 as a sole reason; the impact is limited to an already
+  authorized actor's audit text.
