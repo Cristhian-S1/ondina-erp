@@ -26,14 +26,14 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
   const navigate = useNavigate()
   const recursos = useDatosBodega(sucursalId, true)
   const jornada = useJornadaSantiago()
-  const { vendedores = [], productos = [], tiposEmpaque = [] } = recursos.data ?? {}
+  const { vendedoresHistorial = [], productos = [], tiposEmpaque = [] } = recursos.data ?? {}
   const [modalOpen, setModalOpen] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [despachoExpandido, setDespachoExpandido] = useState<string | null>(null)
   const [diaFiltro, setDiaFiltro] = useState<FiltroDia>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
-  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedores)
+  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedoresHistorial)
   const datos = { isPending: recursos.isPending || historial.isPending,
     isError: recursos.isError || historial.isError, data: recursos.data && historial.data }
   const load = () => historial.actualizar()
@@ -70,7 +70,7 @@ function DespachosSucursal({ sucursalId, setOcupado }: { sucursalId: string; set
               <span className="text-xs text-slate-600">{historial.data?.total ?? 0} registros</span>
             </div>
             <FiltrosHistorialDespachos esAdmin={perfil?.rol === 'administrador'} diaFiltro={diaFiltro}
-              fechaSeleccionada={fechaSeleccionada} vendedorFiltro={vendedorFiltro} vendedores={vendedores}
+              fechaSeleccionada={fechaSeleccionada} vendedorFiltro={vendedorFiltro} vendedores={vendedoresHistorial}
               setDiaFiltro={setDiaFiltro} setFechaSeleccionada={setFechaSeleccionada}
               setVendedorFiltro={setVendedorFiltro} setDespachoExpandido={setDespachoExpandido} />
             <HistorialDespachos pagina={historial.data} productos={productos} tiposEmpaque={tiposEmpaque}

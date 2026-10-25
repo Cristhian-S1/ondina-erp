@@ -7,6 +7,7 @@ import EstadoVista from '../../../components/EstadoVista'
 import InputNumerico from '../../../components/InputNumerico'
 import Dialog from '../../../components/Dialog'
 import { disponibleParaDevolver } from '../validacion'
+import { etiquetaVendedorHistorial } from '../vendedores'
 import AmbitoBodega from '../components/AmbitoBodega'
 import SeccionDevolucion from '../components/SeccionDevolucion'
 import CampoFormulario from '../../../components/CampoFormulario'
@@ -59,7 +60,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
 
   const recursos = useDatosBodega(sucursalId, false)
   const jornada = useJornadaSantiago()
-  const { vendedores = [], productos = [], tiposEmpaque = [], stockEnvases = [], cargaVendedor = [] } = recursos.data ?? {}
+  const { vendedoresHistorial = [], productos = [], tiposEmpaque = [], stockEnvases = [], cargaVendedor = [] } = recursos.data ?? {}
   const load = () => historial.actualizar()
 
   const detalleTitulo = useRef<HTMLHeadingElement>(null)
@@ -67,7 +68,7 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
   const [diaFiltro, setDiaFiltro] = useState<'hoy' | 'ayer' | '7d' | 'todo' | 'fecha'>('hoy')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [vendedorFiltro, setVendedorFiltro] = useState('')
-  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedores, seleccionado)
+  const historial = usePaginaBodega(sucursalId, filtrosHistorial(jornada, diaFiltro, fechaSeleccionada, vendedorFiltro), vendedoresHistorial, seleccionado)
   const datos = { isPending: recursos.isPending || historial.isPending,
     isError: recursos.isError || historial.isError, data: recursos.data && historial.data }
   const despachosFiltrados = historial.data?.despachos ?? []
@@ -366,9 +367,9 @@ function DevolucionesSucursal({ sucursalId, setOcupado }: { sucursalId: string; 
             }}
           >
             <option value="">Todos los vendedores</option>
-            {vendedores.map((v) => (
+            {vendedoresHistorial.map((v) => (
               <option key={v.id} value={v.id}>
-                {v.nombres} {v.apellidos}
+                {etiquetaVendedorHistorial(v)}
               </option>
             ))}
           </select>

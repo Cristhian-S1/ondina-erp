@@ -5,7 +5,8 @@ import { TAMANO_PAGINA, totalPaginas } from '../../../lib/paginacion'
 import { obtenerPaginaDespachos, obtenerDespacho, obtenerDetallesDespacho, obtenerEnvasesDespacho,
   obtenerDevolucionesProducto, obtenerDevolucionesEnvase } from '../api'
 import type { Despacho } from '../types'
-import type { FiltrosDespachos, VendedorSucursal } from '../api'
+import type { FiltrosDespachos, VendedorHistorial } from '../api'
+import { etiquetaVendedorHistorial } from '../vendedores'
 
 async function detalles(despachos: Despacho[]) {
   const ids = despachos.map(d => d.id)
@@ -15,7 +16,7 @@ async function detalles(despachos: Despacho[]) {
   return { despachos, despachoDetalles, despachoEnvases, desvProducto, desvEnvase }
 }
 
-export function usePaginaBodega(sucursalId: string, filtros: FiltrosDespachos, vendedores: VendedorSucursal[] = [], seleccionado = '') {
+export function usePaginaBodega(sucursalId: string, filtros: FiltrosDespachos, vendedores: VendedorHistorial[] = [], seleccionado = '') {
   const { perfil } = useAuth()
   const client = useQueryClient()
   const scope = ['bodega', perfil?.id, perfil?.rol, perfil?.sucursal_id, sucursalId]
@@ -53,7 +54,7 @@ export function usePaginaBodega(sucursalId: string, filtros: FiltrosDespachos, v
         desvEnvase: visible.desvEnvase.filter(d => d.despacho_id === seleccionado) }
     },
   })
-  const nombres = new Map(vendedores.map(v => [v.id, `${v.nombres} ${v.apellidos}`]))
+  const nombres = new Map(vendedores.map(v => [v.id, etiquetaVendedorHistorial(v)]))
   function enriquecer(datos: Awaited<ReturnType<typeof detalles>>) {
     return { ...datos, despachos: datos.despachos.map(d => {
       const referenciaVendedor = d.vendedor_id?.slice(0, 8)

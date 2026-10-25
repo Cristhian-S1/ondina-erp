@@ -2,13 +2,13 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders } from '@/test/render'
 import * as api from '../api'
-import type { VendedorSucursal } from '../api'
+import type { VendedorHistorial } from '../api'
 import { usePaginaBodega } from './usePaginaBodega'
 // Unit tests never reach Supabase; without this, importing the real client throws when VITE_* env vars are absent (CI).
 vi.mock('@/lib/supabase', () => ({ supabase: {} }))
 vi.mock('../api')
 
-function Nombres({ vendedores = [] }: { vendedores?: VendedorSucursal[] }) {
+function Nombres({ vendedores = [] }: { vendedores?: VendedorHistorial[] }) {
   const q = usePaginaBodega('suc-1', {}, vendedores, 'fuera-de-pagina')
   return <><p data-testid="lista">{q.data?.despachos[0]?.vendedorNombre}</p>
     <p data-testid="individual">{q.individual?.despachos[0]?.vendedorNombre}</p></>
@@ -18,7 +18,7 @@ it('C3-05 · resuelve vendedor activo llegado después del historial en lista y 
   vi.mocked(api.obtenerDespacho).mockResolvedValue([{ id: 'fuera-de-pagina', vendedor_id: 'v1' } as never])
   const vista = renderWithProviders(<Nombres />)
   await waitFor(() => expect(screen.getByTestId('individual')).toHaveTextContent('Vendedor no disponible'))
-  vista.rerender(<Nombres vendedores={[{ id: 'v1', nombres: 'Valentina', apellidos: 'Rojas' }]} />)
+  vista.rerender(<Nombres vendedores={[{ id: 'v1', nombres: 'Valentina', apellidos: 'Rojas', activo: true }]} />)
   expect(screen.getByTestId('lista')).toHaveTextContent('Valentina Rojas')
   expect(screen.getByTestId('individual')).toHaveTextContent('Valentina Rojas')
   vista.rerender(<Nombres />)
@@ -93,4 +93,15 @@ it.each(['56d3d7aa-vendedor', undefined])('FX5 R5-05 · etiqueta la referencia d
   await waitFor(() => expect(screen.getByTestId('individual')).toHaveTextContent(esperado))
   expect(screen.getByTestId('lista')).not.toHaveTextContent('#')
   expect(screen.getByTestId('individual')).not.toHaveTextContent('#')
+})
+
+it('R1-14 · marca como inactivo al vendedor inactivo y mantiene el respaldo para ids ausentes', async () => {
+  vi.mocked(api.obtenerPaginaDespachos).mockResolvedValue({
+    filas: [{ id: 'page-1', vendedor_id: 'v-off' } as never, { id: 'page-2', vendedor_id: 'v-ausente' } as never], total: 2 })
+  function Lista() {
+    const q = usePaginaBodega('suc-1', {}, [{ id: 'v-off', nombres: 'Bruno', apellidos: 'Soto', activo: false }])
+    return <p data-testid="lista">{q.data?.despachos.map(d => d.vendedorNombre).join('|')}</p>
+  }
+  renderWithProviders(<Lista />)
+  await waitFor(() => expect(screen.getByTestId('lista')).toHaveTextContent('Bruno Soto (inactivo)|Vendedor no disponible · ref. v-ausent'))
 })

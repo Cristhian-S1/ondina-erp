@@ -22,6 +22,7 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
     registrarDevolucion: vi.fn(),
     corregirDevolucion: vi.fn(),
     obtenerVendedores: vi.fn(),
+    obtenerVendedoresHistorial: vi.fn(),
     obtenerDespachos: vi.fn(),
     obtenerPaginaDespachos: vi.fn(),
     obtenerDespacho: vi.fn(),
@@ -113,6 +114,9 @@ beforeEach(() => {
   vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto])
   vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([empaque])
   vi.mocked(api.obtenerVendedores).mockResolvedValue([vendedor])
+  // Por defecto el historial contiene a los vendedores activos; las pruebas de inactivos lo reemplazan.
+  vi.mocked(api.obtenerVendedoresHistorial).mockImplementation(async id =>
+    (await api.obtenerVendedores(id)).map(v => ({ ...v, activo: true })))
   vi.mocked(api.obtenerDespachos).mockResolvedValue([])
   vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([])
   vi.mocked(api.obtenerEnvasesDespacho).mockResolvedValue([])
@@ -279,6 +283,16 @@ describe('B1 · aislamiento de sucursal y estados', () => {
     const vacio = await screen.findByText(/No hay despachos para el día y vendedor seleccionados/)
     expect(vacio.closest('[role="status"]')).not.toBeNull()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('R1-14 · nombra al vendedor inactivo en el historial y el filtro de devoluciones', async () => {
+    vi.mocked(api.obtenerVendedoresHistorial).mockResolvedValue([
+      { id: 'user-1', nombres: 'Bruno', apellidos: 'Soto', activo: false }, { ...vendedor, id: 'user-2', activo: true }])
+    vi.mocked(api.obtenerDespachos).mockResolvedValue([makeDespachoHoy()])
+    renderWithProviders(<Devoluciones />)
+    const fila = await screen.findByRole('button', { name: /Bruno Soto \(inactivo\)/ })
+    expect(fila).not.toHaveTextContent('Vendedor no disponible')
+    expect(within(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).getByRole('option', { name: 'Bruno Soto (inactivo)' })).toBeInTheDocument()
   })
 
   it('identifica un despacho cuyo vendedor ya no está disponible', async () => {

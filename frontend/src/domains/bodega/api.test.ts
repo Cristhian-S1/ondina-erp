@@ -86,12 +86,36 @@ import {
   obtenerStockBodega,
   obtenerStockEnvases,
   obtenerVendedores,
+  obtenerVendedoresHistorial,
   registrarDevolucion,
   registrarDevolucionEnvases,
   registrarDevolucionProductos,
 } from './api'
 
 beforeEach(() => mock.reset())
+
+describe('R1-14 · obtenerVendedoresHistorial', () => {
+  it('retorna lista vacía sin sucursal y no consulta la BD', async () => {
+    expect(await obtenerVendedoresHistorial(undefined)).toEqual([])
+    expect(mock.rpcSpy).not.toHaveBeenCalledWith('vendedores_historial_sucursal', expect.anything())
+  })
+
+  it('llama al RPC histórico acotado y conserva la bandera activo', async () => {
+    const filas = [
+      { id: 'u-1', nombres: 'Ana', apellidos: 'Pérez', activo: true },
+      { id: 'u-2', nombres: 'Bruno', apellidos: 'Soto', activo: false },
+    ]
+    mock.setRpcData(filas)
+    expect(await obtenerVendedoresHistorial('suc-1')).toEqual(filas)
+    expect(mock.rpcSpy).toHaveBeenCalledWith('vendedores_historial_sucursal', { p_sucursal_id: 'suc-1' })
+    expect(mock.supabase.from).not.toHaveBeenCalledWith('perfiles')
+  })
+
+  it('traduce el error sin revelar el detalle', async () => {
+    mock.setRpcError({ message: 'private SQL detail' })
+    await expect(obtenerVendedoresHistorial('suc-1')).rejects.toThrow('No fue posible cargar los vendedores. Inténtalo de nuevo.')
+  })
+})
 
 describe('HU-13 · obtenerVendedores', () => {
   it('retorna lista vacía sin sucursal y no consulta la BD', async () => {

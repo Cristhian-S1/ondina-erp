@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { FiltroDia, RecursosDespacho } from './despachos.types'
 import InputFecha from '../../../components/InputFecha'
+import { etiquetaVendedorHistorial } from '../vendedores'
 
 const OPCIONES_DIA: Array<[FiltroDia, string]> = [
   ['hoy', 'Hoy'],
@@ -14,7 +15,7 @@ interface Props {
   diaFiltro: FiltroDia
   fechaSeleccionada: string
   vendedorFiltro: string
-  vendedores: RecursosDespacho['vendedores']
+  vendedores: RecursosDespacho['vendedoresHistorial']
   setDiaFiltro: Dispatch<SetStateAction<FiltroDia>>
   setFechaSeleccionada: (valor: string) => void
   setVendedorFiltro: (valor: string) => void
@@ -73,7 +74,7 @@ export default function FiltrosHistorialDespachos({ esAdmin, diaFiltro, fechaSel
         <option value="">Todos los vendedores</option>
         {vendedores.map((v) => (
           <option key={v.id} value={v.id}>
-            {v.nombres} {v.apellidos}
+            {etiquetaVendedorHistorial(v)}
           </option>
         ))}
       </select>

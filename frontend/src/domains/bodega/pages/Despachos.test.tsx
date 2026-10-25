@@ -20,6 +20,7 @@ vi.mock('@/domains/bodega/api', async (importOriginal) => {
   return {
     ...actual,
     obtenerVendedores: vi.fn(),
+    obtenerVendedoresHistorial: vi.fn(),
     obtenerDespachos: vi.fn(),
     obtenerPaginaDespachos: vi.fn(),
     obtenerDespacho: vi.fn(),
@@ -142,6 +143,9 @@ beforeEach(() => {
   vi.mocked(catalog.obtenerProductos).mockResolvedValue([producto])
   vi.mocked(catalog.obtenerTiposEmpaque).mockResolvedValue([])
   vi.mocked(api.obtenerVendedores).mockResolvedValue([vendedor])
+  // Por defecto el historial contiene a los vendedores activos; las pruebas de inactivos lo reemplazan.
+  vi.mocked(api.obtenerVendedoresHistorial).mockImplementation(async id =>
+    (await api.obtenerVendedores(id)).map(v => ({ ...v, activo: true })))
   vi.mocked(api.obtenerDespachos).mockResolvedValue([])
   vi.mocked(api.obtenerDetallesDespacho).mockResolvedValue([])
   vi.mocked(api.obtenerEnvasesDespacho).mockResolvedValue([])
@@ -185,6 +189,20 @@ describe('HU-13 · Despachos', () => {
     })
     expect(screen.getByText('5 unid.')).toBeInTheDocument()
   })
+})
+
+it('R1-14 · nombra al vendedor inactivo en el historial y el filtro, pero no en Nuevo despacho', async () => {
+  const inactivo = { id: 'user-off', nombres: 'Bruno', apellidos: 'Soto' }
+  vi.mocked(api.obtenerVendedoresHistorial).mockResolvedValue([{ ...inactivo, activo: false }, { ...vendedor, activo: true }])
+  vi.mocked(api.obtenerDespachos).mockResolvedValue([{ ...makeDespachoHoy(), vendedor_id: 'user-off' }])
+  renderWithProviders(<Despachos />)
+  const fila = await screen.findByRole('button', { name: /Bruno Soto \(inactivo\)/ })
+  expect(fila).not.toHaveTextContent('Vendedor no disponible')
+  expect(within(screen.getByRole('combobox', { name: 'Filtrar por vendedor' })).getByRole('option', { name: 'Bruno Soto (inactivo)' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Nuevo despacho' }))
+  const selector = screen.getByLabelText('Vendedor')
+  expect(within(selector).getByRole('option', { name: 'Ana López' })).toBeInTheDocument()
+  expect(within(selector).queryByRole('option', { name: /Bruno/ })).not.toBeInTheDocument()
 })
 
 describe('HU-13 · Nuevo despacho', () => {

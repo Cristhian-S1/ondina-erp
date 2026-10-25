@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { obtenerProductos, obtenerTiposEmpaque } from '../../../lib/catalog'
 import {
-  obtenerVendedores, obtenerStockBodega, obtenerStockEnvases,
+  obtenerVendedores, obtenerVendedoresHistorial, obtenerStockBodega, obtenerStockEnvases,
   obtenerCargaVendedores,
 } from '../api'
 import { useAuth } from '../../../context/auth-context'
@@ -14,13 +14,14 @@ export function useDatosBodega(sucursalId: string, incluirStock: boolean) {
     retry: false,
     staleTime: 30_000,
     queryFn: async () => {
-      const [vendedores, productos, tiposEmpaque, stockBodega, stockEnvases] = await Promise.all([
-        obtenerVendedores(sucursalId), obtenerProductos(true), obtenerTiposEmpaque(),
+      const [vendedores, vendedoresHistorial, productos, tiposEmpaque, stockBodega, stockEnvases] = await Promise.all([
+        obtenerVendedores(sucursalId), obtenerVendedoresHistorial(sucursalId), obtenerProductos(true), obtenerTiposEmpaque(),
         incluirStock ? obtenerStockBodega(sucursalId) : Promise.resolve([]),
         obtenerStockEnvases(sucursalId),
       ])
       const cargaVendedor = await obtenerCargaVendedores(vendedores.map(v => v.id))
-      return { vendedores, productos, tiposEmpaque, stockBodega, stockEnvases, cargaVendedor }
+      // `vendedores` (solo activos) alimenta el selector de nuevo despacho; `vendedoresHistorial`, nombres y filtros del historial.
+      return { vendedores, vendedoresHistorial, productos, tiposEmpaque, stockBodega, stockEnvases, cargaVendedor }
     },
   })
 }

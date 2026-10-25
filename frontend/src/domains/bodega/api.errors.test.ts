@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { crearDespacho, corregirDevolucion, registrarDevolucionProductos, registrarDevolucionEnvases } from './api'
-import { obtenerVendedores, obtenerDespachos, obtenerDetallesDespacho, obtenerEnvasesDespacho, obtenerDevolucionesProducto, obtenerDevolucionesEnvase, obtenerStockBodega, obtenerStockEnvases, obtenerCargaVendedores } from './api'
+import { obtenerVendedores, obtenerVendedoresHistorial, obtenerDespachos, obtenerDetallesDespacho, obtenerEnvasesDespacho, obtenerDevolucionesProducto, obtenerDevolucionesEnvase, obtenerStockBodega, obtenerStockEnvases, obtenerCargaVendedores } from './api'
 
 const mock = vi.hoisted(() => {
   let error: unknown = null
@@ -50,6 +50,7 @@ describe.each(escrituras)('REV-4 · %s', (_nombre, escribir) => {
 
 const lecturas = [
   ['vendedores', () => obtenerVendedores('s-1')],
+  ['vendedores históricos', () => obtenerVendedoresHistorial('s-1')],
   ['despachos', () => obtenerDespachos('s-1')],
   ['detalles', () => obtenerDetallesDespacho(['d-1'])],
   ['envases', () => obtenerEnvasesDespacho(['d-1'])],

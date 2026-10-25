@@ -61,6 +61,21 @@ export async function obtenerVendedores(sucursalId?: string): Promise<VendedorSu
   }
 }
 
+// Plantilla histórica: incluye vendedores inactivos con su bandera `activo`. Solo para nombrar
+// despachos y devoluciones pasados; el selector de nuevo despacho sigue usando obtenerVendedores.
+export type VendedorHistorial = Pick<Perfil, 'id' | 'nombres' | 'apellidos' | 'activo'>
+
+export async function obtenerVendedoresHistorial(sucursalId?: string): Promise<VendedorHistorial[]> {
+  try {
+    if (!sucursalId) return []
+    const { data, error } = await supabase.rpc('vendedores_historial_sucursal', { p_sucursal_id: sucursalId })
+    if (error) throw new Error('No fue posible cargar los vendedores. Inténtalo de nuevo.')
+    return data ?? []
+  } catch (error: unknown) {
+    throw new Error(mensajeErrorSupabase(error), { cause: error })
+  }
+}
+
 export async function obtenerDespachos(sucursalId?: string): Promise<Despacho[]> {
   try {
     if (!sucursalId) return []
