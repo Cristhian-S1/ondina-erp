@@ -1751,6 +1751,14 @@ export type Database = {
       }
     }
     Functions: {
+      ajustar_despacho: {
+        Args: {
+          p_despacho_id: string
+          p_idempotency_key: string
+          p_lineas: Json
+        }
+        Returns: Json
+      }
       contar_ventas_jornada: {
         Args: { p_vendedor_id: string }
         Returns: number
