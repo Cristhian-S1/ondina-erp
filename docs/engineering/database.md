@@ -188,3 +188,13 @@ and the remote gates are in [reconciliation](../../supabase/reconciliation.md#b6
 - **RB-6, non-concurrent index creation.** The B1, B3 and B4 indexes use plain `CREATE INDEX`, which blocks writes
   while it builds. Acceptable at the measured remote volume (38 sales and 16 dispatches on 2026-10-13). Larger volumes
   need `CREATE INDEX CONCURRENTLY` outside a transaction, run as separate statements.
+
+## Adjustment window configuration — 2026-10-25
+
+- Migration `20261025175810_hu26_ventana_ajuste.sql` adds the CASE-ordered
+  `configuracion_ventana_ajuste_minutos_rango` CHECK, which keeps `ventana_ajuste_minutos` at whole
+  minutes 5–60, and `public.ventana_ajuste_despacho()`, which returns the configured minutes (default 15)
+  and server clock only to active bodega/administrador callers
+  ([migration](../../supabase/migrations/20261025175810_hu26_ventana_ajuste.sql)).
+- The migration VALIDATEs the constraint, so the remote value must be a conforming whole number before
+  `supabase db push`; it was `'15'` on 2026-10-25.

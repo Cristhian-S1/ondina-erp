@@ -51,7 +51,7 @@ Las historias detallan actores y aceptación; el estado de implementación se co
 | RNF-12 | Identificación del responsable | Cada registro deberá almacenar el usuario responsable de su creación o modificación. | Auditoría |
 | RNF-13 | Historial de modificaciones | El sistema deberá conservar un historial de los cambios realizados sobre los registros. | Auditoría |
 | RNF-14 | Registros no eliminables | Los movimientos operacionales no deberán eliminarse definitivamente; deberán anularse o corregirse dejando trazabilidad. | Integridad |
-| RNF-15 | Ventana de ajuste | Los despachos solo podrán ajustarse durante un periodo máximo configurable de entre 10 y 20 minutos. | Integridad |
+| RNF-15 | Ventana de ajuste | Los despachos solo podrán ajustarse durante un periodo configurable de 15 minutos por defecto; el cliente sugirió entre 10 y 20 y la base de datos acepta minutos enteros entre 5 y 60. Decisión 2026-10-25. | Integridad |
 | RNF-16 | Incorporación de usuarios | El sistema deberá permitir agregar nuevos usuarios. | Escalabilidad |
 | RNF-17 | Crecimiento de operaciones | El sistema deberá soportar el aumento progresivo de ventas, clientes, productos y registros históricos. | Escalabilidad |
 | RNF-18 | Copias de seguridad | El sistema deberá realizar copias de seguridad automáticas de la información almacenada. | Respaldo |
