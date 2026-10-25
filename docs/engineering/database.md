@@ -157,8 +157,11 @@ and the remote gates are in [reconciliation](../../supabase/reconciliation.md#b6
   stays `void`.
 - **Profiles (RB-15).** `perfiles` rows are visible only to their owner and to branch administration. Bodega no
   longer reads seller `rut` or `telefono`; it lists active sellers of its branch through `vendedores_sucursal(p_sucursal_id)`,
-  which returns only `id`, `nombres` and `apellidos`. Column grants cannot express "own row only", so the restriction is
-  row-level. Policies that checked a seller as the caller now use `private.es_vendedor_activo(id, sucursal_id)`.
+  which returns only `id`, `nombres` and `apellidos`. History screens use `vendedores_historial_sucursal(p_sucursal_id)`
+  ([migration](../../supabase/migrations/20261025163734_r1_14_vendedores_historial.sql)), which returns active and
+  inactive sellers of the branch with only `id`, `nombres`, `apellidos` and `activo`, behind the same gate;
+  `vendedores_sucursal` stays the source for new dispatches. Column grants cannot express "own row only", so the
+  restriction is row-level. Policies that checked a seller as the caller now use `private.es_vendedor_activo(id, sucursal_id)`.
 - **Client sellers (RB-16).** A client INSERT requires the seller to be an active `vendedor` of the same branch.
   The branch match was already enforced by `clientes_vendedor_id_sucursal_id_fkey`. The baseline grants no UPDATE on
   `clientes` and defines no UPDATE policy, so the check guards INSERT; any future UPDATE policy must repeat it.
