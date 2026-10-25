@@ -52,6 +52,34 @@ Separate operational work: verified Supabase backups and recovery (#41; the inte
 
 Never place service-role keys, private credentials or copied tokens in frontend variables or Markdown. The `build` job fails when `frontend/dist` contains the strings `service_role` or `SUPABASE_SERVICE`.
 
+## Release receipts and versioned rollback
+
+Every successful publishing job (automatic development, manual development and production) writes an identifier-only `release-receipt.json` to the Actions job summary and uploads it as the `release-receipt` artifact. Open **Actions → the publishing run → Summary** to read it or download the artifact. Artifact availability follows repository retention; retain the receipt with authorized release evidence before expiry. A publication that fails before returning a validated deployment URL has no successful receipt; inspect the job outcome as well as the summary.
+
+The exact JSON fields are `application_sha`, `workflow_sha`, `ref`, `workflow_ref`, `environment`, `run_id`, `run_attempt`, `deployment_url`, `published_at`, `build_commit_sha` and `build_version` (all strings). `application_sha` is the full checked-out, verified application commit; `workflow_sha` identifies the workflow run's commit and may differ during manual redeploys. `ref` records the requested application ref (or the push ref); `workflow_ref` records the workflow run ref. The immutable `deployment_url` is returned by the Vercel deploy command, rather than the production alias. `published_at` is receipt creation time in UTC after the deploy command succeeds.
+
+Before uploading source, publication checks the application SHA and the checked-out Vite version expression. It explicitly supplies that SHA as both `VERCEL_GIT_COMMIT_SHA` and `GITHUB_SHA` to the remote build, overriding workflow/provider defaults. `build_commit_sha` records that input and `build_version` its first seven characters, matching `__APP_VERSION__`. A historical commit with a different version expression fails before publication and requires review. These fields describe the enforced source build metadata contract; they do not attest a downloaded bundle or a promoted CI artifact. A changed provider build command/configuration still needs separate verification. Receipts contain no tokens, configuration values or environment dumps.
+
+Dry example (placeholder identifiers only):
+
+```json
+{
+  "application_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "workflow_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "workflow_ref": "refs/heads/main",
+  "environment": "development",
+  "run_id": "123456789",
+  "run_attempt": "1",
+  "deployment_url": "https://example-release.vercel.app",
+  "published_at": "2026-10-25T12:00:00Z",
+  "build_commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "build_version": "aaaaaaa"
+}
+```
+
+For an authorized rollback, find the earlier successful publishing run and its receipt, confirm its environment and full `application_sha`, then use that SHA as `-f ref` in the manual command above while selecting trusted workflow code with `--ref main`. Canonical exact-SHA CI evidence must still be available and successful. Compare the new run's receipt against the selected application SHA, environment and version; its workflow SHA, run identifiers, timestamp and deployment URL can differ. Check the published UI version and perform the release sequence's read-only checks; retain both receipts and results. No rollback exercise is claimed by this procedure. Security coupling, digest-bound artifact promotion and an authorized gate/rollback exercise remain separate work.
+
 ## Bundle budget
 
 `frontend/scripts/check-bundle-size.mjs` (run with `npm run size`, after `npm run build`) reads the entry script and stylesheet from `dist/index.html` and measures three values: entry JS gzip, entry CSS gzip and the largest JS chunk uncompressed. It compares each value with `frontend/bundle-budget.json` and exits 1 on regression.

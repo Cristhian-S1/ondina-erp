@@ -132,9 +132,70 @@ jobs:
       - name: Setup Vercel CLI
         run: npm install -g vercel@63.1.2
 
-      - name: Deploy a Vercel (ambiente de producción)
-        run: vercel --prod --yes
+      - name: Deploy a Vercel (production)
+        id: publish
         env:
+          EXPECTED_SHA: ${{ needs.verify.outputs.sha }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          set -euo pipefail
+          application_sha="$(git rev-parse HEAD)"
+          test "$application_sha" = "$EXPECTED_SHA"
+          [[ "$application_sha" =~ ^[0-9a-f]{40}$ ]]
+          # Fail closed if a historical checkout uses a different version contract.
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const config = readFileSync('frontend/vite.config.ts', 'utf8').replace(/\s/g, '');
+          assert.ok(config.includes("__APP_VERSION__:JSON.stringify((process.env.VERCEL_GIT_COMMIT_SHA??process.env.GITHUB_SHA??'dev').slice(0,7))"),
+            'Unsupported build version metadata contract; review this application SHA before publication');
+          NODE
+          # Override provider/workflow defaults, including on a manual rollback.
+          deployment_url="$(vercel --prod --yes --token="$VERCEL_TOKEN" \
+            --build-env "VERCEL_GIT_COMMIT_SHA=$application_sha" \
+            --build-env "GITHUB_SHA=$application_sha")"
+          # Keep only the immutable URL returned on stdout, never CLI diagnostics.
+          [[ "$deployment_url" =~ ^https://[a-zA-Z0-9.-]+\.vercel\.app$ ]]
+          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Record release receipt
+        env:
+          APPLICATION_SHA: ${{ needs.verify.outputs.sha }}
+          APPLICATION_REF: ${{ inputs.ref || github.ref }}
+          RELEASE_ENVIRONMENT: production
+          DEPLOYMENT_URL: ${{ steps.publish.outputs.deployment_url }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APPLICATION_SHA"
+          # Vite derives __APP_VERSION__ from the explicitly supplied build SHA.
+          build_version="${APPLICATION_SHA:0:7}"
+          jq -n \
+            --arg application_sha "$APPLICATION_SHA" \
+            --arg workflow_sha "$GITHUB_SHA" \
+            --arg ref "$APPLICATION_REF" \
+            --arg workflow_ref "$GITHUB_REF" \
+            --arg environment "$RELEASE_ENVIRONMENT" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg deployment_url "$DEPLOYMENT_URL" \
+            --arg published_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg build_commit_sha "$APPLICATION_SHA" \
+            --arg build_version "$build_version" \
+            '$ARGS.named' > "$RUNNER_TEMP/release-receipt.json"
+          {
+            echo '### Published application release receipt'
+            echo "Application SHA: $APPLICATION_SHA"
+            echo "Workflow SHA: $GITHUB_SHA"
+            echo '```json'
+            cat "$RUNNER_TEMP/release-receipt.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload release receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-receipt
+          path: ${{ runner.temp }}/release-receipt.json
+          if-no-files-found: error
