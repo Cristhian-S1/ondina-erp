@@ -1,0 +1,94 @@
+{
+  "generatedAt": "2026-10-25T16:59:58.955Z",
+  "base": "http://127.0.0.1:5191",
+  "supabaseOrigin": "http://127.0.0.1:54321",
+  "results": [
+    {
+      "scenario": "despachos-con-historial",
+      "viewport": "412x915",
+      "checks": {
+        "filtro": [
+          "Todos los vendedores",
+          "Valentina Rojas",
+          "Bruno Soto (inactivo)"
+        ],
+        "historial": "Últimos despachos 2 registros Hoy Todos los vendedores Valentina Rojas Bruno Soto (inactivo) VR Valentina Rojas 25-10-2026 13:59 · Despacho #11111111 12 unid. ▼ BS Bruno Soto (inactivo) 25-10-2026 13:59 · Despacho #22222222 12 unid. ▼ 2 registros",
+        "modalVendedores": [
+          "Selecciona un vendedor...",
+          "Valentina Rojas"
+        ]
+      },
+      "failures": []
+    },
+    {
+      "scenario": "devoluciones-con-historial",
+      "viewport": "412x915",
+      "checks": {
+        "filtro": [
+          "Todos los vendedores",
+          "Valentina Rojas",
+          "Bruno Soto (inactivo)"
+        ],
+        "historial": "Despachos Selecciona uno para registrar la devolución Valentina Rojas Pendiente 25-10-2026 13:59 · Despacho #11111111 · 12 unid. Bruno Soto (inactivo) Pendiente 25-10-2026 13:59 · Despacho #22222222 · 12 unid. 2 registros"
+      },
+      "failures": []
+    },
+    {
+      "scenario": "historial-sin-rpc",
+      "viewport": "412x915",
+      "checks": {
+        "alertas": [],
+        "historial": "Últimos despachos 2 registros Hoy Todos los vendedores Valentina Rojas VR Valentina Rojas 25-10-2026 13:59 · Despacho #11111111 12 unid. ▼ ? Vendedor no disponible · ref. 99999999 25-10-2026 13:59 · Despacho #33333333 12 unid. ▼ 2 registros",
+        "filtro": [
+          "Todos los vendedores",
+          "Valentina Rojas"
+        ]
+      },
+      "failures": []
+    },
+    {
+      "scenario": "despachos-con-historial",
+      "viewport": "1280x800",
+      "checks": {
+        "filtro": [
+          "Todos los vendedores",
+          "Valentina Rojas",
+          "Bruno Soto (inactivo)"
+        ],
+        "historial": "Últimos despachos 2 registros Hoy Todos los vendedores Valentina Rojas Bruno Soto (inactivo) VR Valentina Rojas 25-10-2026 13:59 · Despacho #11111111 12 unid. ▼ BS Bruno Soto (inactivo) 25-10-2026 13:59 · Despacho #22222222 12 unid. ▼ 2 registros",
+        "modalVendedores": [
+          "Selecciona un vendedor...",
+          "Valentina Rojas"
+        ]
+      },
+      "failures": []
+    },
+    {
+      "scenario": "devoluciones-con-historial",
+      "viewport": "1280x800",
+      "checks": {
+        "filtro": [
+          "Todos los vendedores",
+          "Valentina Rojas",
+          "Bruno Soto (inactivo)"
+        ],
+        "historial": "Despachos Selecciona uno para registrar la devolución Valentina Rojas Pendiente 25-10-2026 13:59 · Despacho #11111111 · 12 unid. Bruno Soto (inactivo) Pendiente 25-10-2026 13:59 · Despacho #22222222 · 12 unid. 2 registros"
+      },
+      "failures": []
+    },
+    {
+      "scenario": "historial-sin-rpc",
+      "viewport": "1280x800",
+      "checks": {
+        "alertas": [],
+        "historial": "Últimos despachos 2 registros Hoy Todos los vendedores Valentina Rojas VR Valentina Rojas 25-10-2026 13:59 · Despacho #11111111 12 unid. ▼ ? Vendedor no disponible · ref. 99999999 25-10-2026 13:59 · Despacho #33333333 12 unid. ▼ 2 registros",
+        "filtro": [
+          "Todos los vendedores",
+          "Valentina Rojas"
+        ]
+      },
+      "failures": []
+    }
+  ],
+  "failures": []
+}
